@@ -3,7 +3,7 @@ import BookCover from "@/components/ui/BookCover";
 import UnderlineCard from "@/components/features/UnderlineCard";
 import type { Underline } from "@/types";
 
-const MOCK_BOOK = { id: "b2", kakao_id: "k2", title: "데미안", author: "헤르만 헤세", publisher: "민음사" };
+const MOCK_BOOK = { id: "b2", kakao_id: "k2", title: "데미안", author: "헤르만 헤세", publisher: "민음사", cover_url: "" };
 
 const MOCK_UNDERLINES: Underline[] = [
   {
