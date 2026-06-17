@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import HeroIllustration from "@/components/ui/HeroIllustration";
+import BottomNav from "@/components/ui/BottomNav";
 
 const SAMPLE_QUOTES = [
   { text: "나는 꿈을 꾸었다. 내가 짐승이 된 꿈이었다. 그건 아무렇지도 않았다.", book: "채식주의자", author: "한강" },
@@ -90,6 +91,7 @@ export default async function LandingPage() {
           )}
         </div>
       </main>
+      <BottomNav />
     </div>
   );
 }
