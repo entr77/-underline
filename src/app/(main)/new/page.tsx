@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Alert from "@/components/ui/Alert";
 import Link from "next/link";
 import Image from "next/image";
 import BookSearchInput, { type KakaoBook } from "@/components/features/BookSearchInput";
@@ -174,11 +175,7 @@ export default function NewUnderlinePage() {
       <div className="flex flex-col h-full space-y-5">
         <h1 className="font-serif text-xl text-[var(--color-ink)]">밑줄 기록</h1>
 
-        {error && (
-          <div className="px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">
-            {error}
-          </div>
-        )}
+        {error && <Alert variant="error">{error}</Alert>}
 
         <label className="flex-1 min-h-[300px] border-2 border-dashed border-[var(--color-border)] rounded-2xl flex flex-col items-center justify-center gap-4 bg-white cursor-pointer hover:border-[var(--color-forest)] transition-colors">
           <input
@@ -341,7 +338,7 @@ export default function NewUnderlinePage() {
         )}
 
         {error && (
-          <div className="px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">{error}</div>
+          {error && <Alert variant="error">{error}</Alert>}
         )}
 
         <button

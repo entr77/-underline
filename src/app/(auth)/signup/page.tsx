@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useActionState } from "react";
 import { signUpWithEmailAction, signInWithGoogleAction } from "@/app/actions/auth-form";
+import Alert from "@/components/ui/Alert";
 
 type State = { error?: string } | null;
 
@@ -34,11 +35,7 @@ export default function SignupPage() {
           <p className="text-sm text-[var(--color-ink-muted)]">당신이 멈춘 문장부터 시작해요</p>
         </div>
 
-        {state?.error && (
-          <div className="px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">
-            {state.error}
-          </div>
-        )}
+        {state?.error && <Alert variant="error">{state.error}</Alert>}
 
         <form action={formAction} className="contents">
           <div className="space-y-3">

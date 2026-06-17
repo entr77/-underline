@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState } from "react";
 import { signInWithEmailAction, signInWithGoogleAction } from "@/app/actions/auth-form";
+import Alert from "@/components/ui/Alert";
 
 type State = { error?: string } | null;
 
@@ -24,11 +25,7 @@ export default function LoginPage() {
           <p className="text-sm text-[var(--color-ink-muted)]">밑줄 친 문장들이 그대로 있어요</p>
         </div>
 
-        {state?.error && (
-          <div className="px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-600">
-            {state.error}
-          </div>
-        )}
+        {state?.error && <Alert variant="error">{state.error}</Alert>}
 
         <form action={formAction} className="space-y-3">
           <div>
