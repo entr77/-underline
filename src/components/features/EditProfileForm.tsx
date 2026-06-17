@@ -6,6 +6,12 @@ import Alert from "@/components/ui/Alert";
 
 const AVAILABLE_TAGS = ["소설", "철학", "에세이", "심리학", "역사", "과학", "경제", "자기계발", "시", "고전"];
 
+const OCCUPATIONS = [
+  "개발자", "디자이너", "기획자", "마케터",
+  "작가/편집자", "연구자", "교사/교수", "의사/의료인",
+  "경영자/사업가", "학생", "예술가", "기타",
+];
+
 type Props = {
   bio: string;
   occupation: string;
@@ -14,6 +20,7 @@ type Props = {
 
 export default function EditProfileForm({ bio, occupation, tags }: Props) {
   const [open, setOpen] = useState(false);
+  const [selectedOccupation, setSelectedOccupation] = useState(occupation);
   const [state, action, pending] = useActionState(updateProfile, null);
 
   if (state?.success && open) setOpen(false);
@@ -31,14 +38,9 @@ export default function EditProfileForm({ bio, occupation, tags }: Props) {
 
   return (
     <>
-      {/* backdrop */}
-      <div
-        className="fixed inset-0 z-20 bg-black/30"
-        onClick={() => setOpen(false)}
-      />
+      <div className="fixed inset-0 z-20 bg-black/30" onClick={() => setOpen(false)} />
 
-      {/* sheet */}
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 z-30 w-full max-w-[430px] bg-[var(--color-cream)] rounded-t-2xl px-5 pt-5 pb-8 shadow-xl">
+      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 z-30 w-full max-w-[430px] bg-[var(--color-cream)] rounded-t-2xl px-5 pt-5 pb-8 shadow-xl max-h-[85dvh] overflow-y-auto">
         <div className="flex items-center justify-between mb-5">
           <h2 className="font-semibold text-[var(--color-ink)]">프로필 편집</h2>
           <button
@@ -51,17 +53,30 @@ export default function EditProfileForm({ bio, occupation, tags }: Props) {
           </button>
         </div>
 
-        <form action={action} className="space-y-4">
+        <form action={action} className="space-y-5">
+          {/* 직업 */}
           <div>
-            <label className="block text-xs font-medium text-[var(--color-ink-muted)] mb-1.5">직업</label>
-            <input
-              name="occupation"
-              defaultValue={occupation}
-              placeholder="예: 개발자, 디자이너, 교사..."
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--color-border)] bg-white text-sm text-[var(--color-ink)] placeholder:text-[var(--color-ink-faint)] focus:outline-none focus:ring-1 focus:ring-[var(--color-forest)]"
-            />
+            <label className="block text-xs font-medium text-[var(--color-ink-muted)] mb-2">직업</label>
+            <input type="hidden" name="occupation" value={selectedOccupation} />
+            <div className="flex flex-wrap gap-2">
+              {OCCUPATIONS.map((occ) => (
+                <button
+                  key={occ}
+                  type="button"
+                  onClick={() => setSelectedOccupation(occ === selectedOccupation ? "" : occ)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                    selectedOccupation === occ
+                      ? "bg-[var(--color-forest)] text-white border-[var(--color-forest)]"
+                      : "bg-white text-[var(--color-ink-muted)] border-[var(--color-border)] hover:border-[var(--color-forest)] hover:text-[var(--color-forest)]"
+                  }`}
+                >
+                  {occ}
+                </button>
+              ))}
+            </div>
           </div>
 
+          {/* 자기소개 */}
           <div>
             <label className="block text-xs font-medium text-[var(--color-ink-muted)] mb-1.5">자기소개</label>
             <textarea
@@ -73,6 +88,7 @@ export default function EditProfileForm({ bio, occupation, tags }: Props) {
             />
           </div>
 
+          {/* 태그 */}
           <div>
             <label className="block text-xs font-medium text-[var(--color-ink-muted)] mb-2">주로 읽는 것들</label>
             <div className="flex flex-wrap gap-2">
