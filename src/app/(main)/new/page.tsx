@@ -177,19 +177,14 @@ export default function NewUnderlinePage() {
           </div>
         )}
 
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          className="hidden"
-          onChange={handleFileChange}
-        />
-
-        <div
-          className="flex-1 min-h-[300px] border-2 border-dashed border-[var(--color-border)] rounded-2xl flex flex-col items-center justify-center gap-4 bg-white cursor-pointer hover:border-[var(--color-forest)] transition-colors"
-          onClick={() => fileInputRef.current?.click()}
-        >
+        <label className="flex-1 min-h-[300px] border-2 border-dashed border-[var(--color-border)] rounded-2xl flex flex-col items-center justify-center gap-4 bg-white cursor-pointer hover:border-[var(--color-forest)] transition-colors">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFileChange}
+          />
           <div className="w-14 h-14 rounded-full bg-[var(--color-cream-dark)] flex items-center justify-center">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--color-forest)" strokeWidth="1.5" strokeLinecap="round">
               <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
@@ -200,7 +195,7 @@ export default function NewUnderlinePage() {
             <p className="font-medium text-[var(--color-ink)]">책 페이지 사진 찍기</p>
             <p className="text-sm text-[var(--color-ink-faint)] mt-1">또는 갤러리에서 선택</p>
           </div>
-        </div>
+        </label>
         <p className="text-xs text-center text-[var(--color-ink-faint)]">
           밑줄 친 부분이 잘 보이도록 평평하게 펴서 찍어주세요
         </p>
