@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import UnderlineCard from "@/components/features/UnderlineCard";
 import TagBadge from "@/components/ui/TagBadge";
+import EditProfileForm from "@/components/features/EditProfileForm";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/actions/auth";
 import type { Underline } from "@/types";
@@ -13,6 +14,7 @@ type ProfileUser = {
   id: string;
   username: string;
   bio: string | undefined;
+  occupation: string | undefined;
   tags: string[];
   avatar_url: string | undefined;
 };
@@ -39,6 +41,7 @@ const MOCK_PROFILE_USER: ProfileUser = {
   id: "u2",
   username: "minhyuk.b",
   bio: "읽고, 밑줄 긋고, 생각합니다.",
+  occupation: "개발자",
   tags: ["철학", "성장소설", "고전", "에세이"],
   avatar_url: undefined,
 };
@@ -83,7 +86,7 @@ export default async function ProfilePage({ params }: Props) {
 
     const { data: rawUserData, error: userError } = await supabase
       .from("users")
-      .select("id, username, bio, avatar_url, tags")
+      .select("id, username, bio, occupation, avatar_url, tags")
       .eq("username", username)
       .single();
 
@@ -91,6 +94,7 @@ export default async function ProfilePage({ params }: Props) {
       id: string;
       username: string;
       bio: string | null;
+      occupation: string | null;
       avatar_url: string | null;
       tags: string[];
     } | null;
@@ -112,6 +116,7 @@ export default async function ProfilePage({ params }: Props) {
         id: userData.id,
         username: userData.username,
         bio: userData.bio ?? undefined,
+        occupation: userData.occupation ?? undefined,
         tags: userData.tags ?? [],
         avatar_url: userData.avatar_url ?? undefined,
       };
@@ -198,23 +203,35 @@ export default async function ProfilePage({ params }: Props) {
           <div className="flex-1 min-w-0 pt-1">
             <div className="flex items-center justify-between gap-2">
               <h1 className="font-semibold text-lg text-[var(--color-ink)]">{profileUser.username}</h1>
-              {isOwnProfile ? (
-                <form action={signOut}>
-                  <button
-                    type="submit"
-                    className="flex-shrink-0 px-3 py-1.5 rounded-full border border-[var(--color-border)] text-[var(--color-ink-faint)] text-xs font-medium hover:border-red-300 hover:text-red-400 transition-colors"
-                  >
-                    로그아웃
+              <div className="flex items-center gap-2">
+                {isOwnProfile ? (
+                  <>
+                    <EditProfileForm
+                      bio={profileUser.bio ?? ""}
+                      occupation={profileUser.occupation ?? ""}
+                      tags={profileUser.tags ?? []}
+                    />
+                    <form action={signOut}>
+                      <button
+                        type="submit"
+                        className="flex-shrink-0 px-3 py-1.5 rounded-full border border-[var(--color-border)] text-[var(--color-ink-faint)] text-xs font-medium hover:border-red-300 hover:text-red-400 transition-colors"
+                      >
+                        로그아웃
+                      </button>
+                    </form>
+                  </>
+                ) : (
+                  <button className="flex-shrink-0 px-3 py-1.5 rounded-full border border-[var(--color-forest)] text-[var(--color-forest)] text-xs font-medium hover:bg-[var(--color-forest)] hover:text-white transition-colors">
+                    팔로우
                   </button>
-                </form>
-              ) : (
-                <button className="flex-shrink-0 px-3 py-1.5 rounded-full border border-[var(--color-forest)] text-[var(--color-forest)] text-xs font-medium hover:bg-[var(--color-forest)] hover:text-white transition-colors">
-                  팔로우
-                </button>
-              )}
+                )}
+              </div>
             </div>
+            {profileUser.occupation && (
+              <p className="text-xs text-[var(--color-forest)] font-medium mt-1">{profileUser.occupation}</p>
+            )}
             {profileUser.bio && (
-              <p className="text-sm text-[var(--color-ink-muted)] mt-1 leading-relaxed">{profileUser.bio}</p>
+              <p className="text-sm text-[var(--color-ink-muted)] mt-0.5 leading-relaxed">{profileUser.bio}</p>
             )}
           </div>
         </div>
