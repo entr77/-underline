@@ -68,13 +68,13 @@ export default async function LandingPage() {
             href="/signup"
             className="block w-full py-4 rounded-2xl bg-[var(--color-forest)] text-white text-center font-medium tracking-wide hover:bg-[var(--color-forest-light)] transition-colors"
           >
-            첫 밑줄 긋기
+            시작하기
           </Link>
           <Link
             href="/login"
             className="block w-full py-4 rounded-2xl border border-[var(--color-border)] text-[var(--color-ink-muted)] text-center font-medium hover:border-[var(--color-forest)] hover:text-[var(--color-forest)] transition-colors"
           >
-            다시 읽으러
+            로그인
           </Link>
         </div>
       </main>
