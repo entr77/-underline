@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import HeroIllustration from "@/components/ui/HeroIllustration";
@@ -18,9 +17,6 @@ const HOW_IT_WORKS = [
 export default async function LandingPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-
-  // 로그인된 사용자는 피드로
-  if (user) redirect("/feed");
 
   return (
     <div className="min-h-dvh bg-[var(--color-cream)] flex flex-col max-w-[430px] mx-auto w-full">
@@ -69,18 +65,29 @@ export default async function LandingPage() {
         </section>
 
         <div className="space-y-3 pb-12">
-          <Link
-            href="/signup"
-            className="block w-full py-4 rounded-2xl bg-[var(--color-forest)] text-white text-center font-medium tracking-wide hover:bg-[var(--color-forest-light)] transition-colors"
-          >
-            시작하기
-          </Link>
-          <Link
-            href="/login"
-            className="block w-full py-4 rounded-2xl border border-[var(--color-border)] text-[var(--color-ink-muted)] text-center font-medium hover:border-[var(--color-forest)] hover:text-[var(--color-forest)] transition-colors"
-          >
-            로그인
-          </Link>
+          {user ? (
+            <Link
+              href="/feed"
+              className="block w-full py-4 rounded-2xl bg-[var(--color-forest)] text-white text-center font-medium tracking-wide hover:bg-[var(--color-forest-light)] transition-colors"
+            >
+              피드 보러 가기
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/signup"
+                className="block w-full py-4 rounded-2xl bg-[var(--color-forest)] text-white text-center font-medium tracking-wide hover:bg-[var(--color-forest-light)] transition-colors"
+              >
+                시작하기
+              </Link>
+              <Link
+                href="/login"
+                className="block w-full py-4 rounded-2xl border border-[var(--color-border)] text-[var(--color-ink-muted)] text-center font-medium hover:border-[var(--color-forest)] hover:text-[var(--color-forest)] transition-colors"
+              >
+                로그인
+              </Link>
+            </>
+          )}
         </div>
       </main>
     </div>
