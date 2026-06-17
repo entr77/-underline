@@ -94,7 +94,8 @@ GOOGLE_CLOUD_VISION_API_KEY=
 - **Designer** 작업 완료 시: UI/UX 설계 페이지 업데이트 필수
 - **DB 스키마 변경** 시: DB 스키마 페이지 업데이트 필수
 - **기술 스택 변경** 시: 기술 스택 & 아키텍처 페이지 업데이트 필수
-- Confluence API: `curl -u "entr.kim@gmail.com:{TOKEN}" https://underline2026.atlassian.net/wiki/rest/api/content`
+- Confluence API: `curl -u "entr.kim@gmail.com:$CONFLUENCE_API_TOKEN" https://underline2026.atlassian.net/wiki/rest/api/content`
+- 토큰은 `.env.local`의 `CONFLUENCE_API_TOKEN` 참조
 
 ### Confluence 페이지 ID
 | 페이지 | ID |
