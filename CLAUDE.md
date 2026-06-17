@@ -2,6 +2,7 @@
 @.claude/memory/MEMORY.md
 @.claude/docs/prd.md
 @.claude/docs/ux-design.md
+@.claude/docs/dev-routine.md
 
 # 밑줄 (Underline) 프로젝트
 
