@@ -104,12 +104,14 @@ export default async function FeedPage() {
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("underlines")
-      .select(`*, user:users(*), book:books(*)`)
+      .select(`*, user:users!underlines_user_id_fkey(*), book:books(*)`)
       .eq("is_public", true)
       .order("created_at", { ascending: false })
       .limit(20);
 
     if (error || !data || data.length === 0) {
+      if (error) console.error("[feed] supabase error:", error);
+      else console.log("[feed] underlines empty, using mock");
       usingMock = true;
       feed = MOCK_FEED;
     } else {

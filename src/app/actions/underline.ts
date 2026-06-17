@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 
 type CreateUnderlineData = {
@@ -31,8 +30,7 @@ export async function createUnderline(data: CreateUnderlineData) {
     return { error: "로그인이 필요합니다." };
   }
 
-  // Use admin client (typed as any to work around strict Supabase generic inference)
-  const adminClient: AnyClient = await createAdminClient();
+  const adminClient: AnyClient = createAdminClient();
 
   // 1. Upsert book by kakao_id
   const bookResult = await adminClient
@@ -79,7 +77,6 @@ export async function createUnderline(data: CreateUnderlineData) {
 
   const underlineId = (underlineResult.data as { id: string }).id;
 
-  // 3. Revalidate feed and redirect to detail
-  revalidatePath("/");
-  redirect(`/underline/${underlineId}`);
+  revalidatePath("/feed");
+  return { id: underlineId };
 }

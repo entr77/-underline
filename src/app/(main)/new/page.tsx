@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import BookSearchInput, { type KakaoBook } from "@/components/features/BookSearchInput";
@@ -50,6 +51,7 @@ function StepIndicator({ current }: { current: Step }) {
 }
 
 export default function NewUnderlinePage() {
+  const router = useRouter();
   const [step, setStep] = useState<Step>("upload");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -146,9 +148,10 @@ export default function NewUnderlinePage() {
         imageUrl,
       });
 
-      if (result && "id" in result) {
-        setSavedId(result.id as string);
-        setStep("done");
+      if (result && "error" in result) {
+        setError(result.error as string);
+      } else if (result && "id" in result) {
+        router.push(`/underline/${result.id}`);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "저장 중 오류가 발생했어요");

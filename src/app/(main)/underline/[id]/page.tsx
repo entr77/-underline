@@ -76,7 +76,7 @@ export default async function UnderlineDetailPage({ params }: Props) {
 
     const { data, error } = await supabase
       .from("underlines")
-      .select(`*, user:users(*), book:books(*)`)
+      .select(`*, user:users!underlines_user_id_fkey(*), book:books(*)`)
       .eq("id", id)
       .single();
 
@@ -182,7 +182,7 @@ export default async function UnderlineDetailPage({ params }: Props) {
         <div className="text-xs text-center text-[var(--color-ink-faint)] italic">미리보기 데이터</div>
       )}
 
-      <Link href="/" className="flex items-center gap-1.5 text-sm text-[var(--color-ink-faint)] hover:text-[var(--color-ink)] transition-colors w-fit">
+      <Link href="/feed" className="flex items-center gap-1.5 text-sm text-[var(--color-ink-faint)] hover:text-[var(--color-ink)] transition-colors w-fit">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
         피드로
       </Link>
