@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import HeroIllustration from "@/components/ui/HeroIllustration";
 
 const SAMPLE_QUOTES = [
   { text: "나는 꿈을 꾸었다. 내가 짐승이 된 꿈이었다. 그건 아무렇지도 않았다.", book: "채식주의자", author: "한강" },
@@ -36,6 +37,10 @@ export default async function LandingPage() {
           <p className="text-[var(--color-ink-muted)] text-sm leading-relaxed">
             사진 한 장으로 기록하고,<br />같은 자리에서 멈춘 사람들을 만납니다.
           </p>
+        </section>
+
+        <section className="mb-8">
+          <HeroIllustration />
         </section>
 
         <section className="mb-8 space-y-3">
