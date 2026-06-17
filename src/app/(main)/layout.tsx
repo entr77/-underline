@@ -1,5 +1,6 @@
 import Link from "next/link";
 import HeaderAction from "@/components/ui/HeaderAction";
+import BottomNav from "@/components/ui/BottomNav";
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -11,6 +12,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         <HeaderAction />
       </header>
       <main className="flex-1 px-4 py-5">{children}</main>
+      <BottomNav />
     </div>
   );
 }

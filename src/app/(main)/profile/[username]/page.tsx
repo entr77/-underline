@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import UnderlineCard from "@/components/features/UnderlineCard";
 import TagBadge from "@/components/ui/TagBadge";
 import { createClient } from "@/lib/supabase/server";
+import { signOut } from "@/app/actions/auth";
 import type { Underline } from "@/types";
 
 type Props = {
@@ -197,9 +198,20 @@ export default async function ProfilePage({ params }: Props) {
           <div className="flex-1 min-w-0 pt-1">
             <div className="flex items-center justify-between gap-2">
               <h1 className="font-semibold text-lg text-[var(--color-ink)]">{profileUser.username}</h1>
-              <button className="flex-shrink-0 px-3 py-1.5 rounded-full border border-[var(--color-forest)] text-[var(--color-forest)] text-xs font-medium hover:bg-[var(--color-forest)] hover:text-white transition-colors">
-                팔로우
-              </button>
+              {isOwnProfile ? (
+                <form action={signOut}>
+                  <button
+                    type="submit"
+                    className="flex-shrink-0 px-3 py-1.5 rounded-full border border-[var(--color-border)] text-[var(--color-ink-faint)] text-xs font-medium hover:border-red-300 hover:text-red-400 transition-colors"
+                  >
+                    로그아웃
+                  </button>
+                </form>
+              ) : (
+                <button className="flex-shrink-0 px-3 py-1.5 rounded-full border border-[var(--color-forest)] text-[var(--color-forest)] text-xs font-medium hover:bg-[var(--color-forest)] hover:text-white transition-colors">
+                  팔로우
+                </button>
+              )}
             </div>
             {profileUser.bio && (
               <p className="text-sm text-[var(--color-ink-muted)] mt-1 leading-relaxed">{profileUser.bio}</p>
