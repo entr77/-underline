@@ -1,4 +1,6 @@
+import { redirect } from "next/navigation";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 
 const SAMPLE_QUOTES = [
   { text: "나는 꿈을 꾸었다. 내가 짐승이 된 꿈이었다. 그건 아무렇지도 않았다.", book: "채식주의자", author: "한강" },
@@ -12,7 +14,13 @@ const HOW_IT_WORKS = [
   { icon: "◎", label: "공유", desc: "같이 멈춘 사람 발견" },
 ];
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // 로그인된 사용자는 피드로
+  if (user) redirect("/feed");
+
   return (
     <div className="min-h-dvh bg-[var(--color-cream)] flex flex-col max-w-[430px] mx-auto w-full">
       <header className="px-5 h-14 flex items-center">
@@ -39,16 +47,8 @@ export default function LandingPage() {
                 </div>
                 <p className="text-xs font-medium text-[var(--color-ink)]">{s.label}</p>
                 <p className="text-[10px] text-[var(--color-ink-faint)] text-center leading-tight">{s.desc}</p>
-                {i < HOW_IT_WORKS.length - 1 && (
-                  <div className="absolute" />
-                )}
               </div>
             ))}
-          </div>
-          <div className="flex items-center mt-3 px-5">
-            <div className="flex-1 h-px bg-[var(--color-border)]" />
-            <svg className="mx-2 text-[var(--color-border)]" width="8" height="8" viewBox="0 0 8 8"><path d="M0 4h8M5 1l3 3-3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none"/></svg>
-            <div className="flex-1 h-px bg-[var(--color-border)]" />
           </div>
         </section>
 

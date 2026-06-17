@@ -17,7 +17,7 @@ export async function signInWithEmail(formData: FormData) {
   }
 
   revalidatePath("/", "layout");
-  redirect("/");
+  redirect("/feed");
 }
 
 export async function signUpWithEmail(formData: FormData) {
@@ -40,7 +40,7 @@ export async function signUpWithEmail(formData: FormData) {
   }
 
   revalidatePath("/", "layout");
-  redirect("/");
+  redirect("/feed");
 }
 
 export async function signInWithGoogle() {
@@ -64,5 +64,5 @@ export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
   revalidatePath("/", "layout");
-  redirect("/");
+  redirect("/feed");
 }

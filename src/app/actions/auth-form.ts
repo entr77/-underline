@@ -27,7 +27,7 @@ export async function signInWithEmailAction(
   }
 
   revalidatePath("/", "layout");
-  redirect("/");
+  redirect("/feed");
 }
 
 /**
@@ -57,7 +57,7 @@ export async function signUpWithEmailAction(
   }
 
   revalidatePath("/", "layout");
-  redirect("/");
+  redirect("/feed");
 }
 
 /**

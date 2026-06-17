@@ -32,7 +32,7 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  const protectedRoutes = ["/new", "/settings", "/onboarding"];
+  const protectedRoutes = ["/new", "/settings", "/onboarding", "/feed"];
   const authRoutes = ["/login", "/signup"];
 
   if (!user && protectedRoutes.some((r) => pathname.startsWith(r))) {
@@ -40,7 +40,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (user && authRoutes.includes(pathname)) {
-    return NextResponse.redirect(new URL("/", request.url));
+    return NextResponse.redirect(new URL("/feed", request.url));
   }
 
   return supabaseResponse;
