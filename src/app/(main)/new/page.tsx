@@ -337,9 +337,7 @@ export default function NewUnderlinePage() {
           </div>
         )}
 
-        {error && (
-          {error && <Alert variant="error">{error}</Alert>}
-        )}
+        {error && <Alert variant="error">{error}</Alert>}
 
         <button
           onClick={handleSave}
