@@ -1,4 +1,5 @@
 import UnderlineCard from "@/components/features/UnderlineCard";
+import { createClient } from "@/lib/supabase/server";
 import type { Underline } from "@/types";
 
 const MOCK_FEED: Underline[] = [
@@ -35,26 +36,97 @@ const MOCK_FEED: Underline[] = [
     is_liked: false,
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
   },
-  {
-    id: "4",
-    user: { id: "u4", username: "bookworm_k" },
-    book: { id: "b4", kakao_id: "k4", title: "82년생 김지영", author: "조남주", cover_url: "" },
-    content: "평범한 삶을 살았는데 어느 날 갑자기 이상해졌다. 아니면 처음부터 이상했는데 이제야 알았거나.",
-    page_number: 201,
-    is_public: true,
-    like_count: 56,
-    is_liked: false,
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(),
-  },
 ];
 
 const FILTER_TAGS = ["전체", "소설", "철학", "에세이", "고전", "심리학"];
 
-export default function FeedPage() {
+type SupabaseUnderlineRow = {
+  id: string;
+  content: string;
+  page_number: number | null;
+  image_url: string | null;
+  is_public: boolean;
+  like_count: number;
+  created_at: string;
+  user: {
+    id: string;
+    username: string;
+    bio: string | null;
+    avatar_url: string | null;
+    tags: string[];
+  } | null;
+  book: {
+    id: string;
+    kakao_id: string;
+    title: string;
+    author: string;
+    publisher: string | null;
+    cover_url: string | null;
+  } | null;
+};
+
+function rowToUnderline(row: SupabaseUnderlineRow): Underline {
+  return {
+    id: row.id,
+    content: row.content,
+    page_number: row.page_number ?? undefined,
+    image_url: row.image_url ?? undefined,
+    is_public: row.is_public,
+    like_count: row.like_count,
+    created_at: row.created_at,
+    user: row.user
+      ? {
+          id: row.user.id,
+          username: row.user.username,
+          bio: row.user.bio ?? undefined,
+          avatar_url: row.user.avatar_url ?? undefined,
+          tags: row.user.tags ?? [],
+        }
+      : { id: "unknown", username: "알 수 없음" },
+    book: row.book
+      ? {
+          id: row.book.id,
+          kakao_id: row.book.kakao_id,
+          title: row.book.title,
+          author: row.book.author,
+          publisher: row.book.publisher ?? undefined,
+          cover_url: row.book.cover_url ?? undefined,
+        }
+      : { id: "unknown", kakao_id: "", title: "알 수 없는 책", author: "" },
+  };
+}
+
+export default async function FeedPage() {
+  let feed: Underline[] = [];
+  let usingMock = false;
+
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("underlines")
+      .select(`*, user:users(*), book:books(*)`)
+      .eq("is_public", true)
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    if (error || !data || data.length === 0) {
+      usingMock = true;
+      feed = MOCK_FEED;
+    } else {
+      feed = (data as unknown as SupabaseUnderlineRow[]).map(rowToUnderline);
+    }
+  } catch {
+    usingMock = true;
+    feed = MOCK_FEED;
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xs tracking-widest text-[var(--color-ink-faint)] uppercase">오늘의 밑줄</h2>
+        {usingMock && (
+          <span className="text-xs text-[var(--color-ink-faint)] italic">미리보기</span>
+        )}
       </div>
 
       <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-none">
@@ -72,9 +144,16 @@ export default function FeedPage() {
         ))}
       </div>
 
-      {MOCK_FEED.map((u) => (
-        <UnderlineCard key={u.id} underline={u} />
-      ))}
+      {feed.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 gap-3">
+          <p className="text-[var(--color-ink-muted)]">아직 밑줄이 없어요</p>
+          <p className="text-sm text-[var(--color-ink-faint)]">첫 밑줄을 남겨보세요</p>
+        </div>
+      ) : (
+        feed.map((u) => (
+          <UnderlineCard key={u.id} underline={u} />
+        ))
+      )}
     </div>
   );
 }
