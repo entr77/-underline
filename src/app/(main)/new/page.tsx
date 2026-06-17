@@ -15,6 +15,7 @@ type Step = "upload" | "processing" | "book" | "select" | "done";
 
 type AnalyzeResult = {
   fullText: string;
+  blocks?: { text: string; boundingBox: { x: number; y: number; width: number; height: number } }[];
   detectedUnderlineRanges: { start: number; end: number }[];
   pageNumber: string | null;
   headerText?: string;
@@ -104,29 +105,31 @@ export default function NewUnderlinePage() {
           setSelectedText(data.fullText.slice(start, end).trim());
         }
 
-        // 헤더 텍스트로 책 자동검색
-        if (data.headerText && data.headerText.length > 1) {
-          try {
-            const bookRes = await fetch(
-              `/api/books/search?query=${encodeURIComponent(data.headerText)}&size=1`
-            );
-            if (bookRes.ok) {
-              const bookData = await bookRes.json();
-              if (bookData.documents?.[0]) {
-                const doc = bookData.documents[0];
-                setBook({
-                  id: "",
-                  kakao_id: doc.isbn || doc.title,
-                  title: doc.title,
-                  author: doc.authors?.join(", ") ?? "",
-                  publisher: doc.publisher ?? "",
-                  cover_url: doc.thumbnail ?? "",
-                });
-              }
+        // 다중 전략으로 책 자동 식별
+        try {
+          const identifyRes = await fetch("/api/books/identify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              fullText: data.fullText,
+              blocks: data.blocks ?? [],
+            }),
+          });
+          if (identifyRes.ok) {
+            const { book: doc } = await identifyRes.json();
+            if (doc) {
+              setBook({
+                id: "",
+                kakao_id: doc.isbn || doc.title,
+                title: doc.title,
+                author: doc.authors?.join(", ") ?? "",
+                publisher: doc.publisher ?? "",
+                cover_url: doc.thumbnail ?? "",
+              });
             }
-          } catch {
-            // 자동검색 실패 시 무시 — 수동 검색으로 진행
           }
+        } catch {
+          // 자동검색 실패 시 무시 — 수동 검색으로 진행
         }
       }
 
