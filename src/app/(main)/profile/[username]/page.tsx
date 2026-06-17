@@ -75,6 +75,7 @@ export default async function ProfilePage({ params }: Props) {
   let totalLikes = 0;
   let uniqueBookCount = 0;
   let usingMock = false;
+  let isOwnProfile = false;
 
   try {
     const supabase = await createClient();
@@ -92,6 +93,8 @@ export default async function ProfilePage({ params }: Props) {
       avatar_url: string | null;
       tags: string[];
     } | null;
+
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
 
     if (userError || !userData) {
       if (username === MOCK_PROFILE_USER.username) {
@@ -111,6 +114,7 @@ export default async function ProfilePage({ params }: Props) {
         tags: userData.tags ?? [],
         avatar_url: userData.avatar_url ?? undefined,
       };
+      isOwnProfile = currentUser?.id === userData.id;
 
       const { data: ulData } = await supabase
         .from("underlines")
@@ -214,25 +218,27 @@ export default async function ProfilePage({ params }: Props) {
         <div className="flex gap-6 mt-4 pt-4 border-t border-[var(--color-border)]">
           <div className="text-center">
             <p className="font-semibold text-[var(--color-ink)]">{underlines.length}</p>
-            <p className="text-xs text-[var(--color-ink-faint)]">기록</p>
+            <p className="text-xs text-[var(--color-ink-faint)]">멈춘 문장</p>
           </div>
           <div className="text-center">
             <p className="font-semibold text-[var(--color-ink)]">{totalLikes}</p>
-            <p className="text-xs text-[var(--color-ink-faint)]">공감</p>
+            <p className="text-xs text-[var(--color-ink-faint)]">같이 멈춘</p>
           </div>
           <div className="text-center">
             <p className="font-semibold text-[var(--color-ink)]">{uniqueBookCount}</p>
-            <p className="text-xs text-[var(--color-ink-faint)]">읽은 책</p>
+            <p className="text-xs text-[var(--color-ink-faint)]">펼친 책</p>
           </div>
         </div>
       </div>
 
       <div>
-        <h2 className="text-xs tracking-widest text-[var(--color-ink-faint)] uppercase mb-3">남긴 문장들</h2>
+        <h2 className="text-xs tracking-widest text-[var(--color-ink-faint)] uppercase mb-3">
+          {isOwnProfile ? "내가 멈춘 문장들" : "이 사람이 멈춘 문장들"}
+        </h2>
         {underlines.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 gap-2 bg-white rounded-2xl border border-[var(--color-border)]">
-            <p className="text-[var(--color-ink-muted)]">아직 밑줄이 없어요</p>
-            <p className="text-sm text-[var(--color-ink-faint)]">첫 밑줄을 남겨보세요</p>
+            <p className="text-[var(--color-ink-muted)]">아직 아무도 멈추지 않았어요</p>
+            <p className="text-sm text-[var(--color-ink-faint)]">당신이 멈춘 문장이 첫 번째가 될 수 있어요</p>
           </div>
         ) : (
           <div className="space-y-4">

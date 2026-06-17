@@ -219,7 +219,7 @@ export default async function UnderlineDetailPage({ params }: Props) {
 
       {displayedSympathizers.length > 0 && (
         <section>
-          <h3 className="text-xs tracking-widest text-[var(--color-ink-faint)] uppercase mb-3">같이 멈춘 사람들</h3>
+          <h3 className="text-xs tracking-widest text-[var(--color-ink-faint)] uppercase mb-3">여기서 같이 멈췄어요</h3>
           <div className="bg-white rounded-2xl p-5 border border-[var(--color-border)]">
             <div className="flex items-center gap-1 mb-4">
               {displayedSympathizers.map((u) => (
@@ -235,7 +235,7 @@ export default async function UnderlineDetailPage({ params }: Props) {
             </div>
             {displayedCommonTags.length > 0 && (
               <div className="flex flex-wrap gap-2">
-                <span className="text-xs text-[var(--color-ink-muted)] mr-1">공통 취향</span>
+                <span className="text-xs text-[var(--color-ink-muted)] mr-1">닮은 독자</span>
                 {displayedCommonTags.map((tag) => (
                   <TagBadge key={tag} label={tag} />
                 ))}
@@ -247,7 +247,7 @@ export default async function UnderlineDetailPage({ params }: Props) {
 
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-xs tracking-widest text-[var(--color-ink-faint)] uppercase">같은 책의 다른 밑줄</h3>
+          <h3 className="text-xs tracking-widest text-[var(--color-ink-faint)] uppercase">같은 책, 다른 문장에서 멈춘 곳</h3>
           <Link href={`/book/${underline.book.id}`} className="text-xs text-[var(--color-forest)] hover:underline">
             책 전체 보기
           </Link>

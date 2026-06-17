@@ -57,7 +57,7 @@ export default function NewUnderlinePage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [analyzeResult, setAnalyzeResult] = useState<AnalyzeResult | null>(null);
-  const [processingMsg, setProcessingMsg] = useState("문장을 읽는 중이에요");
+  const [processingMsg, setProcessingMsg] = useState("페이지 위의 문자들을 읽고 있어요");
   const [book, setBook] = useState<Book | null>(null);
   const [pageNumber, setPageNumber] = useState("");
   const [selectedText, setSelectedText] = useState("");
@@ -71,10 +71,10 @@ export default function NewUnderlinePage() {
     setError(null);
 
     try {
-      setProcessingMsg("문장을 읽는 중이에요");
+      setProcessingMsg("페이지 위의 문자들을 읽고 있어요");
       const base64 = await imageFileToBase64(file);
 
-      const msgs = ["밑줄을 찾고 있어요", "책 정보를 확인하는 중이에요"];
+      const msgs = ["당신이 멈춘 자리를 찾고 있어요", "이 문장이 어느 책에서 왔는지 확인해요"];
       let msgIdx = 0;
       const msgTimer = setInterval(() => {
         msgIdx = (msgIdx + 1) % msgs.length;

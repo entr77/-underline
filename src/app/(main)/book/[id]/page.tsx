@@ -128,7 +128,7 @@ export default async function BookDetailPage({ params }: Props) {
 
       {pageEntries.length > 0 && (
         <div className="bg-white rounded-2xl p-4 border border-[var(--color-border)]">
-          <p className="text-xs text-[var(--color-ink-faint)] mb-3">많이 밑줄 친 페이지</p>
+          <p className="text-xs text-[var(--color-ink-faint)] mb-3">독자들이 가장 많이 멈춘 페이지</p>
           <div className="flex gap-1 items-end h-8">
             {pageEntries.map((e) => (
               <div
@@ -146,10 +146,11 @@ export default async function BookDetailPage({ params }: Props) {
       )}
 
       <div>
-        <h2 className="text-xs tracking-widest text-[var(--color-ink-faint)] uppercase mb-3">모든 밑줄</h2>
+        <h2 className="text-xs tracking-widest text-[var(--color-ink-faint)] uppercase mb-3">이 책을 읽은 사람들의 문장</h2>
         {underlines.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 gap-2 bg-white rounded-2xl border border-[var(--color-border)]">
-            <p className="text-[var(--color-ink-muted)]">아직 밑줄이 없어요</p>
+            <p className="text-[var(--color-ink-muted)]">아직 아무도 이 책을 펼치지 않았어요</p>
+            <p className="text-sm text-[var(--color-ink-faint)]">당신이 멈춘 문장이 이 책의 첫 기록이 돼요</p>
           </div>
         ) : (
           <div className="space-y-4">

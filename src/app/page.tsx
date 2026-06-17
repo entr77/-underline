@@ -9,9 +9,9 @@ const SAMPLE_QUOTES = [
 ];
 
 const HOW_IT_WORKS = [
-  { icon: "📸", label: "찍기", desc: "책 페이지를 사진으로" },
-  { icon: "✦", label: "인식", desc: "밑줄 자동 감지" },
-  { icon: "◎", label: "공유", desc: "같이 멈춘 사람 발견" },
+  { icon: "📸", label: "펼쳐두고, 찍어요", desc: "사진 한 장으로 문장과 책 정보를 읽어요" },
+  { icon: "✦", label: "밑줄이 떠올라요", desc: "어디에 밑줄 그었는지 자동으로 감지해요" },
+  { icon: "◎", label: "같이 멈춘 사람을 만나요", desc: "같은 문장에서 멈춘 독자들과 연결돼요" },
 ];
 
 export default async function LandingPage() {
@@ -38,18 +38,18 @@ export default async function LandingPage() {
           </p>
         </section>
 
-        <section className="mb-8">
-          <div className="flex items-center gap-2">
-            {HOW_IT_WORKS.map((s, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-1.5">
-                <div className="w-10 h-10 rounded-full bg-white border border-[var(--color-border)] flex items-center justify-center text-lg">
-                  {s.icon}
-                </div>
-                <p className="text-xs font-medium text-[var(--color-ink)]">{s.label}</p>
-                <p className="text-[10px] text-[var(--color-ink-faint)] text-center leading-tight">{s.desc}</p>
+        <section className="mb-8 space-y-3">
+          {HOW_IT_WORKS.map((s, i) => (
+            <div key={i} className="flex items-center gap-4 bg-white rounded-2xl px-4 py-3.5 border border-[var(--color-border)]">
+              <div className="w-9 h-9 rounded-full bg-[var(--color-cream)] border border-[var(--color-border)] flex items-center justify-center text-base flex-shrink-0">
+                {s.icon}
               </div>
-            ))}
-          </div>
+              <div>
+                <p className="text-sm font-medium text-[var(--color-ink)]">{s.label}</p>
+                <p className="text-xs text-[var(--color-ink-faint)] mt-0.5 leading-relaxed">{s.desc}</p>
+              </div>
+            </div>
+          ))}
         </section>
 
         <section className="space-y-3 mb-8">

@@ -125,7 +125,7 @@ export default async function FeedPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xs tracking-widest text-[var(--color-ink-faint)] uppercase">오늘의 밑줄</h2>
+        <h2 className="text-xs tracking-widest text-[var(--color-ink-faint)] uppercase">지금 누군가의 밑줄</h2>
         {usingMock && (
           <span className="text-xs text-[var(--color-ink-faint)] italic">미리보기</span>
         )}
@@ -148,8 +148,8 @@ export default async function FeedPage() {
 
       {feed.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3">
-          <p className="text-[var(--color-ink-muted)]">아직 밑줄이 없어요</p>
-          <p className="text-sm text-[var(--color-ink-faint)]">첫 밑줄을 남겨보세요</p>
+          <p className="text-[var(--color-ink-muted)]">아직 아무도 멈추지 않았어요</p>
+          <p className="text-sm text-[var(--color-ink-faint)]">당신이 멈춘 문장이 첫 번째가 될 수 있어요</p>
         </div>
       ) : (
         feed.map((u) => (
