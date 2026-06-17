@@ -10,6 +10,7 @@ type AnalyzeResult = {
   blocks: TextBlock[];
   detectedUnderlineRanges: { start: number; end: number }[];
   pageNumber: string | null;
+  headerText: string;
 };
 
 export async function POST(request: Request) {
@@ -101,6 +102,13 @@ export async function POST(request: Request) {
     return red > 180 && green > 180 && blue < 100 && c.score > 0.05;
   });
 
+  // 상단 헤더 텍스트 추출: 이미지 상위 20% 영역의 텍스트 (보통 책 제목/챕터명)
+  const pageHeight = fullAnnotation?.pages?.[0]?.height ?? 1000;
+  const headerBlocks = blocks
+    .filter((b) => b.boundingBox.y < pageHeight * 0.2)
+    .sort((a, b) => a.boundingBox.y - b.boundingBox.y);
+  const headerText = headerBlocks.map((b) => b.text).join(" ").trim();
+
   // 페이지 번호 감지: 숫자만 있는 짧은 텍스트 블록 탐색
   const pageNumberPattern = /^\d{1,4}$/;
   let pageNumber: string | null = null;
@@ -126,6 +134,7 @@ export async function POST(request: Request) {
     blocks,
     detectedUnderlineRanges,
     pageNumber,
+    headerText,
   };
 
   return NextResponse.json(result);

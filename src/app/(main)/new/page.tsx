@@ -17,6 +17,7 @@ type AnalyzeResult = {
   fullText: string;
   detectedUnderlineRanges: { start: number; end: number }[];
   pageNumber: string | null;
+  headerText?: string;
 };
 
 const STEP_LABELS = ["사진", "인식", "책", "밑줄"];
@@ -101,6 +102,31 @@ export default function NewUnderlinePage() {
         if (data.fullText && data.detectedUnderlineRanges.length > 0) {
           const { start, end } = data.detectedUnderlineRanges[0];
           setSelectedText(data.fullText.slice(start, end).trim());
+        }
+
+        // 헤더 텍스트로 책 자동검색
+        if (data.headerText && data.headerText.length > 1) {
+          try {
+            const bookRes = await fetch(
+              `/api/books/search?query=${encodeURIComponent(data.headerText)}&size=1`
+            );
+            if (bookRes.ok) {
+              const bookData = await bookRes.json();
+              if (bookData.documents?.[0]) {
+                const doc = bookData.documents[0];
+                setBook({
+                  id: "",
+                  kakao_id: doc.isbn || doc.title,
+                  title: doc.title,
+                  author: doc.authors?.join(", ") ?? "",
+                  publisher: doc.publisher ?? "",
+                  cover_url: doc.thumbnail ?? "",
+                });
+              }
+            }
+          } catch {
+            // 자동검색 실패 시 무시 — 수동 검색으로 진행
+          }
         }
       }
 
