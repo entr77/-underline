@@ -84,19 +84,22 @@ export class BookAnalyzer {
 
   private async tryClaudeText(fullText: string): Promise<BookResult> {
     const message = await this.client.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 100,
+      model: "claude-sonnet-4-6",
+      max_tokens: 150,
       messages: [
         {
           role: "user",
-          content: `다음은 한국 책의 한 페이지 본문입니다.
-이 텍스트가 어느 책인지 알려주세요.
-책 제목이 본문에 없어도 등장인물·주제·문체·특정 표현을 근거로 추측 가능합니다.
-확신 없어도 가능성이 가장 높은 답 하나를 제시해주세요. 전혀 모르겠으면 null.
-JSON만 반환: {"title": "책 제목", "author": "저자명"}
+          content: `다음은 책의 한 페이지 본문입니다. 어느 책인지 알려주세요.
 
-텍스트:
-${fullText.slice(0, 800)}`,
+단서:
+- 등장인물, 고유명사, 전문 용어, 문체, 특정 개념어
+- 번역서라면 원제·역자명도 고려해 한국어 제목으로 답하세요
+- 확신이 없어도 가능성이 가장 높은 책 하나를 제시하세요 (전혀 알 수 없으면 null)
+
+JSON만 반환: {"title": "한국어 책 제목", "author": "저자명 (한국어 표기)"}
+
+본문:
+${fullText.slice(0, 1200)}`,
         },
       ],
     });
@@ -119,7 +122,7 @@ ${fullText.slice(0, 800)}`,
 
   private async tryClaudeImage(image: ImageInput): Promise<BookResult> {
     const message = await this.client.messages.create({
-      model: "claude-haiku-4-5-20251001",
+      model: "claude-sonnet-4-6",
       max_tokens: 150,
       messages: [
         {
@@ -131,7 +134,14 @@ ${fullText.slice(0, 800)}`,
             },
             {
               type: "text",
-              text: `이 책 페이지에서 책 제목과 저자를 찾아주세요. JSON만 반환: {"title": "...", "author": "..."}`,
+              text: `이 책 페이지 이미지를 분석해주세요.
+
+확인할 것:
+1. 페이지 상단(헤더)이나 하단(푸터)에 인쇄된 책 제목 또는 챕터명
+2. 본문 내용·문체·고유명사·개념으로 책 추측
+
+한국어 책 제목과 저자명으로 답하세요. 확신 없어도 가장 가능성 높은 것을 제시하세요.
+JSON만 반환: {"title": "책 제목", "author": "저자명"}`,
             },
           ],
         },

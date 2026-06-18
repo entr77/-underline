@@ -11,13 +11,19 @@ type RawOcr = {
 };
 
 // OCR 전용 프롬프트 — 밑줄 감지 제외로 집중도 향상
-const OCR_PROMPT = `이 책 페이지의 텍스트를 OCR하세요. JSON만 반환하고 다른 텍스트는 출력하지 마세요.
+const OCR_PROMPT = `이 책 페이지를 정확하게 OCR하세요. JSON만 반환하고 다른 텍스트는 출력하지 마세요.
+
+규칙:
+- fullText: 인쇄된 본문 텍스트 전체를 원문 그대로. 줄바꿈은 \\n. 손글씨·낙서 제외
+- headerText: 페이지 최상단의 작은 텍스트 (한국 책은 보통 짝수 페이지=책 제목, 홀수 페이지=챕터명). 없으면 ""
+- footerText: 페이지 최하단의 작은 텍스트 (제목·챕터명, 페이지 번호 제외). 없으면 ""
+- pageNumber: 페이지 번호 숫자만 문자열로. 없으면 null
 
 {
-  "fullText": "인쇄된 전체 텍스트 (\\n으로 줄바꿈, 손글씨 메모 제외)",
-  "pageNumber": "페이지 번호 숫자 문자열 또는 null",
-  "headerText": "페이지 최상단 줄 — 챕터명·책 제목·저자 등. 없으면 빈 문자열",
-  "footerText": "페이지 최하단 줄 — 책 제목·챕터명 등. 없으면 빈 문자열"
+  "fullText": "...",
+  "pageNumber": "75",
+  "headerText": "부자 아빠 가난한 아빠",
+  "footerText": ""
 }`;
 
 export class VisionOrchestrator {
@@ -67,7 +73,7 @@ export class VisionOrchestrator {
   private async extractOcr(image: ImageInput): Promise<RawOcr> {
     const client = getAnthropicClient();
     const message = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
+      model: "claude-sonnet-4-6",
       max_tokens: 2048,
       messages: [
         {

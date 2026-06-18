@@ -15,8 +15,6 @@ const BASE_PROMPT = `이 책 페이지 이미지에서 독자가 시각적으로
 
 JSON만 반환: {"highlightedTexts": ["...조각1...", "...조각2..."]}`;
 
-// fullText가 있을 때: Claude에게 "이 텍스트에서 표시된 부분 그대로 복사"를 지시
-// → Claude가 paraphrase하지 않고 정확한 원문을 반환해 범위 매핑 정확도 향상
 function buildContextPrompt(fullText: string): string {
   return `이 책 페이지 이미지에서 독자가 시각적으로 표시한(밑줄·형광펜·동그라미 등) 텍스트를 찾아주세요.
 
@@ -25,9 +23,12 @@ function buildContextPrompt(fullText: string): string {
 ${fullText}
 ---
 
-위 텍스트에서 이미지에 시각적으로 표시된 부분을 찾아, 위 텍스트에서 그대로 복사해 반환하세요.
-절대 수정·요약·번역하지 말고, 위 텍스트에 있는 문자 그대로 복사하세요.
-각 표시 구간을 별도 배열 원소로 분리하고, 없으면 빈 배열 []로 반환하세요.
+지시사항:
+1. 이미지에서 시각적으로 표시된 부분을 확인하세요.
+2. 위 OCR 텍스트에서 표시된 구간을 한 글자도 바꾸지 말고 그대로 복사하세요.
+3. 줄바꿈이 있으면 공백으로 연결해도 됩니다.
+4. 수정·요약·번역 절대 금지 — 반드시 위 텍스트에 있는 문자 그대로 복사하세요.
+5. 표시된 구간이 없으면 빈 배열 []을 반환하세요.
 
 JSON만 반환: {"highlightedTexts": ["...원문 그대로...", "..."]}`;
 }
@@ -81,15 +82,12 @@ export class HighlightAnalyzer {
     fullText: string
   ): { start: number; end: number }[] {
     const ranges: { start: number; end: number }[] = [];
-
     for (const segment of segments) {
       const trimmed = segment.trim();
       if (!trimmed) continue;
-
       const range = this.findRange(trimmed, fullText);
       if (range) ranges.push(range);
     }
-
     return ranges;
   }
 
@@ -101,31 +99,84 @@ export class HighlightAnalyzer {
     const exact = fullText.indexOf(segment);
     if (exact >= 0) return { start: exact, end: exact + segment.length };
 
-    // 2) 공백·줄바꿈 유연 매칭 — \n vs 공백 차이를 정규식으로 처리
+    // 2) 공백·줄바꿈 유연 매칭
     try {
       const escaped = segment.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       const pattern = new RegExp(escaped.replace(/\s+/g, "\\s+"));
       const m = pattern.exec(fullText);
       if (m) return { start: m.index, end: m.index + m[0].length };
     } catch {
-      // 정규식 생성 실패 시 다음 전략으로
+      // ignore
     }
 
-    // 3) 앞부분 단어 매칭 — 긴 세그먼트의 시작부분으로 대략적인 위치 탐지
+    // 3) 한글 정규화 매칭 — 구두점·따옴표·공백 제거 후 위치 매핑
+    const normalized = this.findRangeNormalized(segment, fullText);
+    if (normalized) return normalized;
+
+    // 4) 앞부분 단어 앵커 — 시작 위치 추정 후 세그먼트 길이만큼 확보
     const words = segment.split(/\s+/).filter((w) => w.length > 1);
     if (words.length >= 2) {
       try {
         const anchor = words
           .slice(0, Math.min(4, words.length))
           .map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
-          .join("\\s+");
+          .join("\\s*");
         const m = new RegExp(anchor).exec(fullText);
-        if (m) return { start: m.index, end: m.index + m[0].length };
+        if (m) {
+          const end = Math.min(fullText.length, m.index + segment.length);
+          return { start: m.index, end };
+        }
       } catch {
         // ignore
       }
     }
 
+    // 5) 부분 일치 — 세그먼트 중간 70% 로 위치를 추정하고 전체 범위 확보
+    if (segment.length >= 15) {
+      const subLen = Math.floor(segment.length * 0.7);
+      const offset = Math.floor((segment.length - subLen) / 2);
+      const core = segment.slice(offset, offset + subLen).trim();
+      if (core.length > 5) {
+        const coreIdx = fullText.indexOf(core);
+        if (coreIdx >= 0) {
+          const start = Math.max(0, coreIdx - offset);
+          const end = Math.min(fullText.length, start + segment.length);
+          return { start, end };
+        }
+      }
+    }
+
     return null;
+  }
+
+  private findRangeNormalized(
+    segment: string,
+    fullText: string
+  ): { start: number; end: number } | null {
+    const isStrippable = (ch: string) =>
+      /[\s.,!?:;'"''""‘’“”…·—\-（）()【】]/.test(ch);
+
+    const normSeg = [...segment].filter((c) => !isStrippable(c)).join("");
+    if (normSeg.length < 5) return null;
+
+    // fullText → 정규화 문자열 + 원본 인덱스 매핑 테이블
+    const charMap: number[] = [];
+    let normFull = "";
+    for (let i = 0; i < fullText.length; i++) {
+      if (!isStrippable(fullText[i])) {
+        charMap.push(i);
+        normFull += fullText[i];
+      }
+    }
+
+    const pos = normFull.indexOf(normSeg);
+    if (pos < 0) return null;
+
+    const start = charMap[pos];
+    const endNorm = pos + normSeg.length;
+    const end =
+      endNorm < charMap.length ? charMap[endNorm] : charMap[charMap.length - 1] + 1;
+
+    return { start, end };
   }
 }

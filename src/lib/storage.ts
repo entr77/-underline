@@ -49,6 +49,9 @@ function applyExifTransform(
   }
 }
 
+// Claude Vision 최적 해상도 — 이보다 크면 정확도 향상 없이 토큰/시간만 증가
+const VISION_MAX_DIM = 1568;
+
 export async function imageFileToBase64(file: File): Promise<string> {
   const headerBuf = await file.slice(0, 64 * 1024).arrayBuffer();
   const orientation = readExifOrientation(headerBuf);
@@ -59,14 +62,24 @@ export async function imageFileToBase64(file: File): Promise<string> {
       const w = img.naturalWidth;
       const h = img.naturalHeight;
       const swapped = orientation >= 5 && orientation <= 8;
-      const canvas = document.createElement("canvas");
-      canvas.width = swapped ? h : w;
-      canvas.height = swapped ? w : h;
-      const ctx = canvas.getContext("2d")!;
-      applyExifTransform(ctx, orientation, w, h);
-      ctx.drawImage(img, 0, 0);
+
+      // Pass 1: EXIF 회전 보정 (원본 해상도)
+      const corrected = document.createElement("canvas");
+      corrected.width = swapped ? h : w;
+      corrected.height = swapped ? w : h;
+      const ctx1 = corrected.getContext("2d")!;
+      applyExifTransform(ctx1, orientation, w, h);
+      ctx1.drawImage(img, 0, 0);
       URL.revokeObjectURL(img.src);
-      resolve(canvas.toDataURL("image/jpeg", 0.92));
+
+      // Pass 2: Vision API 최적 해상도로 다운스케일
+      const scale = Math.min(1, VISION_MAX_DIM / Math.max(corrected.width, corrected.height));
+      const out = document.createElement("canvas");
+      out.width = Math.round(corrected.width * scale);
+      out.height = Math.round(corrected.height * scale);
+      out.getContext("2d")!.drawImage(corrected, 0, 0, out.width, out.height);
+
+      resolve(out.toDataURL("image/jpeg", 0.92));
     };
     img.onerror = reject;
     img.src = URL.createObjectURL(file);
