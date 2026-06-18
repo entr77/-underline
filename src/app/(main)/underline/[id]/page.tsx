@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import BookCover from "@/components/ui/BookCover";
 import ProfileChip from "@/components/ui/ProfileChip";
 import TagBadge from "@/components/ui/TagBadge";
@@ -212,7 +213,19 @@ export default async function UnderlineDetailPage({ params }: Props) {
         피드로
       </Link>
 
-      <div className="bg-white rounded-2xl p-6 border border-[var(--color-border)]">
+      <div className="bg-white rounded-2xl overflow-hidden border border-[var(--color-border)]">
+        {underline.image_url && (
+          <div className="relative w-full aspect-[3/4] bg-[var(--color-cream-dark)]">
+            <Image
+              src={underline.image_url}
+              alt="밑줄 친 책 페이지"
+              fill
+              className="object-cover"
+              sizes="(max-width: 430px) 100vw, 430px"
+            />
+          </div>
+        )}
+        <div className="p-6">
         <div className="flex gap-3 mb-6">
           <BookCover src={underline.book.cover_url} title={underline.book.title} size="lg" />
           <div>
@@ -247,6 +260,7 @@ export default async function UnderlineDetailPage({ params }: Props) {
               size="md"
             />
           </div>
+        </div>
         </div>
       </div>
 
