@@ -475,12 +475,20 @@ function OcrTextSelector({
   initialSelected: string;
   onSelect: (text: string) => void;
 }) {
-  const paragraphs = fullText.split(/\n+/).filter((p) => p.trim().length > 0);
+  // \n은 시각적 줄바꿈이므로 공백으로 정규화 후 마침표/쉼표 단위로 분리
+  const normalized = fullText.replace(/\n+/g, ' ').replace(/  +/g, ' ').trim();
+  const paragraphs = normalized
+    .split(/(?<=[.!?。,，])\s*/)
+    .map((p) => p.trim())
+    .filter((p) => p.length > 1);
+
+  const normalizedInitial = initialSelected.replace(/\n+/g, ' ').replace(/  +/g, ' ').trim();
+
   const [selectedSet, setSelectedSet] = useState<Set<number>>(() => {
-    if (!initialSelected) return new Set<number>();
+    if (!normalizedInitial) return new Set<number>();
     const init = new Set<number>();
     paragraphs.forEach((p, i) => {
-      if (initialSelected.includes(p.trim())) init.add(i);
+      if (normalizedInitial.includes(p)) init.add(i);
     });
     return init;
   });
