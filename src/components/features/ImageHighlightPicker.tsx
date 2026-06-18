@@ -40,7 +40,9 @@ let uid = 0;
 export default function ImageHighlightPicker({ src, onTextExtracted }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [highlights, setHighlights] = useState<Highlight[]>([]);
-  const [dragStartY, setDragStartY] = useState<number | null>(null);
+  // 지나간 자리는 계속 칠해진 상태 유지 (붓처럼)
+  const dragMinY = useRef<number | null>(null);
+  const dragMaxY = useRef<number | null>(null);
   const [dragBand, setDragBand] = useState<Band | null>(null);
 
   function relY(e: React.PointerEvent): number {
@@ -51,28 +53,29 @@ export default function ImageHighlightPicker({ src, onTextExtracted }: Props) {
   function onPointerDown(e: React.PointerEvent) {
     e.currentTarget.setPointerCapture(e.pointerId);
     const y = relY(e);
-    setDragStartY(y);
+    dragMinY.current = y;
+    dragMaxY.current = y;
     setDragBand({ yf: y, hf: 0 });
   }
 
   function onPointerMove(e: React.PointerEvent) {
-    if (dragStartY === null) return;
+    if (dragMinY.current === null) return;
     const y = relY(e);
-    setDragBand({
-      yf: Math.min(dragStartY, y),
-      hf: Math.abs(y - dragStartY),
-    });
+    // 지나간 자리는 줄어들지 않음
+    dragMinY.current = Math.min(dragMinY.current, y);
+    dragMaxY.current = Math.max(dragMaxY.current!, y);
+    setDragBand({ yf: dragMinY.current, hf: dragMaxY.current! - dragMinY.current });
   }
 
   async function onPointerUp() {
-    setDragStartY(null);
-    const band = dragBand;
+    const minY = dragMinY.current;
+    const maxY = dragMaxY.current;
+    dragMinY.current = null;
+    dragMaxY.current = null;
     setDragBand(null);
-    if (!band) return;
+    if (minY === null || maxY === null) return;
 
-    // 최소 높이 보장 (한 줄 이상)
-    const finalBand: Band = { yf: band.yf, hf: Math.max(band.hf, 0.04) };
-
+    const finalBand: Band = { yf: minY, hf: Math.max(maxY - minY, 0.04) };
     const id = uid++;
     setHighlights((prev) => [...prev, { id, band: finalBand, text: "", loading: true }]);
 
@@ -92,7 +95,7 @@ export default function ImageHighlightPicker({ src, onTextExtracted }: Props) {
   return (
     <div
       ref={containerRef}
-      className="relative w-full select-none touch-none cursor-ns-resize rounded-xl overflow-hidden border border-[var(--color-border)]"
+      className="relative w-full select-none touch-none cursor-cell rounded-xl overflow-hidden border border-[var(--color-border)]"
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -147,7 +150,7 @@ export default function ImageHighlightPicker({ src, onTextExtracted }: Props) {
       {highlights.length === 0 && !dragBand && (
         <div className="absolute inset-0 flex items-end justify-center pb-3 pointer-events-none">
           <span className="text-white/85 text-xs bg-black/50 rounded-full px-3 py-1.5 backdrop-blur-sm">
-            밑줄 친 줄을 위아래로 쓸어서 선택하세요
+            밑줄 친 줄 위를 클릭해서 쓸어내리세요
           </span>
         </div>
       )}
