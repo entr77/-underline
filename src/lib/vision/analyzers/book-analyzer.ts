@@ -26,21 +26,27 @@ export class BookAnalyzer {
 
   // 전략을 순서대로 시도하고 첫 번째 성공 결과를 반환
   async analyze(image: ImageInput, context?: OcrContext): Promise<BookResult> {
-    // ① 헤더 텍스트 (챕터명, 책 제목 등 상단 인쇄 정보)
+    // ① 헤더: 전체 + 구분자(|ㅣ-—·) 기준 파싱 후 각 파트 시도
     if (context?.headerText) {
-      const result = await this.searchKakao(context.headerText, "header");
-      if (result) return result;
+      const headerParts = this.splitTextParts(context.headerText);
+      for (const part of headerParts) {
+        const result = await this.searchKakao(part, "header");
+        if (result) return result;
+      }
     }
 
-    // ② 푸터 텍스트 (하단 책 정보)
+    // ② 푸터: 전체 + 파싱 파트 시도
     if (context?.footerText) {
-      const result = await this.searchKakao(context.footerText, "footer");
-      if (result) return result;
+      const footerParts = this.splitTextParts(context.footerText);
+      for (const part of footerParts) {
+        const result = await this.searchKakao(part, "footer");
+        if (result) return result;
+      }
     }
 
-    // ③ fullText 첫 번째 의미있는 줄
+    // ③ fullText 상위 3줄 병렬 검색
     if (context?.fullText) {
-      const result = await this.tryFirstLine(context.fullText);
+      const result = await this.tryFirstLines(context.fullText);
       if (result) return result;
     }
 
@@ -54,14 +60,26 @@ export class BookAnalyzer {
     return this.tryClaudeImage(image);
   }
 
-  private async tryFirstLine(fullText: string): Promise<BookResult> {
-    const firstLine = fullText
+  // "챕터명 | 책 제목" 등 구분자로 나뉜 경우 각 파트를 순서대로 반환 (전체 포함)
+  private splitTextParts(text: string): string[] {
+    const parts = text.split(/[|ㅣ\-—·]/).map((p) => p.trim()).filter((p) => !isUseless(p));
+    const unique = [...new Set([text.trim(), ...parts])].filter((p) => !isUseless(p));
+    return unique;
+  }
+
+  private async tryFirstLines(fullText: string): Promise<BookResult> {
+    const candidates = fullText
       .split("\n")
       .map((l) => l.trim())
-      .find((l) => l.length >= 2 && l.length <= 40 && !PAGE_NUMBER_RE.test(l));
+      .filter((l) => l.length >= 3 && l.length <= 60 && !PAGE_NUMBER_RE.test(l))
+      .slice(0, 3);
 
-    if (!firstLine) return null;
-    return this.searchKakao(firstLine, "first-line");
+    if (candidates.length === 0) return null;
+
+    const results = await Promise.all(
+      candidates.map((line) => this.searchKakao(line, "first-line"))
+    );
+    return results.find((r) => r !== null) ?? null;
   }
 
   private async tryClaudeText(fullText: string): Promise<BookResult> {
