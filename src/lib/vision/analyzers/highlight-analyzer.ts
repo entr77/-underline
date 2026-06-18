@@ -28,9 +28,14 @@ ${fullText}
 2. 위 OCR 텍스트에서 표시된 구간을 한 글자도 바꾸지 말고 그대로 복사하세요.
 3. 줄바꿈은 제거하고 앞뒤 텍스트를 자연스럽게 이어 붙이세요. 한국어 조사·어미는 앞 단어에 바로 붙습니다 (예: '결핍\n을' → '결핍을', '풀어\n본' → '풀어본').
 4. 수정·요약·번역 절대 금지 — 반드시 위 텍스트에 있는 문자 그대로 복사하세요.
-5. 표시된 구간이 없으면 빈 배열 []을 반환하세요.
+5. 각 표시 구간의 이미지 내 위치를 이미지 전체 크기 대비 비율(0~1)로 추정하세요. (x=왼쪽 여백, y=위쪽 여백, w=너비, h=높이)
+6. 표시된 구간이 없으면 두 배열 모두 빈 배열 []을 반환하세요.
 
-JSON만 반환: {"highlightedTexts": ["...원문 그대로...", "..."]}`;
+JSON만 반환:
+{
+  "highlightedTexts": ["...원문 그대로...", "..."],
+  "boundingBoxes": [{"x": 0.05, "y": 0.35, "w": 0.9, "h": 0.12}, ...]
+}`;
 }
 
 export class HighlightAnalyzer {
@@ -59,23 +64,40 @@ export class HighlightAnalyzer {
     });
 
     const rawText = message.content[0].type === "text" ? message.content[0].text : "";
-    const segments = this.parseSegments(rawText);
+    const { segments, boxes } = this.parseResult(rawText);
     const ranges = this.toRanges(segments, context?.fullText ?? "");
 
-    return { segments, ranges };
+    return { segments, ranges, boxes };
   }
 
-  private parseSegments(rawText: string): string[] {
+  private parseResult(rawText: string): { segments: string[]; boxes: { x: number; y: number; w: number; h: number }[] } {
     try {
       const match = rawText.match(/\{[\s\S]*\}/);
       const parsed = JSON.parse(match?.[0] ?? "{}");
-      if (!Array.isArray(parsed.highlightedTexts)) return [];
-      return parsed.highlightedTexts
-        .filter((s: unknown) => typeof s === "string" && s.trim())
-        .map((s: string) => this.normalizeSegment(s));
+      const segments = Array.isArray(parsed.highlightedTexts)
+        ? parsed.highlightedTexts
+            .filter((s: unknown) => typeof s === "string" && s.trim())
+            .map((s: string) => this.normalizeSegment(s))
+        : [];
+      const raw = Array.isArray(parsed.boundingBoxes) ? parsed.boundingBoxes : [];
+      const boxes = raw
+        .slice(0, segments.length)
+        .map((b: Record<string, number>) => ({
+          x: Number(b.x) || 0,
+          y: Number(b.y) || 0,
+          w: Number(b.w) || 0,
+          h: Number(b.h) || 0,
+        }));
+      // boxes가 부족하면 빈 박스로 채움
+      while (boxes.length < segments.length) boxes.push({ x: 0, y: 0, w: 0, h: 0 });
+      return { segments, boxes };
     } catch {
-      return [];
+      return { segments: [], boxes: [] };
     }
+  }
+
+  private parseSegments(rawText: string): string[] {
+    return this.parseResult(rawText).segments;
   }
 
   private normalizeSegment(text: string): string {
