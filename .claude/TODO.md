@@ -1,42 +1,28 @@
 # 밑줄 TODO
 
-## 🔴 긴급 — Vision API 502 에러
-`POST /api/vision/analyze` 가 매번 502 반환 중.
-
-**증상**: 사진 업로드 시 OCR 처리 실패, 300~966ms 안에 502
-**의심 원인**:
-- Google Cloud Vision API 키 쿼터 초과 or 키 제한
-- Google Cloud Console에서 Vision API 활성화 여부 확인 필요
-- API 키: `GOOGLE_CLOUD_VISION_API_KEY` (.env.local + Vercel 환경변수)
-
-**확인 순서**:
-1. [Google Cloud Console](https://console.cloud.google.com/) → APIs & Services → Cloud Vision API 활성화 여부
-2. Credentials → API 키 제한 설정 (HTTP referrer / IP 제한 걸려있는지)
-3. Quotas → 일일 한도 초과 여부
-4. Vercel 대시보드 → Environment Variables → `GOOGLE_CLOUD_VISION_API_KEY` 값 확인
-
-**임시 대응**: 에러 시 수동 입력으로 fallback 중 (기능 작동은 됨)
-
 ---
 
-## ✅ 완료된 기능 (2026-06-18)
+## ✅ 완료된 기능 (2026-06-18 기준)
 
-- 좋아요 UI 인터랙션: LikeButton optimistic update, toggleLike 서버 액션
-- 피드 태그 필터: FeedFilter 컴포넌트, searchParams 기반 동작
-- 피드 is_liked 반영: 현재 유저 likes 쿼리
-- 밑줄 삭제: DeleteUnderlineButton (작성자 전용), deleteUnderline 서버 액션
+- 좋아요 UI 인터랙션: LikeButton optimistic update, toggleLike 서버 액션 (2026-06-18)
+- 피드 태그 필터: FeedFilter 컴포넌트, searchParams 기반 동작 (2026-06-18)
+- 피드 is_liked 반영: 현재 유저 likes 쿼리 (2026-06-18)
+- 밑줄 삭제: DeleteUnderlineButton (작성자 전용), deleteUnderline 서버 액션 (2026-06-18)
+- 밑줄 공유 이미지 카드: ShareCardButton + GET /api/og/underline/[id] (2026-06-18)
+  - 스타일 2종(라이트/다크), 포맷 3종(1:1·4:5·9:16), Noto Serif KR 폰트
+  - 이미지 저장 + Web Share API 공유
+- 책 단위 피드 /books: BookFeedCard, underlines → book_id 집계 (2026-06-18)
+- BottomNav 4탭 확정: 홈 / 피드 / 책 / 내 프로필 (2026-06-18)
+- 마케터 에이전트 추가: `.claude/agents/marketer.md` (2026-06-18)
+- SNS 독서 밑줄 문화 마케팅 리서치: `.claude/docs/marketing-research.md` + Confluence ID 1245185 (2026-06-18)
+- 로딩 카피 3개로 확장, 롤링 간격 2500ms 조정 (2026-06-18)
+- 테스트 이미지 수집/업로드 스크립트: `.claude/scripts/` (2026-06-18)
 
 ## ⬜ 미완료 기능
 
 ### 수동 실행 필요한 SQL
-Supabase SQL Editor에서 아직 실행 안 된 마이그레이션:
-```sql
--- 002: Storage 버킷 (사진 업로드에 필요)
--- (supabase/migrations/002_storage.sql 내용 실행)
-
--- 003: books UPDATE RLS (실행됐을 수도 있음, 확인 필요)
--- (supabase/migrations/003_books_update_policy.sql 내용 실행)
-```
+- ✅ 002_storage.sql — 완료 (2026-06-18)
+- ⬜ 003_books_update_policy.sql — 실행됐을 수도 있음, 확인 필요
 
 ### 팔로우 기능 (P1)
 - 프로필 페이지 팔로우 버튼 UI만 있고 동작 안 함
