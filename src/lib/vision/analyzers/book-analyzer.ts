@@ -1,7 +1,7 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import type { ImageInput, OcrContext, BookResult } from "../types";
 
-type BookStrategy = "header" | "footer" | "first-line" | "claude-text" | "claude-image";
+type BookStrategy = "header" | "footer" | "first-line" | "last-line" | "claude-text" | "claude-multi" | "google-books" | "claude-image";
 
 type KakaoDoc = {
   title: string;
@@ -44,19 +44,31 @@ export class BookAnalyzer {
       }
     }
 
-    // ③ fullText 상위 3줄 병렬 검색
+    // ③ fullText 상위 7줄 병렬 검색
     if (context?.fullText) {
       const result = await this.tryFirstLines(context.fullText);
       if (result) return result;
     }
 
-    // ④ Claude 텍스트 분석으로 제목/저자 추출
+    // ④ fullText 하위 5줄 병렬 검색 (하단 푸터에 책 정보 있는 경우)
     if (context?.fullText) {
-      const result = await this.tryClaudeText(context.fullText);
+      const result = await this.tryLastLines(context.fullText);
       if (result) return result;
     }
 
-    // ⑤ Claude Vision으로 이미지 직접 분석 (최종 fallback)
+    // ⑤ Claude 텍스트 분석 — 후보 3개 순차 시도
+    if (context?.fullText) {
+      const result = await this.tryClaudeMulti(context.fullText);
+      if (result) return result;
+    }
+
+    // ⑥ Google Books API — 영어·외국어 책 fallback
+    if (context?.fullText) {
+      const result = await this.tryGoogleBooks(context.fullText);
+      if (result) return result;
+    }
+
+    // ⑦ Claude Vision으로 이미지 직접 분석 (최종 fallback)
     return this.tryClaudeImage(image);
   }
 
@@ -72,7 +84,7 @@ export class BookAnalyzer {
       .split("\n")
       .map((l) => l.trim())
       .filter((l) => l.length >= 3 && l.length <= 60 && !PAGE_NUMBER_RE.test(l))
-      .slice(0, 3);
+      .slice(0, 7);
 
     if (candidates.length === 0) return null;
 
@@ -82,24 +94,98 @@ export class BookAnalyzer {
     return results.find((r) => r !== null) ?? null;
   }
 
-  private async tryClaudeText(fullText: string): Promise<BookResult> {
+  private async tryLastLines(fullText: string): Promise<BookResult> {
+    const lines = fullText.split("\n").map((l) => l.trim());
+    const candidates = lines
+      .filter((l) => l.length >= 3 && l.length <= 60 && !PAGE_NUMBER_RE.test(l))
+      .slice(-5);
+
+    if (candidates.length === 0) return null;
+
+    const results = await Promise.all(
+      candidates.map((line) => this.searchKakao(line, "last-line"))
+    );
+    return results.find((r) => r !== null) ?? null;
+  }
+
+  // Claude에게 후보 3개를 받아 순서대로 카카오 검색 시도
+  private async tryClaudeMulti(fullText: string): Promise<BookResult> {
+    const message = await this.client.messages.create({
+      model: "claude-sonnet-4-6",
+      max_tokens: 300,
+      messages: [
+        {
+          role: "user",
+          content: `다음은 책의 한 페이지 본문입니다. 어느 책인지 추측해주세요.
+
+단서로 활용:
+- 등장인물명, 지명, 고유명사
+- 전문 용어, 개념어, 특정 이론
+- 문체와 서술 방식 (소설/자기계발/철학/과학 등)
+- 번역서라면 원어 표현·역자 주석
+
+확신 순서대로 최대 3개 후보를 JSON 배열로 반환하세요.
+전혀 알 수 없으면 빈 배열 반환.
+
+JSON만 반환 (다른 텍스트 없이):
+[
+  {"title": "한국어 책 제목", "author": "저자명"},
+  {"title": "두 번째 후보", "author": "저자명"}
+]
+
+본문:
+${fullText.slice(0, 1500)}`,
+        },
+      ],
+    });
+
+    const rawText = message.content[0].type === "text" ? message.content[0].text : "";
+
+    try {
+      const match = rawText.match(/\[[\s\S]*\]/);
+      const candidates = JSON.parse(match?.[0] ?? "[]") as Array<{
+        title?: string;
+        author?: string;
+      }>;
+
+      for (const { title, author } of candidates) {
+        if (!title) continue;
+        // title + author 조합으로 먼저 시도
+        if (author) {
+          const result = await this.searchKakao(`${title} ${author}`, "claude-multi");
+          if (result) return result;
+        }
+        // title 단독으로 재시도
+        const result = await this.searchKakao(title, "claude-multi");
+        if (result) return result;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  // Google Books API — 영어·외국어 책 fallback
+  private async tryGoogleBooks(fullText: string): Promise<BookResult> {
+    // fullText에서 영어 구절이 있으면 시도
+    const hasEnglish = /[a-zA-Z]{4,}/.test(fullText);
+    if (!hasEnglish) return null;
+
+    // Claude로 영어 책 제목/저자 추출
     const message = await this.client.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 150,
       messages: [
         {
           role: "user",
-          content: `다음은 책의 한 페이지 본문입니다. 어느 책인지 알려주세요.
+          content: `This is a page from a book. Identify the book.
 
-단서:
-- 등장인물, 고유명사, 전문 용어, 문체, 특정 개념어
-- 번역서라면 원제·역자명도 고려해 한국어 제목으로 답하세요
-- 확신이 없어도 가능성이 가장 높은 책 하나를 제시하세요 (전혀 알 수 없으면 null)
+Clues: proper nouns, character names, specific terminology, writing style.
+Return JSON only: {"title": "book title", "author": "author name"}
+If unknown, return: {"title": null}
 
-JSON만 반환: {"title": "한국어 책 제목", "author": "저자명 (한국어 표기)"}
-
-본문:
-${fullText.slice(0, 1200)}`,
+Text:
+${fullText.slice(0, 1000)}`,
         },
       ],
     });
@@ -113,8 +199,29 @@ ${fullText.slice(0, 1200)}`,
         author?: string | null;
       };
       if (!title) return null;
+
       const query = author ? `${title} ${author}` : title;
-      return this.searchKakao(query, "claude-text");
+      const res = await fetch(
+        `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=1&langRestrict=&printType=books`
+      );
+      if (!res.ok) return null;
+
+      const data = await res.json();
+      const item = data.items?.[0];
+      if (!item) return null;
+
+      const info = item.volumeInfo;
+      const kakaoId = info.industryIdentifiers?.find((id: { type: string }) => id.type === "ISBN_13")?.identifier
+        ?? `google_${item.id}`;
+
+      return {
+        title: info.title ?? title,
+        author: info.authors?.join(", ") ?? author ?? "",
+        publisher: info.publisher ?? "",
+        thumbnail: info.imageLinks?.thumbnail?.replace("http://", "https://") ?? "",
+        isbn: kakaoId,
+        strategy: "google-books",
+      };
     } catch {
       return null;
     }
@@ -168,6 +275,7 @@ JSON만 반환: {"title": "책 제목", "author": "저자명"}`,
     if (!this.kakaoApiKey || isUseless(query)) return null;
 
     try {
+      // 1차: 기본 검색
       const res = await fetch(
         `https://dapi.kakao.com/v3/search/book?query=${encodeURIComponent(query)}&size=1`,
         { headers: { Authorization: `KakaoAK ${this.kakaoApiKey}` } }
@@ -175,7 +283,23 @@ JSON만 반환: {"title": "책 제목", "author": "저자명"}`,
       if (!res.ok) return null;
 
       const data = await res.json();
-      const doc = data.documents?.[0] as KakaoDoc | undefined;
+      let doc = data.documents?.[0] as KakaoDoc | undefined;
+
+      // 2차: 공백·괄호·부제 제거 후 재시도 (title+author 조합이 실패한 경우)
+      if (!doc && query.includes(" ")) {
+        const shortQuery = query.split(" ")[0];
+        if (!isUseless(shortQuery)) {
+          const res2 = await fetch(
+            `https://dapi.kakao.com/v3/search/book?query=${encodeURIComponent(shortQuery)}&size=1&target=title`,
+            { headers: { Authorization: `KakaoAK ${this.kakaoApiKey}` } }
+          );
+          if (res2.ok) {
+            const data2 = await res2.json();
+            doc = data2.documents?.[0] as KakaoDoc | undefined;
+          }
+        }
+      }
+
       if (!doc) return null;
 
       return {
