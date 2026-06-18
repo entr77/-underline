@@ -19,6 +19,13 @@ type AnalyzeResult = {
   detectedUnderlineRanges: { start: number; end: number }[];
   pageNumber: string | null;
   headerText?: string;
+  book?: {
+    title: string;
+    author: string;
+    publisher: string;
+    thumbnail: string;
+    isbn: string;
+  } | null;
 };
 
 const STEP_LABELS = ["사진", "인식", "책", "밑줄"];
@@ -92,9 +99,7 @@ export default function NewUnderlinePage() {
       clearInterval(msgTimer);
 
       if (!res.ok) {
-        const hasVisionKey = true; // key 미설정 시 fallback
-        if (!hasVisionKey) throw new Error("Vision API 키가 없어요");
-        // API 키 없어도 수동 입력으로 진행
+        // API 실패해도 수동 입력으로 진행
         setAnalyzeResult({ fullText: "", detectedUnderlineRanges: [], pageNumber: null });
       } else {
         const data: AnalyzeResult = await res.json();
@@ -105,31 +110,16 @@ export default function NewUnderlinePage() {
           setSelectedText(data.fullText.slice(start, end).trim());
         }
 
-        // 다중 전략으로 책 자동 식별
-        try {
-          const identifyRes = await fetch("/api/books/identify", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              fullText: data.fullText,
-              blocks: data.blocks ?? [],
-            }),
+        // analyze 응답에 책 정보 포함 (orchestrator가 책 식별까지 처리)
+        if (data.book) {
+          setBook({
+            id: "",
+            kakao_id: data.book.isbn || data.book.title,
+            title: data.book.title,
+            author: data.book.author,
+            publisher: data.book.publisher ?? "",
+            cover_url: data.book.thumbnail ?? "",
           });
-          if (identifyRes.ok) {
-            const { book: doc } = await identifyRes.json();
-            if (doc) {
-              setBook({
-                id: "",
-                kakao_id: doc.isbn || doc.title,
-                title: doc.title,
-                author: doc.authors?.join(", ") ?? "",
-                publisher: doc.publisher ?? "",
-                cover_url: doc.thumbnail ?? "",
-              });
-            }
-          }
-        } catch {
-          // 자동검색 실패 시 무시 — 수동 검색으로 진행
         }
       }
 
