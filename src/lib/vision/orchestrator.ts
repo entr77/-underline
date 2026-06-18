@@ -147,6 +147,7 @@ export class VisionOrchestrator {
     );
     const pageNumber = pageNumberBlock?.text.trim() ?? null;
 
+    console.log("[OCR] Google Vision 완료 — header:", JSON.stringify(headerText), "/ footer:", JSON.stringify(footerText), "/ pageNumber:", pageNumber);
     return { fullText, pageNumber, headerText, footerText, blocks };
   }
 

@@ -26,45 +26,20 @@ export class BookAnalyzer {
 
   // 전략을 순서대로 시도하고 첫 번째 성공 결과를 반환
   async analyze(image: ImageInput, context?: OcrContext): Promise<BookResult> {
-    // ① 헤더: 전체 + 구분자(|ㅣ-—·) 기준 파싱 후 각 파트 시도
-    if (context?.headerText) {
-      const headerParts = this.splitTextParts(context.headerText);
-      for (const part of headerParts) {
-        const result = await this.searchKakao(part, "header");
-        if (result) return result;
-      }
-    }
-
-    // ② 푸터: 전체 + 파싱 파트 시도
-    if (context?.footerText) {
-      const footerParts = this.splitTextParts(context.footerText);
-      for (const part of footerParts) {
-        const result = await this.searchKakao(part, "footer");
-        if (result) return result;
-      }
-    }
-
-    // ③ Claude 텍스트 분석 — 후보 3개 순차 시도
+    // ① Claude 텍스트 분석 — 본문으로 후보 3개 추출 후 카카오 검색
     if (context?.fullText) {
       const result = await this.tryClaudeMulti(context.fullText);
       if (result) return result;
     }
 
-    // ⑥ Google Books API — 영어·외국어 책 fallback
+    // ② Google Books — 본문 구절로 전문 검색
     if (context?.fullText) {
       const result = await this.tryGoogleBooks(context.fullText);
       if (result) return result;
     }
 
-    // ⑦ Claude Vision으로 이미지 직접 분석 (최종 fallback)
+    // ③ Claude Vision — 이미지 직접 분석 (최종 fallback)
     return this.tryClaudeImage(image);
-  }
-
-  // "챕터명 | 책 제목" 등 구분자로 나뉜 경우 각 파트를 순서대로 반환 (전체 포함)
-  private splitTextParts(text: string): string[] {
-    const parts = text.split(/[|ㅣ\-—·]/).map((p) => p.trim()).filter((p) => !isUseless(p));
-    const unique = [...new Set([text.trim(), ...parts])].filter((p) => !isUseless(p));
-    return unique;
   }
 
   // Claude에게 후보 3개를 받아 순서대로 카카오 검색 시도
