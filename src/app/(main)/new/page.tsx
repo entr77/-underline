@@ -41,6 +41,32 @@ type AnalyzeResult = {
   bookCandidates?: BookCandidate[];
 };
 
+// 모델별 노출/선택 통계 (localStorage)
+type ModelKey = "gpt" | "claude" | "gemini";
+type ModelStats = Record<ModelKey, { shown: number; selected: number }>;
+
+function getModelStats(): ModelStats {
+  try {
+    const raw = typeof window !== "undefined" ? localStorage.getItem("book_model_stats") : null;
+    if (raw) return JSON.parse(raw) as ModelStats;
+  } catch {}
+  return { gpt: { shown: 0, selected: 0 }, claude: { shown: 0, selected: 0 }, gemini: { shown: 0, selected: 0 } };
+}
+
+function saveModelStats(stats: ModelStats) {
+  try { localStorage.setItem("book_model_stats", JSON.stringify(stats)); } catch {}
+}
+
+function modelLabel(model: ModelKey, stats: ModelStats): string {
+  const name = model === "gpt" ? "GPT-4o" : model === "gemini" ? "Gemini" : "Claude";
+  const s = stats[model];
+  if (s.shown >= 3) {
+    const pct = Math.round((s.selected / s.shown) * 100);
+    return `${name} ${pct}%`;
+  }
+  return name;
+}
+
 const STEP_LABELS = ["사진", "읽기", "책", "문장"];
 const DISPLAY_STEPS: Step[] = ["upload", "processing", "book", "select"];
 
@@ -84,6 +110,7 @@ export default function NewUnderlinePage() {
   const [pageNumber, setPageNumber] = useState("");
   const [selectedTexts, setSelectedTexts] = useState<string[]>([""]);
   const [bookCandidates, setBookCandidates] = useState<BookCandidate[]>([]);
+  const [selectedModel, setSelectedModel] = useState<ModelKey | null>(null);
   const [recentBooks, setRecentBooks] = useState<Book[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -96,6 +123,7 @@ export default function NewUnderlinePage() {
     setAnalyzeResult(null);
     setBook(null);
     setBookCandidates([]);
+    setSelectedModel(null);
     setPageNumber("");
     setSelectedTexts([""]);
     setError(null);
@@ -130,6 +158,18 @@ export default function NewUnderlinePage() {
     };
     fetchRecentBooks();
   }, []);
+
+  // book step 진입 시 노출 횟수 기록
+  useEffect(() => {
+    if (step !== "book") return;
+    const stats = getModelStats();
+    for (const c of bookCandidates.filter((c) => c.result)) {
+      stats[c.model].shown++;
+    }
+    saveModelStats(stats);
+  // bookCandidates가 바뀔 때마다 중복 카운트되지 않도록 step 변경 시만 실행
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
 
   const processImage = useCallback(async (file: File) => {
     setStep("processing");
@@ -369,6 +409,8 @@ export default function NewUnderlinePage() {
             </button>
           );
 
+          const stats = getModelStats();
+
           return (
             <>
               {/* 최근 읽던 책 (AI 후보와 중복 아닌 것) */}
@@ -382,7 +424,7 @@ export default function NewUnderlinePage() {
                       title={rb.title}
                       author={rb.author}
                       isSelected={book?.title === rb.title}
-                      onClick={() => setBook(rb)}
+                      onClick={() => { setBook(rb); setSelectedModel(null); }}
                       badge="최근"
                       badgeStyle="bg-amber-50 text-amber-700"
                     />
@@ -393,12 +435,10 @@ export default function NewUnderlinePage() {
               {/* AI 후보 */}
               {aiBooks.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-xs text-[var(--color-ink-faint)]">
-                    {recentOnly.length > 0 ? "AI가 찾은 책" : "AI가 찾은 책"}
-                  </p>
+                  <p className="text-xs text-[var(--color-ink-faint)]">AI가 찾은 책</p>
                   {aiBooks.map((c, i) => {
                     const isRecent = recentTitles.has(c.result!.title.toLowerCase().trim());
-                    const modelLabel = c.model === "gpt" ? "GPT-4o" : c.model === "gemini" ? "Gemini" : "Claude";
+                    const badge = isRecent ? "지금 읽는 중" : modelLabel(c.model, stats);
                     return (
                       <BookCard
                         key={`ai-${i}`}
@@ -406,15 +446,18 @@ export default function NewUnderlinePage() {
                         title={c.result!.title}
                         author={c.result!.author}
                         isSelected={book?.title === c.result!.title}
-                        onClick={() => setBook({
-                          id: "",
-                          kakao_id: c.result!.isbn || c.result!.title,
-                          title: c.result!.title,
-                          author: c.result!.author,
-                          publisher: c.result!.publisher ?? "",
-                          cover_url: c.result!.thumbnail ?? "",
-                        })}
-                        badge={isRecent ? "지금 읽는 중" : modelLabel}
+                        onClick={() => {
+                          setBook({
+                            id: "",
+                            kakao_id: c.result!.isbn || c.result!.title,
+                            title: c.result!.title,
+                            author: c.result!.author,
+                            publisher: c.result!.publisher ?? "",
+                            cover_url: c.result!.thumbnail ?? "",
+                          });
+                          setSelectedModel(c.model);
+                        }}
+                        badge={badge}
                         badgeStyle={isRecent ? "bg-amber-50 text-amber-700" : "bg-[var(--color-cream-dark)] text-[var(--color-ink-muted)]"}
                       />
                     );
@@ -455,7 +498,14 @@ export default function NewUnderlinePage() {
         </div>
 
         <button
-          onClick={() => setStep("select")}
+          onClick={() => {
+            if (selectedModel) {
+              const stats = getModelStats();
+              stats[selectedModel].selected++;
+              saveModelStats(stats);
+            }
+            setStep("select");
+          }}
           disabled={!book}
           className="w-full py-4 rounded-2xl bg-[var(--color-forest)] text-white font-medium hover:bg-[var(--color-forest-light)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
