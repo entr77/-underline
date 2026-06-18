@@ -7,6 +7,7 @@ import Link from "next/link";
 import Image from "next/image";
 import BookSearchInput, { type KakaoBook } from "@/components/features/BookSearchInput";
 import ImageCropRotate from "@/components/features/ImageCropRotate";
+import ImageHighlightPicker from "@/components/features/ImageHighlightPicker";
 import { imageFileToBase64, uploadImage } from "@/lib/storage";
 import { createUnderlinesBulk } from "@/app/actions/underline";
 import { createClient } from "@/lib/supabase/client";
@@ -393,8 +394,21 @@ export default function NewUnderlinePage() {
 
         <h2 className="font-serif text-xl text-[var(--color-ink)]">어떤 문장을 남길까요?</h2>
 
-        {/* OCR 텍스트 절 선택기 — fullText가 있을 때만 표시 */}
-        {fullText && (
+        {/* 이미지 하이라이트 선택 — 이미지가 있을 때 우선 표시 */}
+        {imagePreview ? (
+          <div className="space-y-2">
+            <p className="text-xs text-[var(--color-ink-faint)]">밑줄 친 구간을 드래그해서 선택하세요</p>
+            <ImageHighlightPicker
+              src={imagePreview}
+              onTextExtracted={(text) =>
+                setSelectedTexts((prev) => {
+                  const filtered = prev.filter((t) => t.trim());
+                  return [...filtered, text];
+                })
+              }
+            />
+          </div>
+        ) : fullText ? (
           <div className="space-y-2">
             <p className="text-xs text-[var(--color-ink-faint)]">문장을 눌러 밑줄 구간을 선택하세요</p>
             <OcrClauseSelector
@@ -403,7 +417,7 @@ export default function NewUnderlinePage() {
               onSelect={setSelectedTexts}
             />
           </div>
-        )}
+        ) : null}
 
         {/* 선택된 밑줄 카드 목록 */}
         <div className="space-y-3">
