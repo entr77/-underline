@@ -28,10 +28,11 @@ BottomNav 4탭: **홈(/) · 피드(/feed) · 책(/books) · 내 프로필**
 
 ### 밑줄 추가 (핵심 플로우)
 1. 사진 업로드 (카메라/갤러리)
-2. 처리 중 (OCR + 책 인식 + 밑줄 감지 병렬)
-3-a. 책 정보 확인 (자동 인식, 수정 가능)
-3-b. 밑줄 선택 (자동 감지 하이라이트 + 수동 수정)
-4. 완료 → 피드 이동
+2. **크롭 / 회전 편집** — 드래그로 영역 선택, 좌/우 90도 회전 (건너뛰기 가능)
+3. 처리 중 (OCR + 책 인식 + 밑줄 감지 병렬)
+4-a. 책 정보 확인 (자동 인식, 수정 가능)
+4-b. 밑줄 선택 (자동 감지 하이라이트 + 수동 수정)
+5. 완료 → 피드 이동
 
 ### 밑줄 감지 방식
 - 전체 텍스트 OCR 추출
@@ -79,6 +80,7 @@ BottomNav 4탭: **홈(/) · 피드(/feed) · 책(/books) · 내 프로필**
 | ProfileChip | components/ui/ProfileChip.tsx | 아바타 + 닉네임 |
 | TagBadge | components/ui/TagBadge.tsx | 취향 태그 |
 | **Alert** | **components/ui/Alert.tsx** | **경고·안내·성공 메시지 — 반드시 이걸 사용** |
+| ImageCropRotate | components/features/ImageCropRotate.tsx | 사진 업로드 후 영역 크롭 + 90도 회전 편집 |
 | TextHighlighter | (미구현) | 밑줄 선택 UI |
 
 ## Alert 컴포넌트 규칙
