@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Alert from "@/components/ui/Alert";
 import Link from "next/link";
@@ -525,28 +525,43 @@ function OcrClauseSelector({
     return init;
   });
 
+  const [dragAnchor, setDragAnchor] = useState<number | null>(null);
+  const [dragEnd, setDragEnd] = useState<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const dragMin = dragAnchor !== null && dragEnd !== null ? Math.min(dragAnchor, dragEnd) : null;
+  const dragMax = dragAnchor !== null && dragEnd !== null ? Math.max(dragAnchor, dragEnd) : null;
+
+  function getIdxFromPoint(x: number, y: number): number | null {
+    const el = document.elementFromPoint(x, y);
+    const span = el?.closest("[data-cidx]");
+    const v = span?.getAttribute("data-cidx");
+    return v != null ? Number(v) : null;
+  }
+
   function groupConsecutive(set: Set<number>): string[] {
     const sorted = Array.from(set).sort((a, b) => a - b);
-    if (sorted.length === 0) return [];
+    if (!sorted.length) return [];
     const groups: number[][] = [];
     let group = [sorted[0]];
     for (let i = 1; i < sorted.length; i++) {
-      if (sorted[i] === sorted[i - 1] + 1) {
-        group.push(sorted[i]);
-      } else {
-        groups.push(group);
-        group = [sorted[i]];
-      }
+      if (sorted[i] === sorted[i - 1] + 1) group.push(sorted[i]);
+      else { groups.push(group); group = [sorted[i]]; }
     }
     groups.push(group);
-    return groups.map((g) => g.map((i) => clauses[i]).join(" "));
+    return groups.map((g) => g.map((idx) => clauses[idx]).join(" "));
   }
 
-  function toggle(i: number) {
+  function commitDrag(anchor: number, end: number) {
+    const min = Math.min(anchor, end);
+    const max = Math.max(anchor, end);
     setSelectedSet((prev) => {
       const next = new Set(prev);
-      if (next.has(i)) next.delete(i);
-      else next.add(i);
+      if (min === max && prev.has(min)) {
+        next.delete(min); // 단일 탭: 이미 선택된 것 토글
+      } else {
+        for (let i = min; i <= max; i++) next.add(i);
+      }
       const texts = groupConsecutive(next);
       onSelect(texts.length > 0 ? texts : [""]);
       return next;
@@ -554,20 +569,48 @@ function OcrClauseSelector({
   }
 
   return (
-    <div className="bg-white rounded-2xl p-5 border border-[var(--color-border)]">
-      {clauses.map((c, i) => (
-        <span
-          key={i}
-          onClick={() => toggle(i)}
-          className={`inline cursor-pointer rounded px-0.5 font-serif text-sm leading-relaxed transition-colors ${
-            selectedSet.has(i)
-              ? "bg-[var(--color-highlight)] underline decoration-2 decoration-amber-400 text-[var(--color-ink)] font-medium"
-              : "hover:bg-[var(--color-cream-dark)]"
-          }`}
-        >
-          {c}{" "}
-        </span>
-      ))}
+    <div
+      ref={containerRef}
+      className="bg-white rounded-2xl p-5 border border-[var(--color-border)] select-none touch-none"
+      onPointerDown={(e) => {
+        const idx = getIdxFromPoint(e.clientX, e.clientY);
+        if (idx === null) return;
+        e.currentTarget.setPointerCapture(e.pointerId);
+        setDragAnchor(idx);
+        setDragEnd(idx);
+      }}
+      onPointerMove={(e) => {
+        if (dragAnchor === null) return;
+        const idx = getIdxFromPoint(e.clientX, e.clientY);
+        if (idx !== null) setDragEnd(idx);
+      }}
+      onPointerUp={() => {
+        if (dragAnchor === null) return;
+        commitDrag(dragAnchor, dragEnd ?? dragAnchor);
+        setDragAnchor(null);
+        setDragEnd(null);
+      }}
+      onPointerCancel={() => { setDragAnchor(null); setDragEnd(null); }}
+    >
+      {clauses.map((c, i) => {
+        const isSelected = selectedSet.has(i);
+        const inDrag = dragMin !== null && dragMax !== null && i >= dragMin && i <= dragMax;
+        return (
+          <span
+            key={i}
+            data-cidx={String(i)}
+            className={`inline cursor-pointer rounded px-0.5 font-serif text-sm leading-relaxed transition-colors ${
+              isSelected
+                ? "bg-[var(--color-highlight)] underline decoration-2 decoration-amber-400 text-[var(--color-ink)] font-medium"
+                : inDrag
+                ? "bg-amber-200/60"
+                : "hover:bg-[var(--color-cream-dark)]"
+            }`}
+          >
+            {c}{" "}
+          </span>
+        );
+      })}
     </div>
   );
 }
