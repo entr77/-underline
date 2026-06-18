@@ -94,6 +94,7 @@ export class VisionOrchestrator {
           requests: [{
             image: { content: image.base64 },
             features: [{ type: "DOCUMENT_TEXT_DETECTION" }],
+            imageContext: { languageHints: ["ko", "en"] },
           }],
         }),
       }
