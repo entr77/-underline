@@ -19,9 +19,8 @@ export type OcrContext = {
 };
 
 export type HighlightResult = {
-  segments: string[];                                              // 표시된 원문 조각들
-  ranges: { start: number; end: number }[];                       // fullText 내 위치
-  boxes: { x: number; y: number; w: number; h: number }[];       // 이미지 내 비율(0~1), segments와 순서 동일
+  segments: string[];                          // 표시된 원문 조각들
+  ranges: { start: number; end: number }[];   // fullText 내 위치
 };
 
 export type PageNumberResult = {

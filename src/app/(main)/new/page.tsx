@@ -7,7 +7,6 @@ import Link from "next/link";
 import Image from "next/image";
 import BookSearchInput, { type KakaoBook } from "@/components/features/BookSearchInput";
 import ImageCropRotate from "@/components/features/ImageCropRotate";
-import ImageHighlightPicker from "@/components/features/ImageHighlightPicker";
 import { imageFileToBase64, uploadImage } from "@/lib/storage";
 import { createUnderlinesBulk } from "@/app/actions/underline";
 import { createClient } from "@/lib/supabase/client";
@@ -20,10 +19,6 @@ type AnalyzeResult = {
   detectedUnderlineRanges: { start: number; end: number }[];
   pageNumber: string | null;
   headerText?: string;
-  highlights?: {
-    boxes?: { x: number; y: number; w: number; h: number }[];
-    segments?: string[];
-  };
   book?: {
     title: string;
     author: string;
@@ -75,7 +70,6 @@ export default function NewUnderlinePage() {
   const [book, setBook] = useState<Book | null>(null);
   const [pageNumber, setPageNumber] = useState("");
   const [selectedTexts, setSelectedTexts] = useState<string[]>([""]);
-  const [isPickerOpen, setIsPickerOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadWarning, setUploadWarning] = useState<string | null>(null);
@@ -123,18 +117,11 @@ export default function NewUnderlinePage() {
         setAnalyzeResult(data);
         if (data.pageNumber) setPageNumber(data.pageNumber);
 
-        // 이미지 하이라이트 피커가 있으면 텍스트를 직접 채우므로 빈 배열로 시작
-        // 없을 경우(이미지 없음) 텍스트 범위로 채움
-        const hasImageHighlights =
-          (data.highlights?.boxes?.filter((b) => b.w > 0.01).length ?? 0) > 0;
-        if (hasImageHighlights) {
-          setSelectedTexts([""]);
-        } else {
-          const texts = (data.detectedUnderlineRanges ?? [])
-            .map(({ start, end }) => data.fullText.slice(start, end).trim())
-            .filter(Boolean);
-          setSelectedTexts(texts.length > 0 ? texts : [""]);
-        }
+        // 감지된 모든 밑줄 범위를 텍스트 배열로 변환
+        const texts = (data.detectedUnderlineRanges ?? [])
+          .map(({ start, end }) => data.fullText.slice(start, end).trim())
+          .filter(Boolean);
+        setSelectedTexts(texts.length > 0 ? texts : [""]);
 
         if (data.book) {
           setBook({
@@ -148,7 +135,6 @@ export default function NewUnderlinePage() {
         }
       }
 
-      setIsPickerOpen(false);
       setStep("book");
     } catch (e) {
       setError(e instanceof Error ? e.message : "처리 중 오류가 발생했어요");
@@ -362,7 +348,7 @@ export default function NewUnderlinePage() {
         </div>
 
         <button
-          onClick={() => { setStep("select"); if (imagePreview) setIsPickerOpen(true); }}
+          onClick={() => setStep("select")}
           disabled={!book}
           className="w-full py-4 rounded-2xl bg-[var(--color-forest)] text-white font-medium hover:bg-[var(--color-forest-light)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
@@ -407,36 +393,8 @@ export default function NewUnderlinePage() {
 
         <h2 className="font-serif text-xl text-[var(--color-ink)]">어떤 문장을 남길까요?</h2>
 
-        {/* 전체화면 이미지 하이라이트 picker */}
-        {isPickerOpen && imagePreview && (
-          <ImageHighlightPicker
-            src={imagePreview}
-            onTextExtracted={(text) =>
-              setSelectedTexts((prev) => {
-                const filtered = prev.filter((t) => t.trim());
-                return [...filtered, text];
-              })
-            }
-            onDone={() => setIsPickerOpen(false)}
-          />
-        )}
-
-        {/* 사진 다시 선택 버튼 (picker 닫힌 상태) */}
-        {imagePreview && !isPickerOpen && (
-          <button
-            onClick={() => setIsPickerOpen(true)}
-            className="w-full py-3 rounded-2xl border-2 border-dashed border-[var(--color-border)] text-sm text-[var(--color-ink-faint)] hover:border-[var(--color-forest)] hover:text-[var(--color-forest)] transition-colors flex items-center justify-center gap-2"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-            </svg>
-            사진에서 직접 선택하기
-          </button>
-        )}
-
-        {/* 텍스트 절 선택 폴백 (이미지 없을 때) */}
-        {!imagePreview && fullText && (
+        {/* OCR 텍스트 절 선택기 — fullText가 있을 때만 표시 */}
+        {fullText && (
           <div className="space-y-2">
             <p className="text-xs text-[var(--color-ink-faint)]">문장을 눌러 밑줄 구간을 선택하세요</p>
             <OcrClauseSelector
