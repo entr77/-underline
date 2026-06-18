@@ -1,7 +1,7 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import type { ImageInput, OcrContext, BookResult } from "../types";
 
-type BookStrategy = "header" | "footer" | "first-line" | "last-line" | "claude-text" | "claude-multi" | "google-books" | "claude-image";
+type BookStrategy = "header" | "footer" | "claude-multi" | "google-books" | "claude-image";
 
 type KakaoDoc = {
   title: string;
@@ -44,19 +44,7 @@ export class BookAnalyzer {
       }
     }
 
-    // ③ fullText 상위 7줄 병렬 검색
-    if (context?.fullText) {
-      const result = await this.tryFirstLines(context.fullText);
-      if (result) return result;
-    }
-
-    // ④ fullText 하위 5줄 병렬 검색 (하단 푸터에 책 정보 있는 경우)
-    if (context?.fullText) {
-      const result = await this.tryLastLines(context.fullText);
-      if (result) return result;
-    }
-
-    // ⑤ Claude 텍스트 분석 — 후보 3개 순차 시도
+    // ③ Claude 텍스트 분석 — 후보 3개 순차 시도
     if (context?.fullText) {
       const result = await this.tryClaudeMulti(context.fullText);
       if (result) return result;
@@ -77,35 +65,6 @@ export class BookAnalyzer {
     const parts = text.split(/[|ㅣ\-—·]/).map((p) => p.trim()).filter((p) => !isUseless(p));
     const unique = [...new Set([text.trim(), ...parts])].filter((p) => !isUseless(p));
     return unique;
-  }
-
-  private async tryFirstLines(fullText: string): Promise<BookResult> {
-    const candidates = fullText
-      .split("\n")
-      .map((l) => l.trim())
-      .filter((l) => l.length >= 3 && l.length <= 60 && !PAGE_NUMBER_RE.test(l))
-      .slice(0, 7);
-
-    if (candidates.length === 0) return null;
-
-    const results = await Promise.all(
-      candidates.map((line) => this.searchKakao(line, "first-line"))
-    );
-    return results.find((r) => r !== null) ?? null;
-  }
-
-  private async tryLastLines(fullText: string): Promise<BookResult> {
-    const lines = fullText.split("\n").map((l) => l.trim());
-    const candidates = lines
-      .filter((l) => l.length >= 3 && l.length <= 60 && !PAGE_NUMBER_RE.test(l))
-      .slice(-5);
-
-    if (candidates.length === 0) return null;
-
-    const results = await Promise.all(
-      candidates.map((line) => this.searchKakao(line, "last-line"))
-    );
-    return results.find((r) => r !== null) ?? null;
   }
 
   // Claude에게 후보 3개를 받아 순서대로 카카오 검색 시도
