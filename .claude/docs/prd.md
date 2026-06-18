@@ -46,9 +46,10 @@
 - 추천 엔진 — 내 밑줄 + 프로필 기반 책/문장 추천
 
 ## 핵심 기술 제약
-- 이미지 분석에 Claude Vision API (claude-haiku-4-5) 사용 — OCR + 밑줄 감지 + 책 식별을 단일 호출로 처리
+- 이미지 분석에 Claude Vision API (claude-sonnet-4-6) 사용 — OCR + 밑줄 감지 + 책 식별을 단일 호출로 처리
 - 밑줄 감지: 형광펜·볼펜·연필 밑줄·동그라미·괄호 등 모든 표시 방식 지원
-- 책 자동 인식: header→footer→first-line→Claude 텍스트 추출 → Claude Vision 순서로 전략 시도
+- 책 자동 인식: header→footer→Claude 텍스트 분석(후보 3개)→Google Books(영어책)→Claude Vision 순서로 전략 시도
+  - 본문 임의 줄을 카카오에 직접 검색하는 방식 제거 (매칭률 거의 0, API 낭비)
 - 카카오 도서 API는 서버에서만 호출 (/api/books/search 프록시)
 - Vision 분석 모듈: `src/lib/vision/` — 각 기능이 독립 Analyzer 클래스로 분리되어 확장 가능
 
