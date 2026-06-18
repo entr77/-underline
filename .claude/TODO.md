@@ -19,26 +19,25 @@
 
 ---
 
-## ⬜ 미완료 기능
+## ✅ 완료된 기능 (2026-06-18)
 
-### 좋아요 UI 인터랙션
-- DB는 준비됨 (`likes` 테이블, `like_count` 트리거)
-- 피드/상세 페이지 하트 버튼 실시간 동작 미연결
-- Server Action + optimistic update 구현 필요
+- 좋아요 UI 인터랙션: LikeButton optimistic update, toggleLike 서버 액션
+- 피드 태그 필터: FeedFilter 컴포넌트, searchParams 기반 동작
+- 피드 is_liked 반영: 현재 유저 likes 쿼리
+- 밑줄 삭제: DeleteUnderlineButton (작성자 전용), deleteUnderline 서버 액션
+
+## ⬜ 미완료 기능
 
 ### 수동 실행 필요한 SQL
 Supabase SQL Editor에서 아직 실행 안 된 마이그레이션:
 ```sql
--- 002: Storage 버킷
+-- 002: Storage 버킷 (사진 업로드에 필요)
 -- (supabase/migrations/002_storage.sql 내용 실행)
 
 -- 003: books UPDATE RLS (실행됐을 수도 있음, 확인 필요)
 -- (supabase/migrations/003_books_update_policy.sql 내용 실행)
 ```
 
-### 팔로우 기능
+### 팔로우 기능 (P1)
 - 프로필 페이지 팔로우 버튼 UI만 있고 동작 안 함
-
-### 주로 읽는 것들 태그 활용
-- 현재 프로필에 표시만 됨
-- 피드 필터와 연결하거나 제거 여부 결정 필요
+- follows 테이블 스키마 미생성
