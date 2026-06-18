@@ -48,8 +48,8 @@ export default function UnderlineCard({ underline, compact }: Props) {
               className="object-cover"
               sizes="(max-width: 430px) 100vw, 430px"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
-            <blockquote className={`absolute bottom-0 left-0 right-0 p-4 font-serif text-white leading-relaxed ${compact ? "text-sm line-clamp-3" : "text-base line-clamp-4"}`}>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+            <blockquote className="absolute bottom-0 left-0 right-0 p-4 font-serif text-white text-sm leading-relaxed line-clamp-2">
               "{underline.content}"
             </blockquote>
           </div>
