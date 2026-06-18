@@ -29,7 +29,7 @@ export default function UnderlineCard({ underline, compact }: Props) {
     <article className="bg-white rounded-2xl p-5 border border-[var(--color-border)] hover:border-[var(--color-ink-faint)] transition-colors">
       <Link href={`/underline/${underline.id}`} className="block">
         <div className="flex gap-3 mb-4">
-          <BookCover src={underline.book.cover_url} title={underline.book.title} size="md" />
+          <BookCover src={underline.book.cover_url} title={underline.book.title} size="sm" />
           <div className="min-w-0">
             <p className="text-sm font-medium text-[var(--color-ink)] truncate">{underline.book.title}</p>
             <p className="text-xs text-[var(--color-ink-faint)] truncate">{underline.book.author}</p>
@@ -40,7 +40,7 @@ export default function UnderlineCard({ underline, compact }: Props) {
         </div>
 
         {underline.image_url && (
-          <div className="relative w-full h-16 rounded-xl overflow-hidden mb-3 bg-[var(--color-cream-dark)]">
+          <div className="relative w-full h-24 rounded-xl overflow-hidden mb-3 bg-[var(--color-cream-dark)]">
             <Image
               src={underline.image_url}
               alt="책 페이지"
