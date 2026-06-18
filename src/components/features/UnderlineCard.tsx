@@ -40,7 +40,7 @@ export default function UnderlineCard({ underline, compact }: Props) {
         </div>
 
         {underline.image_url && (
-          <div className="relative w-full h-24 rounded-xl overflow-hidden mb-3 bg-[var(--color-cream-dark)]">
+          <div className="relative w-full h-64 rounded-xl overflow-hidden mb-3 bg-[var(--color-cream-dark)]">
             <Image
               src={underline.image_url}
               alt="책 페이지"
