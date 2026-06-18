@@ -26,21 +26,10 @@ function timeAgo(dateStr: string) {
 
 export default function UnderlineCard({ underline, compact }: Props) {
   return (
-    <article className="bg-white rounded-2xl p-5 border border-[var(--color-border)] hover:border-[var(--color-ink-faint)] transition-colors">
+    <article className="bg-white rounded-2xl overflow-hidden border border-[var(--color-border)] hover:border-[var(--color-ink-faint)] transition-colors">
       <Link href={`/underline/${underline.id}`} className="block">
-        <div className="flex gap-3 mb-4">
-          <BookCover src={underline.book.cover_url} title={underline.book.title} size="sm" />
-          <div className="min-w-0">
-            <p className="text-sm font-medium text-[var(--color-ink)] truncate">{underline.book.title}</p>
-            <p className="text-xs text-[var(--color-ink-faint)] truncate">{underline.book.author}</p>
-            {underline.page_number && (
-              <p className="text-xs text-[var(--color-ink-faint)] mt-0.5">p.{underline.page_number}</p>
-            )}
-          </div>
-        </div>
-
-        {underline.image_url ? (
-          <div className="relative w-full h-64 rounded-xl overflow-hidden mb-3 bg-[var(--color-cream-dark)]">
+        {underline.image_url && (
+          <div className="relative w-full h-52 bg-[var(--color-cream-dark)]">
             <Image
               src={underline.image_url}
               alt="책 페이지"
@@ -48,19 +37,28 @@ export default function UnderlineCard({ underline, compact }: Props) {
               className="object-cover"
               sizes="(max-width: 430px) 100vw, 430px"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-            <blockquote className="absolute bottom-0 left-0 right-0 p-4 font-serif text-white text-sm leading-relaxed line-clamp-2">
-              "{underline.content}"
-            </blockquote>
           </div>
-        ) : (
-          <blockquote className={`font-serif text-[var(--color-ink)] leading-relaxed mb-4 ${compact ? "text-base line-clamp-3" : "text-lg"}`}>
+        )}
+
+        <div className="p-5">
+          <div className="flex gap-3 mb-4">
+            <BookCover src={underline.book.cover_url} title={underline.book.title} size="sm" />
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-[var(--color-ink)] truncate">{underline.book.title}</p>
+              <p className="text-xs text-[var(--color-ink-faint)] truncate">{underline.book.author}</p>
+              {underline.page_number && (
+                <p className="text-xs text-[var(--color-ink-faint)] mt-0.5">p.{underline.page_number}</p>
+              )}
+            </div>
+          </div>
+
+          <blockquote className={`font-serif text-[var(--color-ink)] leading-relaxed ${compact ? "text-base" : "text-lg"}`}>
             "{underline.content}"
           </blockquote>
-        )}
+        </div>
       </Link>
 
-      <div className="flex items-center justify-between">
+      <div className="px-5 pb-5 flex items-center justify-between">
         <ProfileChip user={underline.user} size="sm" />
         <div className="flex items-center gap-3 text-xs text-[var(--color-ink-faint)]">
           <LikeButton

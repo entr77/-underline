@@ -1,8 +1,37 @@
 import { Suspense } from "react";
 import UnderlineCard from "@/components/features/UnderlineCard";
+import UnderlineGroupCard from "@/components/features/UnderlineGroupCard";
 import FeedFilter from "@/components/features/FeedFilter";
 import { createClient } from "@/lib/supabase/server";
 import type { Underline } from "@/types";
+
+type FeedItem =
+  | { type: "single"; underline: Underline }
+  | { type: "group"; underlines: Underline[] };
+
+function groupFeedItems(underlines: Underline[]): FeedItem[] {
+  const consumed = new Set<string>();
+  const items: FeedItem[] = [];
+
+  for (const underline of underlines) {
+    if (consumed.has(underline.id)) continue;
+
+    if (underline.image_url) {
+      const siblings = underlines.filter((u) => u.image_url === underline.image_url);
+      siblings.forEach((u) => consumed.add(u.id));
+      if (siblings.length > 1) {
+        items.push({ type: "group", underlines: siblings });
+      } else {
+        items.push({ type: "single", underline });
+      }
+    } else {
+      consumed.add(underline.id);
+      items.push({ type: "single", underline });
+    }
+  }
+
+  return items;
+}
 
 const MOCK_FEED: Underline[] = [
   {
@@ -176,9 +205,13 @@ export default async function FeedPage({ searchParams }: Props) {
           <p className="text-sm text-[var(--color-ink-faint)]">당신이 멈춘 문장이 첫 번째가 될 수 있어요</p>
         </div>
       ) : (
-        filtered.map((u) => (
-          <UnderlineCard key={u.id} underline={u} />
-        ))
+        groupFeedItems(filtered).map((item) =>
+          item.type === "group" ? (
+            <UnderlineGroupCard key={item.underlines[0].image_url} underlines={item.underlines} />
+          ) : (
+            <UnderlineCard key={item.underline.id} underline={item.underline} />
+          )
+        )
       )}
     </div>
   );
