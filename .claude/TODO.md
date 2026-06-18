@@ -24,6 +24,8 @@
 
 - 마케팅 인사이트 보고서 저장: `.claude/docs/marketing-insights-underline-behavior.md` (2026-06-18)
 - 마케팅 기반 신기능 기획서 저장: `.claude/docs/feature-plan-from-marketing-insights.md` (2026-06-18)
+- 밑줄 상세 페이지 원본 촬영 이미지 풀블리드 표시: image_url 있을 때 3:4 비율 카드 상단 표시 (2026-06-18)
+- 사진 업로드 크롭/회전 편집 단계 추가: ImageCropRotate 컴포넌트, 드래그 영역 선택 + 좌/우 회전 (2026-06-18)
 
 ## ⬜ 미완료 기능
 
