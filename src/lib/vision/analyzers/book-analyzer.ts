@@ -47,6 +47,7 @@ export class BookAnalyzer {
     const message = await this.client.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 300,
+      temperature: 0,
       messages: [
         {
           role: "user",
@@ -162,6 +163,7 @@ ${fullText.slice(0, 1500)}`,
     const message = await this.client.messages.create({
       model: "claude-sonnet-4-6",
       max_tokens: 150,
+      temperature: 0,
       messages: [
         {
           role: "user",
