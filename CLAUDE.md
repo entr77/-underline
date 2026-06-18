@@ -77,6 +77,7 @@ GOOGLE_CLOUD_VISION_API_KEY=
 | `designer` | `.claude/agents/designer.md` | 화면 설계, 컴포넌트 스펙, 디자인 시스템 |
 | `developer` | `.claude/agents/developer.md` | 코드 구현, DB 마이그레이션, API 연동 |
 | `reviewer` | `.claude/agents/reviewer.md` | 코드 리뷰, 보안 검토, RLS 검증 |
+| `marketer` | `.claude/agents/marketer.md` | 캠페인 설계, 유저 인사이트 분석, 그로스 전략 — 기획자·카피라이터에 인사이트 전달 |
 | `pm` | `.claude/agents/pm.md` | **오케스트레이터** — 요청 분석 및 에이전트 위임, 태스크 분해, 일정 산정, Confluence 문서화 |
 
 ### 작업 흐름
@@ -104,6 +105,7 @@ GOOGLE_CLOUD_VISION_API_KEY=
 | UI/UX 설계 | 360619 |
 | DB 스키마 | 589825 |
 | 기술 스택 & 아키텍처 | 622593 |
+| 마케팅 리서치 | 1245185 |
 
 ### 에이전트 작업 시작 전 체크
 1. Confluence에서 관련 페이지 최신 내용 확인

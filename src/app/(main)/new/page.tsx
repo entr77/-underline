@@ -93,12 +93,12 @@ export default function NewUnderlinePage() {
       setProcessingMsg("페이지 위의 문자들을 읽고 있어요");
       const base64 = await imageFileToBase64(file);
 
-      const msgs = ["당신이 멈춘 자리를 찾고 있어요", "이 문장이 어느 책에서 왔는지 확인해요"];
+      const msgs = ["당신이 멈춘 자리를 찾고 있어요", "이 문장이 어느 책에서 왔는지 확인해요", "밑줄 위의 감정을 읽고 있어요"];
       let msgIdx = 0;
       const msgTimer = setInterval(() => {
         msgIdx = (msgIdx + 1) % msgs.length;
         setProcessingMsg(msgs[msgIdx]);
-      }, 1200);
+      }, 2500);
 
       const res = await fetch("/api/vision/analyze", {
         method: "POST",
