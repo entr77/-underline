@@ -2,8 +2,8 @@
 
 import { useRef, useState, useEffect } from "react";
 
-// Y 범위만 사용 — 책 텍스트는 항상 가로로 풀 너비이므로 X bounding box 불필요
-type Band = { yf: number; hf: number }; // 이미지 높이 대비 비율
+// 이미지 높이 대비 비율
+type Band = { yf: number; hf: number };
 type Highlight = { id: number; band: Band; loading: boolean };
 
 type Props = {
@@ -12,10 +12,53 @@ type Props = {
   onDone: () => void;
 };
 
-function mergeBands(a: Band, b: Band): Band {
-  const top = Math.min(a.yf, b.yf);
-  const bottom = Math.max(a.yf + a.hf, b.yf + b.hf);
-  return { yf: top, hf: bottom - top };
+// 캔버스에서 실제 칠해진 픽셀 행을 스캔 → 연속 행 묶음으로 반환
+function getPaintedBands(canvas: HTMLCanvasElement): Band[] {
+  const W = canvas.width;
+  const H = canvas.height;
+  if (!W || !H) return [];
+
+  const ctx = canvas.getContext("2d")!;
+  const data = ctx.getImageData(0, 0, W, H).data;
+
+  // 각 행에 칠해진 픽셀(alpha>15)이 있는지 확인
+  const painted = new Uint8Array(H);
+  for (let y = 0; y < H; y++) {
+    const rowOffset = y * W * 4;
+    for (let x = 0; x < W; x++) {
+      if (data[rowOffset + x * 4 + 3] > 15) {
+        painted[y] = 1;
+        break;
+      }
+    }
+  }
+
+  // 연속 칠해진 행을 묶음으로 — 4행 이하 틈은 허용 (브러시 획 사이 자연스러운 간격)
+  const GAP = 5;
+  const rawBands: Array<{ s: number; e: number }> = [];
+  let start = -1;
+  let gap = 0;
+
+  for (let y = 0; y <= H; y++) {
+    if (y < H && painted[y]) {
+      if (start === -1) start = y;
+      gap = 0;
+    } else if (start !== -1) {
+      gap++;
+      if (gap > GAP || y === H) {
+        rawBands.push({ s: start, e: y - gap - 1 });
+        start = -1;
+        gap = 0;
+      }
+    }
+  }
+
+  // 픽셀 좌표 → 이미지 비율 (위아래 4px 여유)
+  return rawBands.map(({ s, e }) => {
+    const top = Math.max(0, s - 4);
+    const bot = Math.min(H, e + 4);
+    return { yf: top / H, hf: (bot - top) / H };
+  });
 }
 
 async function cropBandToBase64(src: string, band: Band): Promise<string> {
@@ -23,11 +66,11 @@ async function cropBandToBase64(src: string, band: Band): Promise<string> {
     const img = document.createElement("img");
     img.onload = () => {
       const H = img.naturalHeight;
-      const sy = Math.max(0, Math.round(band.yf * H) - 6);
-      const sh = Math.min(H - sy, Math.round(band.hf * H) + 12);
+      const sy = Math.round(band.yf * H);
+      const sh = Math.max(1, Math.round(band.hf * H));
       const canvas = document.createElement("canvas");
       canvas.width = img.naturalWidth;
-      canvas.height = Math.max(1, sh);
+      canvas.height = sh;
       canvas.getContext("2d")!.drawImage(img, 0, sy, img.naturalWidth, sh, 0, 0, img.naturalWidth, sh);
       resolve(canvas.toDataURL("image/jpeg", 0.93).split(",")[1]);
     };
@@ -42,14 +85,12 @@ export default function ImageHighlightPicker({ src, onTextExtracted, onDone }: P
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
-  const strokeY = useRef<{ minY: number; maxY: number } | null>(null);
-  const pendingBand = useRef<Band | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [highlights, setHighlights] = useState<Highlight[]>([]);
-  const [liveBand, setLiveBand] = useState<Band | null>(null);
   const doneCount = highlights.filter((h) => !h.loading).length;
 
+  // 캔버스를 이미지 컨테이너 크기에 동기화
   useEffect(() => {
     const container = containerRef.current;
     const canvas = canvasRef.current;
@@ -72,8 +113,8 @@ export default function ImageHighlightPicker({ src, onTextExtracted, onDone }: P
   function paintAt(x: number, y: number) {
     const canvas = canvasRef.current!;
     const ctx = canvas.getContext("2d")!;
-    const R = 10; // 얇은 브러시 — 세밀한 선택 가능
-    ctx.globalAlpha = 0.6;
+    const R = 10;
+    ctx.globalAlpha = 0.55;
     ctx.fillStyle = "#FCD34D";
     ctx.strokeStyle = "#FCD34D";
     ctx.lineWidth = R * 2;
@@ -89,31 +130,19 @@ export default function ImageHighlightPicker({ src, onTextExtracted, onDone }: P
     ctx.arc(x, y, R, 0, Math.PI * 2);
     ctx.fill();
     lastPos.current = { x, y };
+  }
 
-    // X는 무시, Y 범위만 추적
-    const b = strokeY.current;
-    if (!b) strokeY.current = { minY: y - R, maxY: y + R };
-    else {
-      b.minY = Math.min(b.minY, y - R);
-      b.maxY = Math.max(b.maxY, y + R);
-    }
-    const H = canvas.height;
-    if (H > 0 && strokeY.current) {
-      const yf = Math.max(0, strokeY.current.minY / H);
-      const hf = Math.min(1 - yf, (strokeY.current.maxY - strokeY.current.minY) / H);
-      setLiveBand({ yf, hf });
-    }
+  function scheduleCommit() {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(commit, 700);
   }
 
   function onPointerDown(e: React.PointerEvent) {
     e.currentTarget.setPointerCapture(e.pointerId);
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-      debounceRef.current = null;
-    }
+    // 새 획 시작 시 기존 debounce 취소 (획을 계속 이어 그릴 수 있음)
+    if (debounceRef.current) { clearTimeout(debounceRef.current); debounceRef.current = null; }
     isDrawing.current = true;
     lastPos.current = null;
-    strokeY.current = null;
     const { x, y } = relPos(e);
     paintAt(x, y);
   }
@@ -128,48 +157,43 @@ export default function ImageHighlightPicker({ src, onTextExtracted, onDone }: P
     if (!isDrawing.current) return;
     isDrawing.current = false;
     lastPos.current = null;
-
-    const sy = strokeY.current;
-    strokeY.current = null;
-    const canvas = canvasRef.current!;
-    canvas.getContext("2d")!.clearRect(0, 0, canvas.width, canvas.height);
-    setLiveBand(null);
-
-    if (!sy) return;
-    const H = canvas.height;
-    const newBand: Band = {
-      yf: Math.max(0, sy.minY / H),
-      hf: Math.min(1, (sy.maxY - sy.minY) / H),
-    };
-    pendingBand.current = pendingBand.current
-      ? mergeBands(pendingBand.current, newBand)
-      : newBand;
-
-    debounceRef.current = setTimeout(commit, 700);
+    scheduleCommit(); // 획 떼고 700ms 후 픽셀 스캔
   }
 
   async function commit() {
     debounceRef.current = null;
-    const band = pendingBand.current;
-    pendingBand.current = null;
-    if (!band || band.hf < 0.005) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-    const id = uid++;
-    setHighlights((prev) => [...prev, { id, band, loading: true }]);
-    try {
-      const base64 = await cropBandToBase64(src, band);
-      const res = await fetch("/api/vision/region", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ croppedImageBase64: base64 }),
-      });
-      const { text } = (await res.json()) as { text?: string };
-      setHighlights((prev) =>
-        prev.map((h) => (h.id === id ? { ...h, loading: false } : h))
-      );
-      if (text) onTextExtracted(text);
-    } catch {
-      setHighlights((prev) => prev.filter((h) => h.id !== id));
+    // 실제 칠해진 픽셀 행을 스캔
+    const bands = getPaintedBands(canvas);
+
+    // 캔버스 초기화 (다음 선택을 위해)
+    canvas.getContext("2d")!.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (!bands.length) return;
+
+    // 각 밴드를 개별 OCR
+    for (const band of bands) {
+      if (band.hf < 0.003) continue;
+      const id = uid++;
+      setHighlights((prev) => [...prev, { id, band, loading: true }]);
+      cropBandToBase64(src, band)
+        .then((base64) =>
+          fetch("/api/vision/region", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ croppedImageBase64: base64 }),
+          })
+        )
+        .then((r) => r.json())
+        .then(({ text }: { text?: string }) => {
+          setHighlights((prev) =>
+            prev.map((h) => (h.id === id ? { ...h, loading: false } : h))
+          );
+          if (text) onTextExtracted(text);
+        })
+        .catch(() => setHighlights((prev) => prev.filter((h) => h.id !== id)));
     }
   }
 
@@ -177,7 +201,7 @@ export default function ImageHighlightPicker({ src, onTextExtracted, onDone }: P
     <div className="fixed inset-0 z-50 bg-black flex flex-col">
       {/* 상단 바 */}
       <div className="flex items-center justify-between px-4 py-3 bg-black/80 backdrop-blur-sm">
-        <span className="text-white/60 text-xs">밑줄 위를 가로질러 긁어주세요</span>
+        <span className="text-white/60 text-xs">밑줄 위에 칠하세요 — 획 여러 번 이어도 됩니다</span>
         <button
           onClick={onDone}
           className="px-4 py-1.5 rounded-full bg-amber-400 text-black text-sm font-semibold"
@@ -198,14 +222,13 @@ export default function ImageHighlightPicker({ src, onTextExtracted, onDone }: P
           onPointerCancel={() => {
             isDrawing.current = false;
             lastPos.current = null;
-            strokeY.current = null;
-            setLiveBand(null);
+            scheduleCommit();
           }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={src} alt="책 페이지" className="w-full h-auto block" draggable={false} />
 
-          {/* 확정 하이라이트 — 풀 너비 띠 */}
+          {/* 확정 하이라이트 — 픽셀 스캔 기반 풀너비 띠 */}
           {highlights.map((h) => (
             <div
               key={h.id}
@@ -220,26 +243,13 @@ export default function ImageHighlightPicker({ src, onTextExtracted, onDone }: P
             </div>
           ))}
 
-          {/* 현재 획의 Y 범위 미리보기 — 크롭될 영역 표시 */}
-          {liveBand && (
-            <div
-              className="absolute left-0 right-0 pointer-events-none border-t-2 border-b-2 border-amber-400/80"
-              style={{
-                top: `${liveBand.yf * 100}%`,
-                height: `${liveBand.hf * 100}%`,
-                background: "rgba(252, 211, 77, 0.12)",
-              }}
-            />
-          )}
-
-          {/* 실시간 브러시 캔버스 */}
+          {/* 실시간 브러시 캔버스 — 획이 쌓임 (commit 전까지 유지) */}
           <canvas
             ref={canvasRef}
             className="absolute inset-0 pointer-events-none"
             style={{ width: "100%", height: "100%" }}
           />
 
-          {/* OCR 진행 중 */}
           {highlights.some((h) => h.loading) && (
             <div className="fixed bottom-20 left-1/2 -translate-x-1/2 pointer-events-none z-50">
               <span className="bg-black/70 text-white text-xs rounded-full px-3 py-1.5 backdrop-blur-sm">
