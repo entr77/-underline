@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Alert from "@/components/ui/Alert";
 import Link from "next/link";
@@ -84,6 +84,7 @@ export default function NewUnderlinePage() {
   const [pageNumber, setPageNumber] = useState("");
   const [selectedTexts, setSelectedTexts] = useState<string[]>([""]);
   const [bookCandidates, setBookCandidates] = useState<BookCandidate[]>([]);
+  const [recentBooks, setRecentBooks] = useState<Book[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadWarning, setUploadWarning] = useState<string | null>(null);
@@ -99,6 +100,35 @@ export default function NewUnderlinePage() {
     setSelectedTexts([""]);
     setError(null);
     setStep("upload");
+  }, []);
+
+  // 최근에 저장한 책 (최대 2권) — 같은 책 읽는 중일 확률 높음
+  useEffect(() => {
+    const fetchRecentBooks = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      type Row = { book_id: string | null; books: { id: string; kakao_id: string; title: string; author: string; publisher: string | null; cover_url: string | null } | null };
+      const { data } = await supabase
+        .from("underlines")
+        .select("book_id, books(id, kakao_id, title, author, publisher, cover_url)")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(20) as { data: Row[] | null; error: unknown };
+      if (!data) return;
+      const seen = new Set<string>();
+      const books: Book[] = [];
+      for (const row of data) {
+        if (!row.book_id || !row.books) continue;
+        if (seen.has(row.book_id)) continue;
+        seen.add(row.book_id);
+        const b = row.books;
+        books.push({ id: b.id, kakao_id: b.kakao_id, title: b.title, author: b.author, publisher: b.publisher ?? "", cover_url: b.cover_url ?? "" });
+        if (books.length >= 2) break;
+      }
+      setRecentBooks(books);
+    };
+    fetchRecentBooks();
   }, []);
 
   const processImage = useCallback(async (file: File) => {
@@ -320,64 +350,121 @@ export default function NewUnderlinePage() {
           </div>
         )}
 
-        {/* AI 추천 후보 — 여러 모델 결과 */}
-        {bookCandidates.filter((c) => c.result).length > 0 && (
-          <div className="space-y-2">
-            <p className="text-xs text-[var(--color-ink-faint)]">AI가 찾은 책</p>
-            {bookCandidates.filter((c) => c.result).map((c, i) => (
-              <button
-                key={i}
-                onClick={() => setBook({
-                  id: "",
-                  kakao_id: c.result!.isbn || c.result!.title,
-                  title: c.result!.title,
-                  author: c.result!.author,
-                  publisher: c.result!.publisher ?? "",
-                  cover_url: c.result!.thumbnail ?? "",
-                })}
-                className={`w-full flex gap-3 items-center p-3 rounded-2xl border transition-colors text-left ${
-                  book?.title === c.result!.title
-                    ? "border-[var(--color-forest)] bg-[var(--color-forest)]/5"
-                    : "border-[var(--color-border)] bg-white hover:border-[var(--color-forest)]/50"
-                }`}
-              >
-                {c.result!.thumbnail ? (
-                  <div className="relative w-10 h-14 flex-shrink-0">
-                    <Image src={c.result!.thumbnail} alt={c.result!.title} fill className="object-cover rounded" />
-                  </div>
-                ) : (
-                  <div className="w-10 h-14 bg-[var(--color-forest)] rounded flex items-center justify-center flex-shrink-0">
-                    <span className="text-white/60 text-[9px] text-center px-1 leading-tight">{c.result!.title.slice(0, 6)}</span>
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate text-[var(--color-ink)]">{c.result!.title}</p>
-                  <p className="text-xs text-[var(--color-ink-faint)]">{c.result!.author}</p>
-                </div>
-                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-[var(--color-cream-dark)] text-[var(--color-ink-muted)] flex-shrink-0">
-                  {c.model === "gpt" ? "GPT-4o" : c.model === "gemini" ? "Gemini" : "Claude"}
-                </span>
-              </button>
-            ))}
-          </div>
-        )}
+        {(() => {
+          const aiBooks = bookCandidates.filter((c) => c.result);
+          // AI 후보 제목 목록 (소문자 비교용)
+          const aiTitles = new Set(aiBooks.map((c) => c.result!.title.toLowerCase().trim()));
+          // 최근 책 중 AI 후보에 없는 것만 별도 섹션으로
+          const recentOnly = recentBooks.filter((rb) => !aiTitles.has(rb.title.toLowerCase().trim()));
+          // AI 후보 중 최근 책과 일치하는 것에 배지 표시
+          const recentTitles = new Set(recentBooks.map((rb) => rb.title.toLowerCase().trim()));
+          const hasAnySuggestion = recentOnly.length > 0 || aiBooks.length > 0;
 
-        {/* 직접 검색 */}
-        <div>
-          <p className="text-sm text-[var(--color-ink-muted)] mb-2">
-            {bookCandidates.filter((c) => c.result).length > 0
-              ? "다른 책이면 직접 검색"
-              : "책 제목이나 저자로 검색해주세요"}
-          </p>
-          <BookSearchInput onSelect={(b: KakaoBook) => setBook({
-            id: b.kakao_id,
-            kakao_id: b.kakao_id,
-            title: b.title,
-            author: b.author,
-            publisher: b.publisher,
-            cover_url: b.cover_url,
-          })} />
-        </div>
+          const BookCard = ({
+            thumbnail, title, author, isSelected, onClick, badge, badgeStyle,
+          }: {
+            thumbnail?: string; title: string; author: string; isSelected: boolean;
+            onClick: () => void; badge?: string; badgeStyle?: string;
+          }) => (
+            <button
+              onClick={onClick}
+              className={`w-full flex gap-3 items-center p-3 rounded-2xl border transition-colors text-left ${
+                isSelected
+                  ? "border-[var(--color-forest)] bg-[var(--color-forest)]/5"
+                  : "border-[var(--color-border)] bg-white hover:border-[var(--color-forest)]/50"
+              }`}
+            >
+              {thumbnail ? (
+                <div className="relative w-10 h-14 flex-shrink-0">
+                  <Image src={thumbnail} alt={title} fill className="object-cover rounded" />
+                </div>
+              ) : (
+                <div className="w-10 h-14 bg-[var(--color-forest)] rounded flex items-center justify-center flex-shrink-0">
+                  <span className="text-white/60 text-[9px] text-center px-1 leading-tight">{title.slice(0, 6)}</span>
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-sm truncate text-[var(--color-ink)]">{title}</p>
+                <p className="text-xs text-[var(--color-ink-faint)]">{author}</p>
+              </div>
+              {badge && (
+                <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded flex-shrink-0 ${badgeStyle ?? "bg-[var(--color-cream-dark)] text-[var(--color-ink-muted)]"}`}>
+                  {badge}
+                </span>
+              )}
+            </button>
+          );
+
+          return (
+            <>
+              {/* 최근 읽던 책 (AI 후보와 중복 아닌 것) */}
+              {recentOnly.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs text-[var(--color-ink-faint)]">계속 읽고 있나요?</p>
+                  {recentOnly.map((rb, i) => (
+                    <BookCard
+                      key={`recent-${i}`}
+                      thumbnail={rb.cover_url}
+                      title={rb.title}
+                      author={rb.author}
+                      isSelected={book?.title === rb.title}
+                      onClick={() => setBook(rb)}
+                      badge="최근"
+                      badgeStyle="bg-amber-50 text-amber-700"
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* AI 후보 */}
+              {aiBooks.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs text-[var(--color-ink-faint)]">
+                    {recentOnly.length > 0 ? "AI가 찾은 책" : "AI가 찾은 책"}
+                  </p>
+                  {aiBooks.map((c, i) => {
+                    const isRecent = recentTitles.has(c.result!.title.toLowerCase().trim());
+                    const modelLabel = c.model === "gpt" ? "GPT-4o" : c.model === "gemini" ? "Gemini" : "Claude";
+                    return (
+                      <BookCard
+                        key={`ai-${i}`}
+                        thumbnail={c.result!.thumbnail}
+                        title={c.result!.title}
+                        author={c.result!.author}
+                        isSelected={book?.title === c.result!.title}
+                        onClick={() => setBook({
+                          id: "",
+                          kakao_id: c.result!.isbn || c.result!.title,
+                          title: c.result!.title,
+                          author: c.result!.author,
+                          publisher: c.result!.publisher ?? "",
+                          cover_url: c.result!.thumbnail ?? "",
+                        })}
+                        badge={isRecent ? "지금 읽는 중" : modelLabel}
+                        badgeStyle={isRecent ? "bg-amber-50 text-amber-700" : "bg-[var(--color-cream-dark)] text-[var(--color-ink-muted)]"}
+                      />
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* 직접 검색 */}
+              <div>
+                <p className="text-sm text-[var(--color-ink-muted)] mb-2">
+                  {hasAnySuggestion ? "다른 책이면 직접 검색" : "책 제목이나 저자로 검색해주세요"}
+                </p>
+                <BookSearchInput onSelect={(b: KakaoBook) => setBook({
+                  id: b.kakao_id,
+                  kakao_id: b.kakao_id,
+                  title: b.title,
+                  author: b.author,
+                  publisher: b.publisher,
+                  cover_url: b.cover_url,
+                })} />
+              </div>
+            </>
+          );
+        })()}
 
         <div className="bg-white rounded-2xl p-4 border border-[var(--color-border)]">
           <label className="text-xs text-[var(--color-ink-faint)] block mb-2">페이지 번호</label>
