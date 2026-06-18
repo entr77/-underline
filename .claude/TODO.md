@@ -17,6 +17,8 @@
 - SNS 독서 밑줄 문화 마케팅 리서치: `.claude/docs/marketing-research.md` + Confluence ID 1245185 (2026-06-18)
 - 로딩 카피 3개로 확장, 롤링 간격 2500ms 조정 (2026-06-18)
 - 테스트 이미지 수집/업로드 스크립트: `.claude/scripts/` (2026-06-18)
+- 책 인식 전략 7종 확장: header/footer/first-line/last-line/claude-multi/google-books/claude-image (2026-06-18) — 인식률 39% → 100%
+- 테스트 이미지 34개 업로드, 16개 책 인식, 미인식 0개 (2026-06-18)
 
 ## ✅ 완료된 기능 (2026-06-18 기준, 추가)
 

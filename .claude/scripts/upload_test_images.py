@@ -150,7 +150,13 @@ def insert_underlines(book_id: str, result: dict, image_path: str):
     ]
 
     try:
-        inserted = supabase_request("POST", "/rest/v1/underlines", rows)
+        h = {**SUPABASE_HEADERS, "Prefer": "return=representation"}
+        url = f"{SUPABASE_URL}/rest/v1/underlines"
+        data = json.dumps(rows).encode()
+        req = urllib.request.Request(url, data=data, headers=h, method="POST")
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            body = resp.read()
+            inserted = json.loads(body) if body.strip() else []
         if isinstance(inserted, list):
             return [r["id"] for r in inserted]
         return []
@@ -161,20 +167,27 @@ def insert_underlines(book_id: str, result: dict, image_path: str):
 
 # ── 메인 ────────────────────────────────────────────────────────────────────
 def collect_images(category_filter=None) -> list[tuple[str, str]]:
-    """(category, filepath) 목록 반환"""
+    """(category, filepath) 목록 반환 — 플랫·서브디렉토리 모두 지원"""
     result = []
-    for cat in sorted(os.listdir(IMAGES_DIR)):
-        if category_filter and cat != category_filter:
+    for entry in sorted(os.listdir(IMAGES_DIR)):
+        if entry.startswith("."):
             continue
-        cat_dir = os.path.join(IMAGES_DIR, cat)
-        if not os.path.isdir(cat_dir):
-            continue
-        for fname in sorted(os.listdir(cat_dir)):
-            if fname.startswith("."):
+        entry_path = os.path.join(IMAGES_DIR, entry)
+        if os.path.isdir(entry_path):
+            # 서브디렉토리 (카테고리)
+            if category_filter and entry != category_filter:
                 continue
-            ext = fname.rsplit(".", 1)[-1].lower()
+            for fname in sorted(os.listdir(entry_path)):
+                if fname.startswith("."):
+                    continue
+                ext = fname.rsplit(".", 1)[-1].lower()
+                if ext in ("jpg", "jpeg", "png", "webp"):
+                    result.append((entry, os.path.join(entry_path, fname)))
+        else:
+            # 플랫 구조 (서브디렉토리 없음)
+            ext = entry.rsplit(".", 1)[-1].lower()
             if ext in ("jpg", "jpeg", "png", "webp"):
-                result.append((cat, os.path.join(cat_dir, fname)))
+                result.append(("flat", entry_path))
     return result
 
 
