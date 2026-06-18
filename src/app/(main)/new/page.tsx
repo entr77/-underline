@@ -537,7 +537,7 @@ function OcrClauseSelector({
           onClick={() => toggle(i)}
           className={`inline cursor-pointer rounded px-0.5 font-serif text-sm leading-relaxed transition-colors ${
             selectedSet.has(i)
-              ? "bg-[var(--color-highlight)] underline decoration-2 decoration-amber-400"
+              ? "bg-[var(--color-highlight)] underline decoration-2 decoration-amber-400 text-[var(--color-ink)] font-medium"
               : "hover:bg-[var(--color-cream-dark)]"
           }`}
         >
