@@ -124,44 +124,15 @@ ${fullText.slice(0, 1500)}`,
     }
   }
 
-  // Google Books API — 영어·외국어 책 fallback
+  // Google Books API — 한국어 포함 전문(全文) 구절 검색
+  // Claude 없이 OCR 텍스트에서 독특한 구절을 직접 뽑아 검색
   private async tryGoogleBooks(fullText: string): Promise<BookResult> {
-    // fullText에서 영어 구절이 있으면 시도
-    const hasEnglish = /[a-zA-Z]{4,}/.test(fullText);
-    if (!hasEnglish) return null;
-
-    // Claude로 영어 책 제목/저자 추출
-    const message = await this.client.messages.create({
-      model: "claude-sonnet-4-6",
-      max_tokens: 150,
-      messages: [
-        {
-          role: "user",
-          content: `This is a page from a book. Identify the book.
-
-Clues: proper nouns, character names, specific terminology, writing style.
-Return JSON only: {"title": "book title", "author": "author name"}
-If unknown, return: {"title": null}
-
-Text:
-${fullText.slice(0, 1000)}`,
-        },
-      ],
-    });
-
-    const rawText = message.content[0].type === "text" ? message.content[0].text : "";
+    const snippet = this.pickDistinctiveSnippet(fullText);
+    if (!snippet) return null;
 
     try {
-      const match = rawText.match(/\{[\s\S]*\}/);
-      const { title, author } = JSON.parse(match?.[0] ?? "{}") as {
-        title?: string | null;
-        author?: string | null;
-      };
-      if (!title) return null;
-
-      const query = author ? `${title} ${author}` : title;
       const res = await fetch(
-        `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=1&langRestrict=&printType=books`
+        `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(snippet)}&maxResults=3&printType=books`
       );
       if (!res.ok) return null;
 
@@ -170,20 +141,46 @@ ${fullText.slice(0, 1000)}`,
       if (!item) return null;
 
       const info = item.volumeInfo;
-      const kakaoId = info.industryIdentifiers?.find((id: { type: string }) => id.type === "ISBN_13")?.identifier
-        ?? `google_${item.id}`;
+      const isbn =
+        info.industryIdentifiers?.find((id: { type: string }) => id.type === "ISBN_13")?.identifier ??
+        `google_${item.id}`;
+
+      // Google Books로 찾은 제목으로 Kakao에서 thumbnail·publisher 보강
+      if (info.title) {
+        const kakaoResult = await this.searchKakao(info.title, "google-books");
+        if (kakaoResult) return kakaoResult;
+      }
 
       return {
-        title: info.title ?? title,
-        author: info.authors?.join(", ") ?? author ?? "",
+        title: info.title ?? "",
+        author: info.authors?.join(", ") ?? "",
         publisher: info.publisher ?? "",
         thumbnail: info.imageLinks?.thumbnail?.replace("http://", "https://") ?? "",
-        isbn: kakaoId,
+        isbn,
         strategy: "google-books",
       };
     } catch {
       return null;
     }
+  }
+
+  // 본문 중간부에서 15~45자 사이의 독특한 구절 추출
+  // 헤더/푸터·숫자·짧은 줄은 제외
+  private pickDistinctiveSnippet(fullText: string): string | null {
+    const lines = fullText
+      .split(/[\n。]/)
+      .map((l) => l.trim())
+      .filter((l) => l.length >= 15 && l.length <= 80 && !/^\d+$/.test(l));
+    if (!lines.length) return null;
+    // 앞뒤 20%를 제외한 중간 구간에서 선택 (헤더/푸터 회피)
+    const start = Math.floor(lines.length * 0.2);
+    const end = Math.floor(lines.length * 0.8);
+    const candidates = lines.slice(start, end);
+    if (!candidates.length) return lines[Math.floor(lines.length / 2)] ?? null;
+    // 고유명사·따옴표 포함 줄 우선
+    const rich = candidates.find((l) => /["'「」『』《》]|[A-Z]/.test(l));
+    const chosen = rich ?? candidates[Math.floor(candidates.length / 2)];
+    return chosen.slice(0, 45);
   }
 
   private async tryClaudeImage(image: ImageInput): Promise<BookResult> {

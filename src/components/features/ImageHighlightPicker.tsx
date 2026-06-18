@@ -2,8 +2,9 @@
 
 import { useRef, useState, useEffect } from "react";
 
-type Box = { x: number; y: number; w: number; h: number };
-type Highlight = { id: number; box: Box; loading: boolean };
+// Y 범위만 사용 — 책 텍스트는 항상 가로로 풀 너비이므로 X bounding box 불필요
+type Band = { yf: number; hf: number }; // 이미지 높이 대비 비율
+type Highlight = { id: number; band: Band; loading: boolean };
 
 type Props = {
   src: string;
@@ -11,28 +12,24 @@ type Props = {
   onDone: () => void;
 };
 
-function mergeBox(a: Box | null, b: Box): Box {
-  if (!a) return b;
-  const x = Math.min(a.x, b.x);
-  const y = Math.min(a.y, b.y);
-  return { x, y, w: Math.max(a.x + a.w, b.x + b.w) - x, h: Math.max(a.y + a.h, b.y + b.h) - y };
+function mergeBands(a: Band, b: Band): Band {
+  const top = Math.min(a.yf, b.yf);
+  const bottom = Math.max(a.yf + a.hf, b.yf + b.hf);
+  return { yf: top, hf: bottom - top };
 }
 
-async function cropToBase64(src: string, box: Box): Promise<string> {
+async function cropBandToBase64(src: string, band: Band): Promise<string> {
   return new Promise((resolve) => {
     const img = document.createElement("img");
     img.onload = () => {
+      const H = img.naturalHeight;
+      const sy = Math.max(0, Math.round(band.yf * H) - 6);
+      const sh = Math.min(H - sy, Math.round(band.hf * H) + 12);
       const canvas = document.createElement("canvas");
-      const sw = Math.max(1, box.w * img.naturalWidth);
-      const sh = Math.max(1, box.h * img.naturalHeight);
-      canvas.width = Math.round(sw);
-      canvas.height = Math.round(sh);
-      canvas.getContext("2d")!.drawImage(
-        img,
-        box.x * img.naturalWidth, box.y * img.naturalHeight, sw, sh,
-        0, 0, sw, sh
-      );
-      resolve(canvas.toDataURL("image/jpeg", 0.92).split(",")[1]);
+      canvas.width = img.naturalWidth;
+      canvas.height = Math.max(1, sh);
+      canvas.getContext("2d")!.drawImage(img, 0, sy, img.naturalWidth, sh, 0, 0, img.naturalWidth, sh);
+      resolve(canvas.toDataURL("image/jpeg", 0.93).split(",")[1]);
     };
     img.src = src;
   });
@@ -45,20 +42,22 @@ export default function ImageHighlightPicker({ src, onTextExtracted, onDone }: P
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
-  const strokeBounds = useRef<{ minX: number; minY: number; maxX: number; maxY: number } | null>(null);
-  const pendingBox = useRef<Box | null>(null);
+  const strokeY = useRef<{ minY: number; maxY: number } | null>(null);
+  const pendingBand = useRef<Band | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [highlights, setHighlights] = useState<Highlight[]>([]);
-  const [pendingDisplay, setPendingDisplay] = useState<Box | null>(null);
+  const [liveBand, setLiveBand] = useState<Band | null>(null);
   const doneCount = highlights.filter((h) => !h.loading).length;
 
-  // 캔버스를 이미지 컨테이너 크기에 동기화
   useEffect(() => {
     const container = containerRef.current;
     const canvas = canvasRef.current;
     if (!container || !canvas) return;
-    const sync = () => { canvas.width = container.clientWidth; canvas.height = container.clientHeight; };
+    const sync = () => {
+      canvas.width = container.clientWidth;
+      canvas.height = container.clientHeight;
+    };
     sync();
     const ro = new ResizeObserver(sync);
     ro.observe(container);
@@ -73,8 +72,8 @@ export default function ImageHighlightPicker({ src, onTextExtracted, onDone }: P
   function paintAt(x: number, y: number) {
     const canvas = canvasRef.current!;
     const ctx = canvas.getContext("2d")!;
-    const R = 22;
-    ctx.globalAlpha = 0.5;
+    const R = 10; // 얇은 브러시 — 세밀한 선택 가능
+    ctx.globalAlpha = 0.6;
     ctx.fillStyle = "#FCD34D";
     ctx.strokeStyle = "#FCD34D";
     ctx.lineWidth = R * 2;
@@ -90,22 +89,31 @@ export default function ImageHighlightPicker({ src, onTextExtracted, onDone }: P
     ctx.arc(x, y, R, 0, Math.PI * 2);
     ctx.fill();
     lastPos.current = { x, y };
-    const b = strokeBounds.current;
-    if (!b) strokeBounds.current = { minX: x - R, minY: y - R, maxX: x + R, maxY: y + R };
+
+    // X는 무시, Y 범위만 추적
+    const b = strokeY.current;
+    if (!b) strokeY.current = { minY: y - R, maxY: y + R };
     else {
-      b.minX = Math.min(b.minX, x - R);
       b.minY = Math.min(b.minY, y - R);
-      b.maxX = Math.max(b.maxX, x + R);
       b.maxY = Math.max(b.maxY, y + R);
+    }
+    const H = canvas.height;
+    if (H > 0 && strokeY.current) {
+      const yf = Math.max(0, strokeY.current.minY / H);
+      const hf = Math.min(1 - yf, (strokeY.current.maxY - strokeY.current.minY) / H);
+      setLiveBand({ yf, hf });
     }
   }
 
   function onPointerDown(e: React.PointerEvent) {
     e.currentTarget.setPointerCapture(e.pointerId);
-    if (debounceRef.current) { clearTimeout(debounceRef.current); debounceRef.current = null; }
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
     isDrawing.current = true;
     lastPos.current = null;
-    strokeBounds.current = null;
+    strokeY.current = null;
     const { x, y } = relPos(e);
     paintAt(x, y);
   }
@@ -120,40 +128,45 @@ export default function ImageHighlightPicker({ src, onTextExtracted, onDone }: P
     if (!isDrawing.current) return;
     isDrawing.current = false;
     lastPos.current = null;
-    const b = strokeBounds.current;
-    strokeBounds.current = null;
+
+    const sy = strokeY.current;
+    strokeY.current = null;
     const canvas = canvasRef.current!;
     canvas.getContext("2d")!.clearRect(0, 0, canvas.width, canvas.height);
-    if (!b || b.maxX - b.minX < 10) return;
-    const W = canvas.width, H = canvas.height;
-    const strokeBox: Box = {
-      x: Math.max(0, b.minX) / W,
-      y: Math.max(0, b.minY) / H,
-      w: (Math.min(W, b.maxX) - Math.max(0, b.minX)) / W,
-      h: (Math.min(H, b.maxY) - Math.max(0, b.minY)) / H,
+    setLiveBand(null);
+
+    if (!sy) return;
+    const H = canvas.height;
+    const newBand: Band = {
+      yf: Math.max(0, sy.minY / H),
+      hf: Math.min(1, (sy.maxY - sy.minY) / H),
     };
-    pendingBox.current = mergeBox(pendingBox.current, strokeBox);
-    setPendingDisplay(pendingBox.current);
+    pendingBand.current = pendingBand.current
+      ? mergeBands(pendingBand.current, newBand)
+      : newBand;
+
     debounceRef.current = setTimeout(commit, 700);
   }
 
   async function commit() {
     debounceRef.current = null;
-    const box = pendingBox.current;
-    pendingBox.current = null;
-    setPendingDisplay(null);
-    if (!box) return;
+    const band = pendingBand.current;
+    pendingBand.current = null;
+    if (!band || band.hf < 0.005) return;
+
     const id = uid++;
-    setHighlights((prev) => [...prev, { id, box, loading: true }]);
+    setHighlights((prev) => [...prev, { id, band, loading: true }]);
     try {
-      const base64 = await cropToBase64(src, box);
+      const base64 = await cropBandToBase64(src, band);
       const res = await fetch("/api/vision/region", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ croppedImageBase64: base64 }),
       });
       const { text } = (await res.json()) as { text?: string };
-      setHighlights((prev) => prev.map((h) => h.id === id ? { ...h, loading: false } : h));
+      setHighlights((prev) =>
+        prev.map((h) => (h.id === id ? { ...h, loading: false } : h))
+      );
       if (text) onTextExtracted(text);
     } catch {
       setHighlights((prev) => prev.filter((h) => h.id !== id));
@@ -164,7 +177,7 @@ export default function ImageHighlightPicker({ src, onTextExtracted, onDone }: P
     <div className="fixed inset-0 z-50 bg-black flex flex-col">
       {/* 상단 바 */}
       <div className="flex items-center justify-between px-4 py-3 bg-black/80 backdrop-blur-sm">
-        <span className="text-white/60 text-xs">밑줄 친 부분 위에 그어주세요</span>
+        <span className="text-white/60 text-xs">밑줄 위를 가로질러 긁어주세요</span>
         <button
           onClick={onDone}
           className="px-4 py-1.5 rounded-full bg-amber-400 text-black text-sm font-semibold"
@@ -173,45 +186,48 @@ export default function ImageHighlightPicker({ src, onTextExtracted, onDone }: P
         </button>
       </div>
 
-      {/* 스크롤 가능한 이미지 영역 — 전체 너비 */}
+      {/* 스크롤 가능한 이미지 영역 */}
       <div className="flex-1 overflow-y-auto">
         <div
           ref={containerRef}
           className="relative w-full select-none touch-none"
-          style={{ cursor: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ccircle cx='20' cy='20' r='16' fill='%23FCD34D' fill-opacity='0.7' stroke='%23F59E0B' stroke-width='2'/%3E%3C/svg%3E\") 20 20, crosshair" }}
+          style={{ cursor: "crosshair" }}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
-          onPointerCancel={() => { isDrawing.current = false; lastPos.current = null; strokeBounds.current = null; }}
+          onPointerCancel={() => {
+            isDrawing.current = false;
+            lastPos.current = null;
+            strokeY.current = null;
+            setLiveBand(null);
+          }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={src} alt="책 페이지" className="w-full h-auto block" draggable={false} />
 
-          {/* 확정된 하이라이트 */}
+          {/* 확정 하이라이트 — 풀 너비 띠 */}
           {highlights.map((h) => (
             <div
               key={h.id}
-              className="absolute pointer-events-none"
-              style={{
-                left: `${h.box.x * 100}%`,
-                top: `${h.box.y * 100}%`,
-                width: `${h.box.w * 100}%`,
-                height: `${h.box.h * 100}%`,
-              }}
+              className="absolute left-0 right-0 pointer-events-none"
+              style={{ top: `${h.band.yf * 100}%`, height: `${h.band.hf * 100}%` }}
             >
-              <div className={`w-full h-full rounded-sm ${h.loading ? "bg-amber-300/40 animate-pulse" : "bg-amber-400/55"}`} />
+              <div
+                className={`w-full h-full ${
+                  h.loading ? "bg-amber-300/40 animate-pulse" : "bg-amber-400/55"
+                }`}
+              />
             </div>
           ))}
 
-          {/* 그리는 중 미리보기 */}
-          {pendingDisplay && (
+          {/* 현재 획의 Y 범위 미리보기 — 크롭될 영역 표시 */}
+          {liveBand && (
             <div
-              className="absolute pointer-events-none border-2 border-amber-400 bg-amber-300/25 rounded-sm"
+              className="absolute left-0 right-0 pointer-events-none border-t-2 border-b-2 border-amber-400/80"
               style={{
-                left: `${pendingDisplay.x * 100}%`,
-                top: `${pendingDisplay.y * 100}%`,
-                width: `${pendingDisplay.w * 100}%`,
-                height: `${pendingDisplay.h * 100}%`,
+                top: `${liveBand.yf * 100}%`,
+                height: `${liveBand.hf * 100}%`,
+                background: "rgba(252, 211, 77, 0.12)",
               }}
             />
           )}
@@ -223,7 +239,7 @@ export default function ImageHighlightPicker({ src, onTextExtracted, onDone }: P
             style={{ width: "100%", height: "100%" }}
           />
 
-          {/* OCR 중 */}
+          {/* OCR 진행 중 */}
           {highlights.some((h) => h.loading) && (
             <div className="fixed bottom-20 left-1/2 -translate-x-1/2 pointer-events-none z-50">
               <span className="bg-black/70 text-white text-xs rounded-full px-3 py-1.5 backdrop-blur-sm">
