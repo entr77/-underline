@@ -404,14 +404,6 @@ export default function NewUnderlinePage() {
             <p className="text-xs text-[var(--color-ink-faint)]">밑줄 친 구간을 드래그해서 선택하세요</p>
             <ImageHighlightPicker
               src={imagePreview}
-              initialHighlights={
-                analyzeResult?.highlights?.boxes
-                  ?.map((box, i) => ({
-                    ...box,
-                    text: analyzeResult.highlights?.segments?.[i] ?? "",
-                  }))
-                  .filter((h) => h.w > 0 && h.h > 0) ?? []
-              }
               onTextExtracted={(text) =>
                 setSelectedTexts((prev) => {
                   const filtered = prev.filter((t) => t.trim());
