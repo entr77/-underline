@@ -71,12 +71,14 @@ export class BookAnalyzer {
       messages: [
         {
           role: "user",
-          content: `다음 책 페이지 OCR 텍스트에서 책 제목과 저자명을 추출하세요.
-확신할 수 없으면 null을 사용하세요.
-JSON만 반환: {"title": "...", "author": "..."}
+          content: `다음은 한국 책의 한 페이지 본문입니다.
+이 텍스트가 어느 책인지 알려주세요.
+책 제목이 본문에 없어도 등장인물·주제·문체·특정 표현을 근거로 추측 가능합니다.
+확신 없어도 가능성이 가장 높은 답 하나를 제시해주세요. 전혀 모르겠으면 null.
+JSON만 반환: {"title": "책 제목", "author": "저자명"}
 
 텍스트:
-${fullText.slice(0, 600)}`,
+${fullText.slice(0, 800)}`,
         },
       ],
     });

@@ -403,12 +403,16 @@ export default function NewUnderlinePage() {
           </div>
         )}
 
-        {selectedText.trim() && (
-          <div className="bg-[var(--color-cream-dark)] rounded-xl p-4">
-            <p className="text-xs text-[var(--color-ink-faint)] mb-1">기록할 문장</p>
-            <p className="font-serif text-sm text-[var(--color-ink)] leading-relaxed">{selectedText.trim()}</p>
-          </div>
-        )}
+        <div className="bg-[var(--color-cream-dark)] rounded-xl p-4">
+          <label className="text-xs text-[var(--color-ink-faint)] block mb-2">기록할 문장 (직접 수정 가능)</label>
+          <textarea
+            value={selectedText}
+            onChange={(e) => setSelectedText(e.target.value)}
+            placeholder="위에서 문장을 선택하거나 직접 입력하세요"
+            rows={4}
+            className="w-full font-serif text-sm text-[var(--color-ink)] bg-transparent outline-none resize-none placeholder:text-[var(--color-ink-faint)] leading-relaxed"
+          />
+        </div>
 
         {error && <Alert variant="error">{error}</Alert>}
 
@@ -473,13 +477,11 @@ function OcrTextSelector({
 }) {
   const paragraphs = fullText.split(/\n+/).filter((p) => p.trim().length > 0);
   const [selectedSet, setSelectedSet] = useState<Set<number>>(() => {
+    if (!initialSelected) return new Set<number>();
     const init = new Set<number>();
-    if (initialSelected) {
-      paragraphs.forEach((p, i) => {
-        if (initialSelected.includes(p.trim())) init.add(i);
-      });
-      if (init.size === 0 && paragraphs.length > 0) init.add(0);
-    }
+    paragraphs.forEach((p, i) => {
+      if (initialSelected.includes(p.trim())) init.add(i);
+    });
     return init;
   });
 
