@@ -53,74 +53,51 @@ curl "https://dapi.kakao.com/v3/search/book?query=채식주의자&size=5" \
 
 ---
 
-## 2. Google Cloud Vision API
+## 2. Claude Vision API (Anthropic)
 
-**용도**: 책 페이지 OCR (텍스트 추출) + 형광/밑줄 영역 감지  
-**키 위치**: `.env.local` → `GOOGLE_CLOUD_VISION_API_KEY`  
+**용도**: 책 페이지 OCR + 밑줄 감지 + 책 식별 + 페이지 번호 추출 — 단일 호출로 처리  
+**키 위치**: `.env.local` → `ANTHROPIC_API_KEY`  
 **서버 전용**: 반드시 서버에서만 호출  
-**프로젝트 내 라우트**: `src/app/api/vision/analyze/route.ts`
+**사용 모델**: `claude-sonnet-4-6` (orchestrator.ts 기준)  
+**프로젝트 내 라우트**: `src/app/api/vision/analyze/route.ts`  
+**분석 모듈**: `src/lib/vision/` (Analyzer 클래스 구조)
 
-### 엔드포인트
+### 파이프라인 구조
 ```
-POST https://vision.googleapis.com/v1/images:annotate?key={API_KEY}
-Content-Type: application/json
+POST /api/vision/analyze
+  └── VisionOrchestrator.analyze(imageInput)
+        ├── HighlightAnalyzer   → 밑줄/형광 위치 감지
+        ├── BookAnalyzer        → 책 제목/저자 식별 (카카오 API 연동)
+        └── PageNumberAnalyzer  → 페이지 번호 추출
 ```
 
-### 요청 구조
+### 독립 엔드포인트
+| 엔드포인트 | 역할 |
+|---|---|
+| POST /api/vision/analyze | 전체 파이프라인 |
+| POST /api/vision/highlight | 밑줄 감지만 |
+| POST /api/vision/book | 책 식별만 |
+| POST /api/vision/page | 페이지 번호만 |
+
+### 요청 형식
+```json
+{ "imageBase64": "{BASE64_STRING}" }
+```
+
+### 응답 형식 (analyze)
 ```json
 {
-  "requests": [{
-    "image": { "content": "{BASE64_IMAGE}" },
-    "features": [
-      { "type": "DOCUMENT_TEXT_DETECTION" },
-      { "type": "IMAGE_PROPERTIES" }
-    ]
-  }]
+  "highlights": [{ "text": "밑줄 친 문장" }],
+  "book": { "title": "책 제목", "author": "저자", "kakaoId": "..." },
+  "pageNumber": 42
 }
 ```
 
-### 사용 중인 feature
-| Feature | 용도 |
-|---------|------|
-| `DOCUMENT_TEXT_DETECTION` | 문서 수준 OCR — 단어/문단 단위 bounding box 포함 |
-| `IMAGE_PROPERTIES` | 이미지 주요 색상 감지 — 형광(노란) 색상으로 하이라이트 탐지 |
+### 요금
+- Anthropic API 사용량 기반 과금 (claude-sonnet-4-6 기준)
+- 키 위치: `.env.local` → `ANTHROPIC_API_KEY`
 
-### 응답에서 쓰는 필드
-```
-responses[0]
-  ├── textAnnotations[0].description  → 전체 텍스트 (줄바꿈 포함)
-  ├── fullTextAnnotation
-  │   └── pages[].blocks[].paragraphs[].words[].symbols[]
-  │       └── text, boundingBox.vertices (x, y 좌표)
-  └── imagePropertiesAnnotation
-      └── dominantColors.colors[]
-          └── color { red, green, blue }, score
-```
-
-### 밑줄/형광 감지 로직 (현재 구현)
-```
-R > 180 && G > 180 && B < 100 && score > 0.05
-→ 노란 형광펜으로 판단 → 첫 문단 자동 선택
-```
-
-### 페이지 번호 감지
-- 숫자만 있는 짧은 텍스트 블록 (`/^\d{1,4}$/`) → 페이지 번호로 추출
-
-### 예시 호출
-```bash
-curl -X POST \
-  "https://vision.googleapis.com/v1/images:annotate?key={KEY}" \
-  -H "Content-Type: application/json" \
-  -d '{"requests":[{"image":{"content":"{BASE64}"},"features":[{"type":"DOCUMENT_TEXT_DETECTION"}]}]}'
-```
-
-### 요금 및 무료 한도
-| Feature | 월 무료 | 초과 시 |
-|---------|--------|--------|
-| DOCUMENT_TEXT_DETECTION | 1,000건 | $1.50 / 1,000건 |
-| IMAGE_PROPERTIES | 1,000건 | $1.50 / 1,000건 |
-
-> 처음 가입 시 $300 크레딧 (90일)
+> `GOOGLE_CLOUD_VISION_API_KEY` 환경변수는 현재 미사용 — Vision 기능 전체가 Claude로 대체됨
 
 ---
 

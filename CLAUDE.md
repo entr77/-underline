@@ -3,6 +3,7 @@
 @.claude/docs/prd.md
 @.claude/docs/ux-design.md
 @.claude/docs/dev-routine.md
+@.claude/docs/marketing-research.md
 
 # 밑줄 (Underline) 프로젝트
 
@@ -63,9 +64,10 @@ GOOGLE_CLOUD_VISION_API_KEY=
 
 ## 워크스페이스 정책
 
-- **모든 파일은 `d:/dev/underline/` 안에서만 생성/관리** — 외부 경로(tmp 등) 사용 금지
-- **Git worktree도 `d:/dev/underline/` 하위에서만 운영** (예: `d:/dev/underline/.worktrees/feature-xxx`)
+- **모든 파일은 `/Users/entr/Documents/GitHub/underline/` 안에서만 생성/관리** — 외부 경로 사용 금지
+- **Git worktree도 워크스페이스 하위에서만 운영** (예: `.worktrees/feature-xxx`)
 - 임시 파일, JSON 페이로드 등도 워크스페이스 내 `.tmp/` 에 저장
+- 자동화 스크립트는 `.claude/scripts/` 에 저장
 - GitHub으로 버전 관리 — 커밋 전 `.env.local` 등 민감 파일 `.gitignore` 확인
 
 ## 에이전트 역할 및 협업 정책
