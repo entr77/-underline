@@ -14,6 +14,18 @@ import type { Book } from "@/types";
 
 type Step = "upload" | "crop" | "processing" | "book" | "select" | "done";
 
+type BookCandidate = {
+  result: {
+    title: string;
+    author: string;
+    publisher: string;
+    thumbnail: string;
+    isbn: string;
+    strategy: string;
+  } | null;
+  model: "gpt" | "claude" | "gemini";
+};
+
 type AnalyzeResult = {
   fullText: string;
   detectedUnderlineRanges: { start: number; end: number }[];
@@ -26,6 +38,7 @@ type AnalyzeResult = {
     thumbnail: string;
     isbn: string;
   } | null;
+  bookCandidates?: BookCandidate[];
 };
 
 const STEP_LABELS = ["사진", "읽기", "책", "문장"];
@@ -70,6 +83,7 @@ export default function NewUnderlinePage() {
   const [book, setBook] = useState<Book | null>(null);
   const [pageNumber, setPageNumber] = useState("");
   const [selectedTexts, setSelectedTexts] = useState<string[]>([""]);
+  const [bookCandidates, setBookCandidates] = useState<BookCandidate[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadWarning, setUploadWarning] = useState<string | null>(null);
@@ -80,6 +94,7 @@ export default function NewUnderlinePage() {
     setImagePreview(null);
     setAnalyzeResult(null);
     setBook(null);
+    setBookCandidates([]);
     setPageNumber("");
     setSelectedTexts([""]);
     setError(null);
@@ -122,6 +137,8 @@ export default function NewUnderlinePage() {
           .map(({ start, end }) => data.fullText.slice(start, end).trim())
           .filter(Boolean);
         setSelectedTexts(texts.length > 0 ? texts : [""]);
+
+        setBookCandidates(data.bookCandidates ?? []);
 
         if (data.book) {
           setBook({
@@ -303,38 +320,64 @@ export default function NewUnderlinePage() {
           </div>
         )}
 
-        {book ? (
-          <div className="bg-white rounded-2xl p-4 border border-[var(--color-border)] flex gap-3 items-center">
-            {book.cover_url ? (
-              <div className="relative w-12 h-16 flex-shrink-0">
-                <Image src={book.cover_url} alt={book.title} fill className="object-cover rounded" />
-              </div>
-            ) : (
-              <div className="w-12 h-16 bg-[var(--color-forest)] rounded flex items-center justify-center flex-shrink-0">
-                <span className="text-white/60 text-[10px] text-center px-1 leading-tight">{book.title}</span>
-              </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-[var(--color-ink)] truncate">{book.title}</p>
-              <p className="text-sm text-[var(--color-ink-faint)]">{book.author}{book.publisher ? ` · ${book.publisher}` : ""}</p>
-            </div>
-            <button onClick={() => setBook(null)} className="text-[var(--color-ink-faint)] hover:text-[var(--color-ink)] flex-shrink-0">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-            </button>
-          </div>
-        ) : (
-          <div>
-            <p className="text-sm text-[var(--color-ink-muted)] mb-2">책 제목이나 저자로 검색해주세요</p>
-            <BookSearchInput onSelect={(b: KakaoBook) => setBook({
-              id: b.kakao_id,
-              kakao_id: b.kakao_id,
-              title: b.title,
-              author: b.author,
-              publisher: b.publisher,
-              cover_url: b.cover_url,
-            })} />
+        {/* AI 추천 후보 — 여러 모델 결과 */}
+        {bookCandidates.filter((c) => c.result).length > 0 && (
+          <div className="space-y-2">
+            <p className="text-xs text-[var(--color-ink-faint)]">AI가 찾은 책</p>
+            {bookCandidates.filter((c) => c.result).map((c, i) => (
+              <button
+                key={i}
+                onClick={() => setBook({
+                  id: "",
+                  kakao_id: c.result!.isbn || c.result!.title,
+                  title: c.result!.title,
+                  author: c.result!.author,
+                  publisher: c.result!.publisher ?? "",
+                  cover_url: c.result!.thumbnail ?? "",
+                })}
+                className={`w-full flex gap-3 items-center p-3 rounded-2xl border transition-colors text-left ${
+                  book?.title === c.result!.title
+                    ? "border-[var(--color-forest)] bg-[var(--color-forest)]/5"
+                    : "border-[var(--color-border)] bg-white hover:border-[var(--color-forest)]/50"
+                }`}
+              >
+                {c.result!.thumbnail ? (
+                  <div className="relative w-10 h-14 flex-shrink-0">
+                    <Image src={c.result!.thumbnail} alt={c.result!.title} fill className="object-cover rounded" />
+                  </div>
+                ) : (
+                  <div className="w-10 h-14 bg-[var(--color-forest)] rounded flex items-center justify-center flex-shrink-0">
+                    <span className="text-white/60 text-[9px] text-center px-1 leading-tight">{c.result!.title.slice(0, 6)}</span>
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm truncate text-[var(--color-ink)]">{c.result!.title}</p>
+                  <p className="text-xs text-[var(--color-ink-faint)]">{c.result!.author}</p>
+                </div>
+                <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-[var(--color-cream-dark)] text-[var(--color-ink-muted)] flex-shrink-0">
+                  {c.model === "gpt" ? "GPT-4o" : c.model === "gemini" ? "Gemini" : "Claude"}
+                </span>
+              </button>
+            ))}
           </div>
         )}
+
+        {/* 직접 검색 */}
+        <div>
+          <p className="text-sm text-[var(--color-ink-muted)] mb-2">
+            {bookCandidates.filter((c) => c.result).length > 0
+              ? "다른 책이면 직접 검색"
+              : "책 제목이나 저자로 검색해주세요"}
+          </p>
+          <BookSearchInput onSelect={(b: KakaoBook) => setBook({
+            id: b.kakao_id,
+            kakao_id: b.kakao_id,
+            title: b.title,
+            author: b.author,
+            publisher: b.publisher,
+            cover_url: b.cover_url,
+          })} />
+        </div>
 
         <div className="bg-white rounded-2xl p-4 border border-[var(--color-border)]">
           <label className="text-xs text-[var(--color-ink-faint)] block mb-2">페이지 번호</label>

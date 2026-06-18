@@ -34,7 +34,7 @@ export type BookResult = {
   publisher: string;
   thumbnail: string;
   isbn: string;
-  strategy: "header" | "footer" | "first-line" | "last-line" | "claude-text" | "claude-multi" | "gpt-multi" | "google-books" | "claude-image";
+  strategy: "header" | "footer" | "first-line" | "last-line" | "claude-text" | "claude-multi" | "gpt-multi" | "gemini-multi" | "google-books" | "claude-image";
 } | null;
 
 // /api/vision/analyze 의 응답 타입
@@ -49,6 +49,7 @@ export type FullAnalysisResult = {
   highlights: HighlightResult;
   pageNumberResult: PageNumberResult;
   book: BookResult;
+  bookCandidates: Array<{ result: BookResult; model: "gpt" | "claude" | "gemini" }>;
 };
 
 // data URI 또는 순수 base64 문자열을 ImageInput으로 파싱

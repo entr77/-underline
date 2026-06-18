@@ -1,7 +1,7 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import type { ImageInput, OcrContext, BookResult } from "../types";
 
-type BookStrategy = "header" | "footer" | "claude-multi" | "gpt-multi" | "google-books" | "claude-image";
+type BookStrategy = "header" | "footer" | "claude-multi" | "gpt-multi" | "gemini-multi" | "google-books" | "claude-image";
 
 type KakaoDoc = {
   title: string;
@@ -26,28 +26,54 @@ export class BookAnalyzer {
 
   // 전략을 순서대로 시도하고 첫 번째 성공 결과를 반환
   async analyze(image: ImageInput, context?: OcrContext): Promise<BookResult> {
-    const openaiKey = process.env.OPENAI_API_KEY;
+    const candidates = await this.analyzeAll(image, context);
+    if (candidates.length > 0) return candidates[0].result;
 
-    // ① GPT-4o 텍스트 분석 (키가 있을 때 우선 시도)
-    if (openaiKey && context?.fullText) {
-      const result = await this.tryGptMulti(context.fullText, openaiKey);
-      if (result) return result;
-    }
-
-    // ② Claude 텍스트 분석 — GPT 없거나 실패 시 fallback
-    if (context?.fullText) {
-      const result = await this.tryClaudeMulti(context.fullText);
-      if (result) return result;
-    }
-
-    // ③ Google Books — 본문 구절로 전문 검색
+    // Google Books — 본문 구절로 전문 검색
     if (context?.fullText) {
       const result = await this.tryGoogleBooks(context.fullText);
       if (result) return result;
     }
 
-    // ④ Claude Vision — 이미지 직접 분석 (최종 fallback)
+    // Claude Vision — 이미지 직접 분석 (최종 fallback)
     return this.tryClaudeImage(image);
+  }
+
+  // GPT, Claude, Gemini 를 병렬 실행하고 중복 제거된 후보 목록 반환
+  async analyzeAll(
+    image: ImageInput,
+    context?: OcrContext
+  ): Promise<Array<{ result: BookResult; model: "gpt" | "claude" | "gemini" }>> {
+    if (!context?.fullText) return [];
+
+    const openaiKey = process.env.OPENAI_API_KEY;
+    const geminiKey = process.env.GEMINI_API_KEY;
+
+    const [gptResult, claudeResult, geminiResult] = await Promise.all([
+      openaiKey ? this.tryGptMulti(context.fullText, openaiKey) : Promise.resolve(null),
+      this.tryClaudeMulti(context.fullText),
+      geminiKey ? this.tryGeminiMulti(context.fullText, geminiKey) : Promise.resolve(null),
+    ]);
+
+    const raw: Array<{ result: BookResult; model: "gpt" | "claude" | "gemini" }> = [
+      { result: gptResult, model: "gpt" },
+      { result: claudeResult, model: "claude" },
+      { result: geminiResult, model: "gemini" },
+    ];
+
+    // null 결과 제거 후 제목 기준 중복 제거 (첫 번째 유지)
+    const seen = new Set<string>();
+    const deduped: Array<{ result: BookResult; model: "gpt" | "claude" | "gemini" }> = [];
+    for (const entry of raw) {
+      if (!entry.result) continue;
+      const key = entry.result.title.toLowerCase().trim();
+      if (!seen.has(key)) {
+        seen.add(key);
+        deduped.push(entry);
+      }
+    }
+
+    return deduped;
   }
 
   // GPT-4o에게 후보 3개를 받아 순서대로 카카오 검색 시도
@@ -174,6 +200,71 @@ ${fullText.slice(0, 1500)}`,
       }
       return null;
     } catch {
+      return null;
+    }
+  }
+
+  // Gemini에게 후보 3개를 받아 순서대로 카카오 검색 시도
+  private async tryGeminiMulti(fullText: string, apiKey: string): Promise<BookResult> {
+    try {
+      const prompt = `다음은 책의 한 페이지 본문입니다. 어느 책인지 추측해주세요.
+
+단서로 활용:
+- 등장인물명, 지명, 고유명사
+- 전문 용어, 개념어, 특정 이론
+- 문체와 서술 방식 (소설/자기계발/철학/과학 등)
+- 번역서라면 원어 표현·역자 주석
+
+확신 순서대로 최대 3개 후보를 JSON 배열로 반환하세요.
+전혀 알 수 없으면 빈 배열 반환.
+
+JSON만 반환 (다른 텍스트 없이):
+[
+  {"title": "한국어 책 제목", "author": "저자명"},
+  {"title": "두 번째 후보", "author": "저자명"}
+]
+
+본문:
+${fullText.slice(0, 1500)}`;
+
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0, maxOutputTokens: 300 },
+          }),
+        }
+      );
+
+      if (!res.ok) {
+        const body = await res.text().catch(() => "");
+        throw new Error(`Gemini API ${res.status}: ${body}`);
+      }
+
+      const data = await res.json();
+      const rawText: string = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+
+      const match = rawText.match(/\[[\s\S]*\]/);
+      const candidates = JSON.parse(match?.[0] ?? "[]") as Array<{
+        title?: string;
+        author?: string;
+      }>;
+
+      for (const { title, author } of candidates) {
+        if (!title) continue;
+        if (author) {
+          const result = await this.searchKakao(`${title} ${author}`, "gemini-multi");
+          if (result) return result;
+        }
+        const result = await this.searchKakao(title, "gemini-multi");
+        if (result) return result;
+      }
+      return null;
+    } catch (err) {
+      console.error("[BookAnalyzer] Gemini 실패:", err);
       return null;
     }
   }

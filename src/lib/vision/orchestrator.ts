@@ -51,10 +51,16 @@ export class VisionOrchestrator {
     const client = getAnthropicClient();
     const highlightAnalyzer = new HighlightAnalyzer(client);
 
-    const [highlights, book] = await Promise.all([
+    const [highlights, bookCandidates] = await Promise.all([
       highlightAnalyzer.analyze(image, ocrContext),
-      this.bookAnalyzer.analyze(image, ocrContext),
+      this.bookAnalyzer.analyzeAll(image, ocrContext),
     ]);
+
+    // analyzeAll에서 결과가 없으면 Google Books / Claude Vision fallback
+    let book = bookCandidates.length > 0 ? bookCandidates[0].result : null;
+    if (!book) {
+      book = await this.bookAnalyzer.analyze(image, ocrContext);
+    }
 
     return {
       fullText: raw.fullText,
@@ -68,6 +74,7 @@ export class VisionOrchestrator {
         confidence: raw.pageNumber !== null ? "high" : "low",
       },
       book,
+      bookCandidates,
     };
   }
 
