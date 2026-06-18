@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Alert from "@/components/ui/Alert";
 import Link from "next/link";
 import Image from "next/image";
 import BookSearchInput, { type KakaoBook } from "@/components/features/BookSearchInput";
 import { imageFileToBase64, uploadImage } from "@/lib/storage";
-import { createUnderline } from "@/app/actions/underline";
+import { createUnderlinesBulk } from "@/app/actions/underline";
 import { createClient } from "@/lib/supabase/client";
 import type { Book } from "@/types";
 
@@ -15,7 +15,6 @@ type Step = "upload" | "processing" | "book" | "select" | "done";
 
 type AnalyzeResult = {
   fullText: string;
-  blocks?: { text: string; boundingBox: { x: number; y: number; width: number; height: number } }[];
   detectedUnderlineRanges: { start: number; end: number }[];
   pageNumber: string | null;
   headerText?: string;
@@ -69,12 +68,10 @@ export default function NewUnderlinePage() {
   const [processingMsg, setProcessingMsg] = useState("페이지 위의 문자들을 읽고 있어요");
   const [book, setBook] = useState<Book | null>(null);
   const [pageNumber, setPageNumber] = useState("");
-  const [selectedText, setSelectedText] = useState("");
-  const [savedId, setSavedId] = useState<string | null>(null);
+  const [selectedTexts, setSelectedTexts] = useState<string[]>([""]);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isImageZoomed, setIsImageZoomed] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const resetToUpload = useCallback(() => {
     setImageFile(null);
@@ -82,7 +79,7 @@ export default function NewUnderlinePage() {
     setAnalyzeResult(null);
     setBook(null);
     setPageNumber("");
-    setSelectedText("");
+    setSelectedTexts([""]);
     setError(null);
     setStep("upload");
   }, []);
@@ -111,18 +108,19 @@ export default function NewUnderlinePage() {
       clearInterval(msgTimer);
 
       if (!res.ok) {
-        // API 실패해도 수동 입력으로 진행
         setAnalyzeResult({ fullText: "", detectedUnderlineRanges: [], pageNumber: null });
+        setSelectedTexts([""]);
       } else {
         const data: AnalyzeResult = await res.json();
         setAnalyzeResult(data);
         if (data.pageNumber) setPageNumber(data.pageNumber);
-        if (data.fullText && data.detectedUnderlineRanges.length > 0) {
-          const { start, end } = data.detectedUnderlineRanges[0];
-          setSelectedText(data.fullText.slice(start, end).trim());
-        }
 
-        // analyze 응답에 책 정보 포함 (orchestrator가 책 식별까지 처리)
+        // 감지된 모든 밑줄 범위를 텍스트 배열로 변환
+        const texts = (data.detectedUnderlineRanges ?? [])
+          .map(({ start, end }) => data.fullText.slice(start, end).trim())
+          .filter(Boolean);
+        setSelectedTexts(texts.length > 0 ? texts : [""]);
+
         if (data.book) {
           setBook({
             id: "",
@@ -146,13 +144,13 @@ export default function NewUnderlinePage() {
     const file = e.target.files?.[0];
     if (!file) return;
     setImageFile(file);
-    const preview = URL.createObjectURL(file);
-    setImagePreview(preview);
+    setImagePreview(URL.createObjectURL(file));
     processImage(file);
   };
 
   const handleSave = async () => {
-    if (!book || !selectedText) return;
+    const validTexts = selectedTexts.filter((t) => t.trim());
+    if (!book || validTexts.length === 0) return;
     setIsSaving(true);
     setError(null);
 
@@ -165,25 +163,26 @@ export default function NewUnderlinePage() {
         try {
           imageUrl = await uploadImage(imageFile, user.id);
         } catch {
-          // 스토리지 업로드 실패해도 텍스트만으로 저장
+          // 스토리지 실패해도 텍스트만으로 저장
         }
       }
 
-      const result = await createUnderline({
+      const result = await createUnderlinesBulk({
         bookKakaoId: book.kakao_id,
         bookTitle: book.title,
         bookAuthor: book.author,
         bookPublisher: book.publisher,
         bookCoverUrl: book.cover_url,
-        content: selectedText,
+        contents: validTexts,
         pageNumber: pageNumber ? parseInt(pageNumber) : undefined,
         imageUrl,
       });
 
       if (result && "error" in result) {
         setError(result.error as string);
-      } else if (result && "id" in result) {
-        router.push(`/underline/${result.id}`);
+      } else if (result && "ids" in result) {
+        const ids = result.ids as string[];
+        router.push(ids.length === 1 ? `/underline/${ids[0]}` : "/feed");
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "저장 중 오류가 발생했어요");
@@ -192,15 +191,7 @@ export default function NewUnderlinePage() {
     }
   };
 
-  // Processing step: rotating messages
-  useEffect(() => {
-    if (step !== "processing") return;
-    const t = setInterval(() => {
-      setProcessingMsg((m) => m === "문장을 읽는 중이에요" ? "밑줄을 찾고 있어요" : "문장을 읽는 중이에요");
-    }, 1200);
-    return () => clearInterval(t);
-  }, [step]);
-
+  // ─── Upload step ────────────────────────────────────────────────────────────
   if (step === "upload") {
     return (
       <div className="flex flex-col h-full space-y-5">
@@ -210,7 +201,6 @@ export default function NewUnderlinePage() {
 
         <label className="flex-1 min-h-[300px] border-2 border-dashed border-[var(--color-border)] rounded-2xl flex flex-col items-center justify-center gap-4 bg-white cursor-pointer hover:border-[var(--color-forest)] transition-colors">
           <input
-            ref={fileInputRef}
             type="file"
             accept="image/*"
             className="hidden"
@@ -234,6 +224,7 @@ export default function NewUnderlinePage() {
     );
   }
 
+  // ─── Processing step ─────────────────────────────────────────────────────────
   if (step === "processing") {
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] gap-6">
@@ -243,13 +234,12 @@ export default function NewUnderlinePage() {
           </div>
         )}
         <div className="w-10 h-10 rounded-full border-2 border-[var(--color-forest)] border-t-transparent animate-spin" />
-        <div className="text-center">
-          <p className="font-serif text-lg text-[var(--color-ink)]">{processingMsg}</p>
-        </div>
+        <p className="font-serif text-lg text-[var(--color-ink)]">{processingMsg}</p>
       </div>
     );
   }
 
+  // ─── Book step ───────────────────────────────────────────────────────────────
   if (step === "book") {
     return (
       <div className="space-y-5">
@@ -313,13 +303,13 @@ export default function NewUnderlinePage() {
           <div>
             <p className="text-sm text-[var(--color-ink-muted)] mb-2">책 제목이나 저자로 검색해주세요</p>
             <BookSearchInput onSelect={(b: KakaoBook) => setBook({
-            id: b.kakao_id,
-            kakao_id: b.kakao_id,
-            title: b.title,
-            author: b.author,
-            publisher: b.publisher,
-            cover_url: b.cover_url,
-          })} />
+              id: b.kakao_id,
+              kakao_id: b.kakao_id,
+              title: b.title,
+              author: b.author,
+              publisher: b.publisher,
+              cover_url: b.cover_url,
+            })} />
           </div>
         )}
 
@@ -342,7 +332,6 @@ export default function NewUnderlinePage() {
           밑줄 확인하기
         </button>
 
-        {/* 사진 확대 lightbox */}
         {isImageZoomed && imagePreview && (
           <div
             className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
@@ -365,9 +354,10 @@ export default function NewUnderlinePage() {
     );
   }
 
+  // ─── Select step ─────────────────────────────────────────────────────────────
   if (step === "select") {
-    const fullText = analyzeResult?.fullText ?? "";
-    const hasOcr = fullText.length > 0;
+    const validCount = selectedTexts.filter((t) => t.trim()).length;
+    const detectedCount = (analyzeResult?.detectedUnderlineRanges ?? []).length;
 
     return (
       <div className="space-y-5">
@@ -379,55 +369,73 @@ export default function NewUnderlinePage() {
         </div>
 
         <div>
-          <h2 className="font-serif text-xl text-[var(--color-ink)] mb-1">밑줄이 맞게 잡혔나요?</h2>
+          <h2 className="font-serif text-xl text-[var(--color-ink)] mb-1">밑줄 확인</h2>
           <p className="text-xs text-[var(--color-ink-faint)]">
-            {hasOcr ? "노란 부분을 눌러 조정할 수 있어요" : "직접 밑줄 친 문장을 입력해주세요"}
+            {detectedCount > 0
+              ? `${detectedCount}개 감지됨 · 수정하거나 삭제할 수 있어요`
+              : "직접 입력해주세요"}
           </p>
         </div>
 
-        {hasOcr ? (
-          <OcrTextSelector
-            fullText={fullText}
-            initialSelected={selectedText}
-            onSelect={setSelectedText}
-          />
-        ) : (
-          <div className="bg-white rounded-2xl p-5 border border-[var(--color-border)]">
-            <textarea
-              value={selectedText}
-              onChange={(e) => setSelectedText(e.target.value)}
-              placeholder="밑줄 친 문장을 직접 입력해주세요"
-              rows={5}
-              className="w-full font-serif text-sm text-[var(--color-ink)] bg-transparent outline-none resize-none placeholder:text-[var(--color-ink-faint)] leading-relaxed"
-            />
-          </div>
-        )}
+        <div className="space-y-3">
+          {selectedTexts.map((text, i) => (
+            <div key={i} className="bg-white rounded-2xl p-4 border border-[var(--color-border)]">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-[var(--color-ink-faint)]">{i + 1}</span>
+                <button
+                  onClick={() =>
+                    setSelectedTexts((prev) =>
+                      prev.length > 1 ? prev.filter((_, idx) => idx !== i) : [""]
+                    )
+                  }
+                  className="text-[var(--color-ink-faint)] hover:text-red-400 transition-colors"
+                  aria-label="삭제"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
+              <textarea
+                value={text}
+                onChange={(e) =>
+                  setSelectedTexts((prev) =>
+                    prev.map((t, idx) => (idx === i ? e.target.value : t))
+                  )
+                }
+                placeholder="밑줄 친 문장을 입력하세요"
+                rows={3}
+                className="w-full font-serif text-sm text-[var(--color-ink)] bg-transparent outline-none resize-none placeholder:text-[var(--color-ink-faint)] leading-relaxed"
+              />
+            </div>
+          ))}
 
-        <div className="bg-[var(--color-cream-dark)] rounded-xl p-4">
-          <label className="text-xs text-[var(--color-ink-faint)] block mb-2">기록할 문장 (직접 수정 가능)</label>
-          <textarea
-            value={selectedText}
-            onChange={(e) => setSelectedText(e.target.value)}
-            placeholder="위에서 문장을 선택하거나 직접 입력하세요"
-            rows={4}
-            className="w-full font-serif text-sm text-[var(--color-ink)] bg-transparent outline-none resize-none placeholder:text-[var(--color-ink-faint)] leading-relaxed"
-          />
+          <button
+            onClick={() => setSelectedTexts((prev) => [...prev, ""])}
+            className="w-full py-3 rounded-2xl border-2 border-dashed border-[var(--color-border)] text-sm text-[var(--color-ink-faint)] hover:border-[var(--color-forest)] hover:text-[var(--color-forest)] transition-colors"
+          >
+            + 밑줄 추가
+          </button>
         </div>
 
         {error && <Alert variant="error">{error}</Alert>}
 
         <button
           onClick={handleSave}
-          disabled={!selectedText.trim() || isSaving}
+          disabled={validCount === 0 || isSaving}
           className="w-full py-4 rounded-2xl bg-[var(--color-forest)] text-white font-medium hover:bg-[var(--color-forest-light)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
-          {isSaving ? "저장 중..." : "이 문장으로 기록"}
+          {isSaving
+            ? "저장 중..."
+            : validCount === 1
+            ? "이 문장 저장하기"
+            : `${validCount}개 문장 저장하기`}
         </button>
       </div>
     );
   }
 
-  // done
+  // ─── Done step ───────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col items-center justify-center h-[60vh] gap-5 text-center">
       <div className="w-14 h-14 rounded-full bg-[var(--color-forest)] flex items-center justify-center">
@@ -439,96 +447,18 @@ export default function NewUnderlinePage() {
       </div>
       <div className="flex flex-col gap-3 w-full mt-2">
         <button
-          onClick={() => {
-            setStep("upload");
-            setImageFile(null);
-            setImagePreview(null);
-            setAnalyzeResult(null);
-            setBook(null);
-            setPageNumber("");
-            setSelectedText("");
-            setSavedId(null);
-            setError(null);
-          }}
+          onClick={resetToUpload}
           className="block w-full py-3.5 rounded-2xl border border-[var(--color-forest)] text-[var(--color-forest)] font-medium hover:bg-[var(--color-forest)] hover:text-white transition-colors"
         >
           다른 밑줄 기록하기
         </button>
         <Link
-          href={savedId ? `/underline/${savedId}` : "/"}
+          href="/feed"
           className="block w-full py-3.5 rounded-2xl bg-[var(--color-forest)] text-white font-medium hover:bg-[var(--color-forest-light)] transition-colors"
         >
-          {savedId ? "내 밑줄 보기" : "다른 밑줄 읽어보기"}
+          다른 밑줄 읽어보기
         </Link>
       </div>
-    </div>
-  );
-}
-
-// OCR 텍스트 문단 단위 선택 컴포넌트
-function OcrTextSelector({
-  fullText,
-  initialSelected,
-  onSelect,
-}: {
-  fullText: string;
-  initialSelected: string;
-  onSelect: (text: string) => void;
-}) {
-  // \n은 시각적 줄바꿈이므로 공백으로 정규화 후 마침표/쉼표 단위로 분리
-  const normalized = fullText.replace(/\n+/g, ' ').replace(/  +/g, ' ').trim();
-  const paragraphs = normalized
-    .split(/(?<=[.!?。,，])\s*/)
-    .map((p) => p.trim())
-    .filter((p) => p.length > 1);
-
-  const normalizedInitial = initialSelected.replace(/\n+/g, ' ').replace(/  +/g, ' ').trim();
-
-  const [selectedSet, setSelectedSet] = useState<Set<number>>(() => {
-    if (!normalizedInitial) return new Set<number>();
-    const init = new Set<number>();
-    paragraphs.forEach((p, i) => {
-      if (normalizedInitial.includes(p)) init.add(i);
-    });
-    return init;
-  });
-
-  function toggle(i: number) {
-    setSelectedSet((prev) => {
-      const next = new Set(prev);
-      if (next.has(i)) next.delete(i);
-      else next.add(i);
-      const text = paragraphs
-        .filter((_, idx) => next.has(idx))
-        .join(" ");
-      onSelect(text);
-      return next;
-    });
-  }
-
-  useEffect(() => {
-    const text = paragraphs
-      .filter((_, i) => selectedSet.has(i))
-      .join(" ");
-    onSelect(text);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  return (
-    <div className="bg-white rounded-2xl p-5 border border-[var(--color-border)] space-y-1">
-      {paragraphs.map((p, i) => (
-        <span
-          key={i}
-          onClick={() => toggle(i)}
-          className={`inline cursor-pointer rounded px-0.5 font-serif text-sm leading-relaxed transition-colors ${
-            selectedSet.has(i)
-              ? "bg-[var(--color-highlight)]"
-              : "hover:bg-[var(--color-cream-dark)]"
-          }`}
-        >
-          {p}{" "}
-        </span>
-      ))}
     </div>
   );
 }

@@ -82,6 +82,68 @@ export async function createUnderline(data: CreateUnderlineData) {
   return { id: underlineId };
 }
 
+type BulkCreateData = {
+  bookKakaoId: string;
+  bookTitle: string;
+  bookAuthor: string;
+  bookPublisher?: string;
+  bookCoverUrl?: string;
+  contents: string[];
+  pageNumber?: number;
+  imageUrl?: string;
+};
+
+export async function createUnderlinesBulk(data: BulkCreateData) {
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) return { error: "로그인이 필요합니다." };
+
+  const adminClient: AnyClient = createAdminClient();
+
+  const bookResult = await adminClient
+    .from("books")
+    .upsert(
+      {
+        kakao_id: data.bookKakaoId,
+        title: data.bookTitle,
+        author: data.bookAuthor,
+        publisher: data.bookPublisher ?? null,
+        cover_url: data.bookCoverUrl ?? null,
+      },
+      { onConflict: "kakao_id", ignoreDuplicates: false }
+    )
+    .select("id")
+    .single();
+
+  if (bookResult.error || !bookResult.data) {
+    return { error: "책 정보를 저장하는 데 실패했습니다." };
+  }
+
+  const bookId = (bookResult.data as { id: string }).id;
+  const supabaseAny: AnyClient = supabase;
+
+  const rows = data.contents.map((content) => ({
+    user_id: user.id,
+    book_id: bookId,
+    content,
+    page_number: data.pageNumber ?? null,
+    image_url: data.imageUrl ?? null,
+    is_public: true,
+  }));
+
+  const { data: inserted, error } = await supabaseAny
+    .from("underlines")
+    .insert(rows)
+    .select("id");
+
+  if (error || !inserted) {
+    return { error: "밑줄을 저장하는 데 실패했습니다." };
+  }
+
+  revalidatePath("/feed");
+  return { ids: (inserted as { id: string }[]).map((r) => r.id) };
+}
+
 export async function deleteUnderline(underlineId: string) {
   const supabase = await createClient();
 
