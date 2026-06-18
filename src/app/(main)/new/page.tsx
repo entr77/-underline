@@ -71,6 +71,7 @@ export default function NewUnderlinePage() {
   const [selectedTexts, setSelectedTexts] = useState<string[]>([""]);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploadWarning, setUploadWarning] = useState<string | null>(null);
   const [isImageZoomed, setIsImageZoomed] = useState(false);
 
   const resetToUpload = useCallback(() => {
@@ -153,6 +154,7 @@ export default function NewUnderlinePage() {
     if (!book || validTexts.length === 0) return;
     setIsSaving(true);
     setError(null);
+    setUploadWarning(null);
 
     try {
       const supabase = createClient();
@@ -162,8 +164,9 @@ export default function NewUnderlinePage() {
       if (imageFile && user) {
         try {
           imageUrl = await uploadImage(imageFile, user.id);
-        } catch {
-          // 스토리지 실패해도 텍스트만으로 저장
+        } catch (uploadErr) {
+          console.error("[uploadImage] 스토리지 업로드 실패:", uploadErr);
+          setUploadWarning("사진 업로드에 실패했어요. 텍스트만 저장됩니다.");
         }
       }
 
@@ -427,6 +430,7 @@ export default function NewUnderlinePage() {
           </button>
         </div>
 
+        {uploadWarning && <Alert variant="warning">{uploadWarning}</Alert>}
         {error && <Alert variant="error">{error}</Alert>}
 
         <button
