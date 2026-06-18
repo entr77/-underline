@@ -357,7 +357,7 @@ export default function NewUnderlinePage() {
   // ─── Select step ─────────────────────────────────────────────────────────────
   if (step === "select") {
     const validCount = selectedTexts.filter((t) => t.trim()).length;
-    const detectedCount = (analyzeResult?.detectedUnderlineRanges ?? []).length;
+    const fullText = analyzeResult?.fullText ?? "";
 
     return (
       <div className="space-y-5">
@@ -368,16 +368,25 @@ export default function NewUnderlinePage() {
           <StepIndicator current="select" />
         </div>
 
-        <div>
-          <h2 className="font-serif text-xl text-[var(--color-ink)] mb-1">밑줄 확인</h2>
-          <p className="text-xs text-[var(--color-ink-faint)]">
-            {detectedCount > 0
-              ? `${detectedCount}개 감지됨 · 수정하거나 삭제할 수 있어요`
-              : "직접 입력해주세요"}
-          </p>
-        </div>
+        <h2 className="font-serif text-xl text-[var(--color-ink)]">밑줄 확인</h2>
 
+        {/* OCR 텍스트 절 선택기 — fullText가 있을 때만 표시 */}
+        {fullText && (
+          <div className="space-y-2">
+            <p className="text-xs text-[var(--color-ink-faint)]">문장을 눌러 밑줄 구간을 선택하세요</p>
+            <OcrClauseSelector
+              fullText={fullText}
+              initialTexts={selectedTexts}
+              onSelect={setSelectedTexts}
+            />
+          </div>
+        )}
+
+        {/* 선택된 밑줄 카드 목록 */}
         <div className="space-y-3">
+          <p className="text-xs text-[var(--color-ink-faint)]">
+            선택한 밑줄{validCount > 0 ? ` ${validCount}개` : ""} · 직접 수정 가능해요
+          </p>
           {selectedTexts.map((text, i) => (
             <div key={i} className="bg-white rounded-2xl p-4 border border-[var(--color-border)]">
               <div className="flex items-center justify-between mb-2">
@@ -459,6 +468,82 @@ export default function NewUnderlinePage() {
           다른 밑줄 읽어보기
         </Link>
       </div>
+    </div>
+  );
+}
+
+// OCR 텍스트를 마침표/쉼표 단위 절로 분리해 클릭 선택하는 컴포넌트.
+// 연속된 절은 하나의 텍스트로 합쳐 cards에 전달하고, 떨어진 절은 별도 텍스트로 분리.
+function OcrClauseSelector({
+  fullText,
+  initialTexts,
+  onSelect,
+}: {
+  fullText: string;
+  initialTexts: string[];
+  onSelect: (texts: string[]) => void;
+}) {
+  const normalized = fullText.replace(/\n+/g, " ").replace(/  +/g, " ").trim();
+  const clauses = normalized
+    .split(/(?<=[.!?。,，])\s*/)
+    .map((c) => c.trim())
+    .filter((c) => c.length > 1);
+
+  const normalizedInitials = initialTexts
+    .filter((t) => t.trim())
+    .map((t) => t.replace(/\n+/g, " ").replace(/  +/g, " ").trim());
+
+  const [selectedSet, setSelectedSet] = useState<Set<number>>(() => {
+    const init = new Set<number>();
+    clauses.forEach((c, i) => {
+      if (normalizedInitials.some((t) => t.includes(c))) init.add(i);
+    });
+    return init;
+  });
+
+  function groupConsecutive(set: Set<number>): string[] {
+    const sorted = Array.from(set).sort((a, b) => a - b);
+    if (sorted.length === 0) return [];
+    const groups: number[][] = [];
+    let group = [sorted[0]];
+    for (let i = 1; i < sorted.length; i++) {
+      if (sorted[i] === sorted[i - 1] + 1) {
+        group.push(sorted[i]);
+      } else {
+        groups.push(group);
+        group = [sorted[i]];
+      }
+    }
+    groups.push(group);
+    return groups.map((g) => g.map((i) => clauses[i]).join(" "));
+  }
+
+  function toggle(i: number) {
+    setSelectedSet((prev) => {
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i);
+      else next.add(i);
+      const texts = groupConsecutive(next);
+      onSelect(texts.length > 0 ? texts : [""]);
+      return next;
+    });
+  }
+
+  return (
+    <div className="bg-white rounded-2xl p-5 border border-[var(--color-border)]">
+      {clauses.map((c, i) => (
+        <span
+          key={i}
+          onClick={() => toggle(i)}
+          className={`inline cursor-pointer rounded px-0.5 font-serif text-sm leading-relaxed transition-colors ${
+            selectedSet.has(i)
+              ? "bg-[var(--color-highlight)]"
+              : "hover:bg-[var(--color-cream-dark)]"
+          }`}
+        >
+          {c}{" "}
+        </span>
+      ))}
     </div>
   );
 }
