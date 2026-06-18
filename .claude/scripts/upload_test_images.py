@@ -113,16 +113,17 @@ def upsert_book(result: dict, image_path: str):
 def insert_underlines(book_id: str, result: dict, image_path: str):
     """underlines 테이블에 insert, 저장된 id 목록 반환"""
     highlights = result.get("highlights") or []
-    # highlights가 [{text:...}] 또는 [str] 형태 모두 처리
     contents = []
-    for h in highlights:
-        if isinstance(h, dict):
-            t = h.get("text") or h.get("content") or ""
-        else:
-            t = str(h)
-        t = t.strip()
-        if t:
-            contents.append(t)
+    # {segments: [...], ranges: [...]} 구조
+    if isinstance(highlights, dict):
+        for s in highlights.get("segments") or []:
+            if isinstance(s, str) and s.strip():
+                contents.append(s.strip())
+    elif isinstance(highlights, list):
+        for h in highlights:
+            t = (h.get("text") or h.get("content") or str(h)) if isinstance(h, dict) else str(h)
+            if t.strip():
+                contents.append(t.strip())
 
     if not contents:
         # 밑줄 감지 못했을 때 fallback: 첫 번째 텍스트 블록 사용
