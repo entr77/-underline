@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 
 type CreateUnderlineData = {
@@ -79,4 +80,31 @@ export async function createUnderline(data: CreateUnderlineData) {
 
   revalidatePath("/feed");
   return { id: underlineId };
+}
+
+export async function deleteUnderline(underlineId: string) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return { error: "로그인이 필요합니다." };
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any)
+    .from("underlines")
+    .delete()
+    .eq("id", underlineId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    return { error: "삭제에 실패했습니다." };
+  }
+
+  revalidatePath("/feed");
+  redirect("/feed");
 }

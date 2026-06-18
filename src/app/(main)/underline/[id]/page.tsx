@@ -3,6 +3,8 @@ import Link from "next/link";
 import BookCover from "@/components/ui/BookCover";
 import ProfileChip from "@/components/ui/ProfileChip";
 import TagBadge from "@/components/ui/TagBadge";
+import LikeButton from "@/components/features/LikeButton";
+import DeleteUnderlineButton from "@/components/features/DeleteUnderlineButton";
 import { createClient } from "@/lib/supabase/server";
 import type { Underline } from "@/types";
 
@@ -24,6 +26,7 @@ const MOCK: Underline = {
 
 type SupabaseUnderlineRow = {
   id: string;
+  user_id: string;
   content: string;
   page_number: number | null;
   image_url: string | null;
@@ -70,15 +73,19 @@ export default async function UnderlineDetailPage({ params }: Props) {
   let underline: Underline | null = null;
   let sympathizers: Sympathizer[] = [];
   let usingMock = false;
+  let isOwner = false;
 
   try {
     const supabase = await createClient();
 
-    const { data, error } = await supabase
-      .from("underlines")
-      .select(`*, user:users!underlines_user_id_fkey(*), book:books(*)`)
-      .eq("id", id)
-      .single();
+    const [{ data, error }, { data: { user: currentUser } }] = await Promise.all([
+      supabase
+        .from("underlines")
+        .select(`*, user:users!underlines_user_id_fkey(*), book:books(*)`)
+        .eq("id", id)
+        .single(),
+      supabase.auth.getUser(),
+    ]);
 
     if (error || !data) {
       if (id === MOCK.id) {
@@ -89,6 +96,22 @@ export default async function UnderlineDetailPage({ params }: Props) {
       }
     } else {
       const row = data as unknown as SupabaseUnderlineRow;
+
+      // 좋아요 여부 조회
+      let isLiked = false;
+      if (currentUser) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: likeData } = await (supabase as any)
+          .from("likes")
+          .select("underline_id")
+          .eq("user_id", currentUser.id)
+          .eq("underline_id", id)
+          .maybeSingle();
+        isLiked = !!likeData;
+      }
+
+      isOwner = currentUser?.id === row.user_id;
+
       underline = {
         id: row.id,
         content: row.content,
@@ -96,6 +119,7 @@ export default async function UnderlineDetailPage({ params }: Props) {
         image_url: row.image_url ?? undefined,
         is_public: row.is_public,
         like_count: row.like_count,
+        is_liked: isLiked,
         created_at: row.created_at,
         user: row.user
           ? {
@@ -210,10 +234,17 @@ export default async function UnderlineDetailPage({ params }: Props) {
 
         <div className="flex items-center justify-between pt-4 border-t border-[var(--color-border)]">
           <ProfileChip user={underline.user} />
-          <button className="flex items-center gap-2 px-4 py-2 rounded-full border border-[var(--color-forest)] text-[var(--color-forest)] text-sm font-medium hover:bg-[var(--color-forest)] hover:text-white transition-colors">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="#1E3A2F"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-            {underline.like_count}
-          </button>
+          <div className="flex items-center gap-2">
+            {isOwner && !usingMock && (
+              <DeleteUnderlineButton underlineId={underline.id} />
+            )}
+            <LikeButton
+              underlineId={underline.id}
+              initialLiked={underline.is_liked ?? false}
+              initialCount={underline.like_count}
+              size="md"
+            />
+          </div>
         </div>
       </div>
 

@@ -20,7 +20,8 @@ export async function updateProfile(
   const occupation = (formData.get("occupation") as string | null)?.trim() ?? "";
   const tags = AVAILABLE_TAGS.filter((t) => formData.get(`tag_${t}`) === "on");
 
-  const { error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any)
     .from("users")
     .update({ bio: bio || null, occupation: occupation || null, tags })
     .eq("id", user.id);

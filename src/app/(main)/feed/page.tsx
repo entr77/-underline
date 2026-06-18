@@ -1,4 +1,6 @@
+import { Suspense } from "react";
 import UnderlineCard from "@/components/features/UnderlineCard";
+import FeedFilter from "@/components/features/FeedFilter";
 import { createClient } from "@/lib/supabase/server";
 import type { Underline } from "@/types";
 
@@ -38,8 +40,6 @@ const MOCK_FEED: Underline[] = [
   },
 ];
 
-const FILTER_TAGS = ["전체", "소설", "철학", "에세이", "고전", "심리학"];
-
 type SupabaseUnderlineRow = {
   id: string;
   content: string;
@@ -65,7 +65,7 @@ type SupabaseUnderlineRow = {
   } | null;
 };
 
-function rowToUnderline(row: SupabaseUnderlineRow): Underline {
+function rowToUnderline(row: SupabaseUnderlineRow, likedIds: Set<string>): Underline {
   return {
     id: row.id,
     content: row.content,
@@ -73,6 +73,7 @@ function rowToUnderline(row: SupabaseUnderlineRow): Underline {
     image_url: row.image_url ?? undefined,
     is_public: row.is_public,
     like_count: row.like_count,
+    is_liked: likedIds.has(row.id),
     created_at: row.created_at,
     user: row.user
       ? {
@@ -96,31 +97,63 @@ function rowToUnderline(row: SupabaseUnderlineRow): Underline {
   };
 }
 
-export default async function FeedPage() {
+type Props = {
+  searchParams: Promise<{ tag?: string }>;
+};
+
+export default async function FeedPage({ searchParams }: Props) {
+  const { tag } = await searchParams;
+  const activeTag = tag && tag !== "전체" ? tag : null;
+
   let feed: Underline[] = [];
   let usingMock = false;
 
   try {
     const supabase = await createClient();
+
     const { data, error } = await supabase
       .from("underlines")
       .select(`*, user:users!underlines_user_id_fkey(*), book:books(*)`)
       .eq("is_public", true)
       .order("created_at", { ascending: false })
-      .limit(20);
+      .limit(50);
 
     if (error || !data || data.length === 0) {
       if (error) console.error("[feed] supabase error:", error);
-      else console.log("[feed] underlines empty, using mock");
       usingMock = true;
       feed = MOCK_FEED;
     } else {
-      feed = (data as unknown as SupabaseUnderlineRow[]).map(rowToUnderline);
+      // 현재 로그인 유저의 좋아요 목록 조회
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      let likedIds = new Set<string>();
+
+      if (currentUser) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: likesData } = await (supabase as any)
+          .from("likes")
+          .select("underline_id")
+          .eq("user_id", currentUser.id);
+
+        if (likesData) {
+          likedIds = new Set(
+            (likesData as { underline_id: string }[]).map((l) => l.underline_id)
+          );
+        }
+      }
+
+      feed = (data as unknown as SupabaseUnderlineRow[]).map((row) =>
+        rowToUnderline(row, likedIds)
+      );
     }
   } catch {
     usingMock = true;
     feed = MOCK_FEED;
   }
+
+  // 태그 필터: 유저 tags 배열에 선택한 태그가 포함된 밑줄만 표시
+  const filtered = activeTag
+    ? feed.filter((u) => u.user.tags?.includes(activeTag))
+    : feed;
 
   return (
     <div className="space-y-4">
@@ -131,28 +164,19 @@ export default async function FeedPage() {
         )}
       </div>
 
-      <div className="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-none">
-        {FILTER_TAGS.map((tag, i) => (
-          <button
-            key={tag}
-            className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium transition-colors whitespace-nowrap ${
-              i === 0
-                ? "bg-[var(--color-forest)] text-white"
-                : "bg-white border border-[var(--color-border)] text-[var(--color-ink-muted)] hover:border-[var(--color-forest)] hover:text-[var(--color-forest)]"
-            }`}
-          >
-            {tag}
-          </button>
-        ))}
-      </div>
+      <Suspense>
+        <FeedFilter />
+      </Suspense>
 
-      {feed.length === 0 ? (
+      {filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3">
-          <p className="text-[var(--color-ink-muted)]">아직 아무도 멈추지 않았어요</p>
+          <p className="text-[var(--color-ink-muted)]">
+            {activeTag ? `'${activeTag}' 태그의 밑줄이 아직 없어요` : "아직 아무도 멈추지 않았어요"}
+          </p>
           <p className="text-sm text-[var(--color-ink-faint)]">당신이 멈춘 문장이 첫 번째가 될 수 있어요</p>
         </div>
       ) : (
-        feed.map((u) => (
+        filtered.map((u) => (
           <UnderlineCard key={u.id} underline={u} />
         ))
       )}

@@ -8,25 +8,30 @@ export default async function BottomNav() {
 
   if (!user) return null;
 
-  let { data: profile } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const supabaseAny = supabase as any;
+  const { data: rawProfile } = await supabaseAny
     .from("users")
     .select("username")
     .eq("id", user.id)
     .single();
 
+  let profileData = rawProfile as { username: string } | null;
+
   // public.users 행이 없는 기존 계정 자동 복구
-  if (!profile) {
+  if (!profileData) {
     const username = user.email?.split("@")[0] ?? user.id.slice(0, 8);
-    const admin = createAdminClient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const admin = createAdminClient() as any;
     const { data: created } = await admin
       .from("users")
       .upsert({ id: user.id, username }, { onConflict: "id" })
       .select("username")
       .single();
-    profile = created as { username: string } | null;
+    profileData = created as { username: string } | null;
   }
 
-  const username = (profile as { username: string } | null)?.username ?? "";
+  const username = profileData?.username ?? "";
 
   return <BottomNavClient profileHref={username ? `/profile/${username}` : "/feed"} />;
 }
