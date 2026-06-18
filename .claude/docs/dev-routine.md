@@ -92,6 +92,34 @@
 
 ---
 
+## 7. Vision 분석 기능 확장 루틴
+
+OCR / 밑줄 감지 / 책 식별 / 페이지 번호 기능을 수정하거나 새 전략을 추가할 때:
+
+```
+1. 대상 파악 — 어느 Analyzer를 수정할지 결정
+   - 밑줄 감지 → src/lib/vision/analyzers/highlight-analyzer.ts
+   - 페이지 번호 → src/lib/vision/analyzers/page-number-analyzer.ts
+   - 책 식별 → src/lib/vision/analyzers/book-analyzer.ts
+   - 전체 파이프라인 → src/lib/vision/orchestrator.ts
+
+2. 타입 변경 시 — src/lib/vision/types.ts 먼저 수정
+3. 해당 Analyzer 수정 (다른 Analyzer·라우트·UI 무관)
+4. tsc --noEmit 으로 타입 체크
+5. Confluence 기술 스택 & 아키텍처 페이지 업데이트 (ID: 622593)
+6. 커밋 & 푸시
+```
+
+**독립 API 엔드포인트 (기능별 단독 호출 가능):**
+| 엔드포인트 | 역할 |
+|---|---|
+| POST /api/vision/analyze | 전체 파이프라인 (OCR + 밑줄 + 페이지 + 책) |
+| POST /api/vision/highlight | 밑줄 감지만 |
+| POST /api/vision/book | 책 식별만 |
+| POST /api/vision/page | 페이지 번호만 |
+
+---
+
 ## 금지 사항 요약
 
 | 금지 | 대신 |
