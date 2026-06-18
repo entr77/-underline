@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import Anthropic from "@anthropic-ai/sdk";
 
 type TextBlock = {
   text: string;
@@ -13,10 +14,18 @@ type AnalyzeResult = {
   headerText: string;
 };
 
+type ClaudeAnalysisJson = {
+  fullText?: string;
+  pageNumber?: string | null;
+  headerText?: string;
+  hasUnderline?: boolean;
+  underlinedText?: string;
+};
+
 export async function POST(request: Request) {
-  const apiKey = process.env.GOOGLE_CLOUD_VISION_API_KEY;
+  const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    return NextResponse.json({ error: "Vision API key not configured" }, { status: 500 });
+    return NextResponse.json({ error: "Anthropic API key not configured" }, { status: 500 });
   }
 
   const { imageBase64 } = await request.json();
@@ -26,115 +35,84 @@ export async function POST(request: Request) {
 
   const base64Data = imageBase64.includes(",") ? imageBase64.split(",")[1] : imageBase64;
 
-  const visionRes = await fetch(
-    `https://vision.googleapis.com/v1/images:annotate?key=${apiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        requests: [
+  // Detect MIME type from data URI prefix
+  const mimeMatch = imageBase64.match(/^data:(image\/[a-z]+);base64,/);
+  const mediaType = (mimeMatch?.[1] ?? "image/jpeg") as "image/jpeg" | "image/png" | "image/gif" | "image/webp";
+
+  const client = new Anthropic({ apiKey });
+
+  const message = await client.messages.create({
+    model: "claude-haiku-4-5-20251001",
+    max_tokens: 2048,
+    messages: [
+      {
+        role: "user",
+        content: [
           {
-            image: { content: base64Data },
-            features: [
-              { type: "DOCUMENT_TEXT_DETECTION" },
-              { type: "IMAGE_PROPERTIES" },
-            ],
+            type: "image",
+            source: { type: "base64", media_type: mediaType, data: base64Data },
+          },
+          {
+            type: "text",
+            text: `이 책 페이지 이미지를 분석해주세요. JSON 형식으로만 답하고 다른 텍스트는 출력하지 마세요.
+
+반환할 JSON 구조:
+{
+  "fullText": "페이지의 전체 텍스트 (줄바꿈은 \\n으로)",
+  "pageNumber": "페이지 번호 숫자 문자열 또는 null",
+  "headerText": "페이지 상단 헤더 텍스트 (챕터명, 책 제목 등) 또는 빈 문자열",
+  "hasUnderline": true 또는 false,
+  "underlinedText": "밑줄/형광펜으로 표시된 텍스트. 없으면 빈 문자열"
+}`,
           },
         ],
-      }),
-    }
-  );
-
-  if (!visionRes.ok) {
-    const err = await visionRes.text();
-    return NextResponse.json({ error: "Vision API error", detail: err }, { status: 502 });
-  }
-
-  const visionData = await visionRes.json();
-  const response = visionData.responses?.[0];
-
-  if (!response || response.error) {
-    return NextResponse.json({ error: response?.error?.message ?? "No response" }, { status: 502 });
-  }
-
-  const fullText: string = response.textAnnotations?.[0]?.description ?? "";
-  const fullAnnotation = response.fullTextAnnotation;
-
-  // 텍스트 블록 추출
-  const blocks: TextBlock[] = [];
-  if (fullAnnotation?.pages) {
-    for (const page of fullAnnotation.pages) {
-      for (const block of page.blocks ?? []) {
-        const blockText = (block.paragraphs ?? [])
-          .flatMap((p: { words?: { symbols?: { text?: string }[] }[] }) =>
-            (p.words ?? []).map((w: { symbols?: { text?: string }[] }) =>
-              (w.symbols ?? []).map((s: { text?: string }) => s.text ?? "").join("")
-            )
-          )
-          .join(" ");
-
-        const verts = block.boundingBox?.vertices ?? [];
-        if (verts.length === 4 && blockText.trim()) {
-          const xs = verts.map((v: { x?: number }) => v.x ?? 0);
-          const ys = verts.map((v: { y?: number }) => v.y ?? 0);
-          blocks.push({
-            text: blockText,
-            boundingBox: {
-              x: Math.min(...xs),
-              y: Math.min(...ys),
-              width: Math.max(...xs) - Math.min(...xs),
-              height: Math.max(...ys) - Math.min(...ys),
-            },
-          });
-        }
-      }
-    }
-  }
-
-  // 밑줄/형광펜 감지: 이미지 주요 색상에서 노란/형광 계열 탐지
-  const dominantColors = response.imagePropertiesAnnotation?.dominantColors?.colors ?? [];
-  const hasHighlight = dominantColors.some((c: {
-    color: { red: number; green: number; blue: number };
-    score: number;
-  }) => {
-    const { red, green, blue } = c.color ?? {};
-    // 노란 형광: 높은 R+G, 낮은 B
-    return red > 180 && green > 180 && blue < 100 && c.score > 0.05;
+      },
+    ],
   });
 
-  // 상단 헤더 텍스트 추출: 이미지 상위 20% 영역의 텍스트 (보통 책 제목/챕터명)
-  const pageHeight = fullAnnotation?.pages?.[0]?.height ?? 1000;
-  const headerBlocks = blocks
-    .filter((b) => b.boundingBox.y < pageHeight * 0.2)
-    .sort((a, b) => a.boundingBox.y - b.boundingBox.y);
-  const headerText = headerBlocks.map((b) => b.text).join(" ").trim();
+  const rawText = message.content[0].type === "text" ? message.content[0].text : "";
 
-  // 페이지 번호 감지: 숫자만 있는 짧은 텍스트 블록 탐색
-  const pageNumberPattern = /^\d{1,4}$/;
-  let pageNumber: string | null = null;
-  for (const block of blocks) {
-    const trimmed = block.text.trim();
-    if (pageNumberPattern.test(trimmed)) {
-      pageNumber = trimmed;
-      break;
-    }
+  let parsed: ClaudeAnalysisJson;
+  try {
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    parsed = JSON.parse(jsonMatch?.[0] ?? rawText);
+  } catch {
+    return NextResponse.json(
+      { error: "Failed to parse Claude response", detail: rawText },
+      { status: 502 }
+    );
   }
 
-  // 밑줄 범위 추정: 감지된 경우 첫 번째 문단을 기본 선택
+  const fullText = parsed.fullText ?? "";
+  const underlinedText = parsed.underlinedText ?? "";
+
+  // Blocks: split fullText into paragraphs as virtual blocks (no bounding box from Claude)
+  const blocks: TextBlock[] = fullText
+    .split(/\n+/)
+    .filter((line) => line.trim().length > 0)
+    .map((line, i) => ({
+      text: line.trim(),
+      boundingBox: { x: 0, y: i * 40, width: 400, height: 36 },
+    }));
+
+  // Detect underline range in fullText
   const detectedUnderlineRanges: { start: number; end: number }[] = [];
-  if (hasHighlight && fullText.length > 0) {
-    // 첫 번째 문단(첫 줄바꿈 전) 기본 선택
-    const firstBreak = fullText.indexOf("\n\n");
-    const end = firstBreak > 0 ? Math.min(firstBreak, 200) : Math.min(fullText.length, 200);
-    detectedUnderlineRanges.push({ start: 0, end });
+  if (underlinedText.trim().length > 0) {
+    const idx = fullText.indexOf(underlinedText.trim());
+    if (idx >= 0) {
+      detectedUnderlineRanges.push({ start: idx, end: idx + underlinedText.trim().length });
+    } else if (fullText.length > 0) {
+      // Fallback: first 200 chars
+      detectedUnderlineRanges.push({ start: 0, end: Math.min(200, fullText.length) });
+    }
   }
 
   const result: AnalyzeResult = {
     fullText,
     blocks,
     detectedUnderlineRanges,
-    pageNumber,
-    headerText,
+    pageNumber: parsed.pageNumber ?? null,
+    headerText: parsed.headerText ?? "",
   };
 
   return NextResponse.json(result);
