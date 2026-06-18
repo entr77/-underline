@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import BookCover from "@/components/ui/BookCover";
 import ProfileChip from "@/components/ui/ProfileChip";
 import LikeButton from "@/components/features/LikeButton";
@@ -37,6 +38,18 @@ export default function UnderlineCard({ underline, compact }: Props) {
             )}
           </div>
         </div>
+
+        {underline.image_url && (
+          <div className="relative w-full h-36 rounded-xl overflow-hidden mb-3 bg-[var(--color-cream-dark)]">
+            <Image
+              src={underline.image_url}
+              alt="책 페이지"
+              fill
+              className="object-cover"
+              sizes="(max-width: 430px) 100vw, 430px"
+            />
+          </div>
+        )}
 
         <blockquote className={`font-serif text-[var(--color-ink)] leading-relaxed mb-4 ${compact ? "text-base line-clamp-3" : "text-lg"}`}>
           "{underline.content}"
