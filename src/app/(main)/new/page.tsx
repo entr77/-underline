@@ -441,7 +441,10 @@ export default function NewUnderlinePage() {
         })()}
 
         <div className="bg-white rounded-2xl p-4 border border-[var(--color-border)]">
-          <label className="text-xs text-[var(--color-ink-faint)] block mb-2">페이지 번호</label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-xs text-[var(--color-ink-faint)]">페이지 번호</label>
+            <span className="text-[10px] text-[var(--color-ink-faint)]">입력하면 나중에 찾기 쉬워요</span>
+          </div>
           <input
             type="number"
             value={pageNumber}
