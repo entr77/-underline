@@ -317,38 +317,12 @@ export default function NewUnderlinePage() {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
           </button>
           <StepIndicator current="book" />
+          <button onClick={resetToUpload} className="ml-auto text-xs text-[var(--color-ink-faint)] hover:text-[var(--color-ink)]">
+            다시 찍기
+          </button>
         </div>
 
         <h2 className="font-serif text-xl text-[var(--color-ink)]">이 책이 맞나요?</h2>
-
-        {imagePreview && (
-          <div className="relative">
-            <button
-              type="button"
-              className="relative w-full rounded-xl overflow-hidden border border-[var(--color-border)] block cursor-zoom-in group"
-              onClick={() => setIsImageZoomed(true)}
-              aria-label="사진 확대"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={imagePreview} alt="촬영 이미지" className="w-full h-auto block" />
-              <span className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 rounded-full p-1.5">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
-                    <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
-                  </svg>
-                </span>
-              </span>
-            </button>
-            <button
-              type="button"
-              onClick={resetToUpload}
-              className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/50 hover:bg-black/70 flex items-center justify-center transition-colors"
-              aria-label="사진 다시 찍기"
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-            </button>
-          </div>
-        )}
 
         {(() => {
           const aiBooks = bookCandidates.filter((c) => c.result);
