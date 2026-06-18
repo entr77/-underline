@@ -6,13 +6,12 @@ import Alert from "@/components/ui/Alert";
 import Link from "next/link";
 import Image from "next/image";
 import BookSearchInput, { type KakaoBook } from "@/components/features/BookSearchInput";
-import ImageCropRotate from "@/components/features/ImageCropRotate";
 import { imageFileToBase64, uploadImage } from "@/lib/storage";
 import { createUnderlinesBulk } from "@/app/actions/underline";
 import { createClient } from "@/lib/supabase/client";
 import type { Book } from "@/types";
 
-type Step = "upload" | "crop" | "processing" | "book" | "select" | "done";
+type Step = "upload" | "processing" | "book" | "select" | "done";
 
 type AnalyzeResult = {
   fullText: string;
@@ -147,7 +146,7 @@ export default function NewUnderlinePage() {
     if (!file) return;
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
-    setStep("crop");
+    processImage(file);
   };
 
   const handleSave = async () => {
@@ -224,24 +223,6 @@ export default function NewUnderlinePage() {
         <p className="text-xs text-center text-[var(--color-ink-faint)]">
           밑줄 친 부분이 잘 보이도록 평평하게 펴서 찍어주세요
         </p>
-      </div>
-    );
-  }
-
-  // ─── Crop / rotate step ──────────────────────────────────────────────────────
-  if (step === "crop" && imagePreview) {
-    return (
-      <div className="space-y-5">
-        <h1 className="font-serif text-xl text-[var(--color-ink)]">밑줄 기록</h1>
-        <ImageCropRotate
-          src={imagePreview}
-          onConfirm={(croppedFile) => {
-            setImageFile(croppedFile);
-            setImagePreview(URL.createObjectURL(croppedFile));
-            processImage(croppedFile);
-          }}
-          onCancel={resetToUpload}
-        />
       </div>
     );
   }
