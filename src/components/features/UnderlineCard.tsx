@@ -39,7 +39,7 @@ export default function UnderlineCard({ underline, compact }: Props) {
           </div>
         </div>
 
-        {underline.image_url && (
+        {underline.image_url ? (
           <div className="relative w-full h-64 rounded-xl overflow-hidden mb-3 bg-[var(--color-cream-dark)]">
             <Image
               src={underline.image_url}
@@ -48,12 +48,16 @@ export default function UnderlineCard({ underline, compact }: Props) {
               className="object-cover"
               sizes="(max-width: 430px) 100vw, 430px"
             />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent" />
+            <blockquote className={`absolute bottom-0 left-0 right-0 p-4 font-serif text-white leading-relaxed ${compact ? "text-sm line-clamp-3" : "text-base line-clamp-4"}`}>
+              "{underline.content}"
+            </blockquote>
           </div>
+        ) : (
+          <blockquote className={`font-serif text-[var(--color-ink)] leading-relaxed mb-4 ${compact ? "text-base line-clamp-3" : "text-lg"}`}>
+            "{underline.content}"
+          </blockquote>
         )}
-
-        <blockquote className={`font-serif text-[var(--color-ink)] leading-relaxed mb-4 ${compact ? "text-base line-clamp-3" : "text-lg"}`}>
-          "{underline.content}"
-        </blockquote>
       </Link>
 
       <div className="flex items-center justify-between">
