@@ -149,7 +149,7 @@ export default async function BooksPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xs tracking-widest text-[var(--color-ink-faint)] uppercase">읽고 있는 책들</h2>
+        <h2 className="text-xs tracking-widest text-[var(--color-ink-faint)] uppercase">멈춘 책들</h2>
         {usingMock && (
           <span className="text-xs text-[var(--color-ink-faint)] italic">미리보기</span>
         )}
@@ -157,8 +157,8 @@ export default async function BooksPage() {
 
       {books.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3">
-          <p className="text-[var(--color-ink-muted)]">아직 기록된 책이 없어요</p>
-          <p className="text-sm text-[var(--color-ink-faint)]">밑줄을 추가하면 여기에 나타나요</p>
+          <p className="text-[var(--color-ink-muted)]">아직 펼쳐진 책이 없어요</p>
+          <p className="text-sm text-[var(--color-ink-faint)]">밑줄을 남기면 여기에 모여요</p>
         </div>
       ) : (
         <div className="space-y-4">

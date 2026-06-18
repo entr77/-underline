@@ -28,7 +28,7 @@ type AnalyzeResult = {
   } | null;
 };
 
-const STEP_LABELS = ["사진", "인식", "책", "밑줄"];
+const STEP_LABELS = ["사진", "읽기", "책", "문장"];
 const DISPLAY_STEPS: Step[] = ["upload", "processing", "book", "select"];
 
 function StepIndicator({ current }: { current: Step }) {
@@ -167,7 +167,7 @@ export default function NewUnderlinePage() {
           imageUrl = await uploadImage(imageFile, user.id);
         } catch (uploadErr) {
           console.error("[uploadImage] 스토리지 업로드 실패:", uploadErr);
-          setUploadWarning("사진 업로드에 실패했어요. 텍스트만 저장됩니다.");
+          setUploadWarning("사진은 저장되지 않았어요. 문장만 남겨요.");
         }
       }
 
@@ -199,7 +199,7 @@ export default function NewUnderlinePage() {
   if (step === "upload") {
     return (
       <div className="flex flex-col h-full space-y-5">
-        <h1 className="font-serif text-xl text-[var(--color-ink)]">밑줄 기록</h1>
+        <h1 className="font-serif text-xl text-[var(--color-ink)]">밑줄 남기기</h1>
 
         {error && <Alert variant="error">{error}</Alert>}
 
@@ -222,7 +222,7 @@ export default function NewUnderlinePage() {
           </div>
         </label>
         <p className="text-xs text-center text-[var(--color-ink-faint)]">
-          밑줄 친 부분이 잘 보이도록 평평하게 펴서 찍어주세요
+          밑줄이 잘 보이게 책을 평평하게 펼쳐서 찍어주세요
         </p>
       </div>
     );
@@ -391,7 +391,7 @@ export default function NewUnderlinePage() {
           <StepIndicator current="select" />
         </div>
 
-        <h2 className="font-serif text-xl text-[var(--color-ink)]">밑줄 확인</h2>
+        <h2 className="font-serif text-xl text-[var(--color-ink)]">어떤 문장을 남길까요?</h2>
 
         {/* OCR 텍스트 절 선택기 — fullText가 있을 때만 표시 */}
         {fullText && (
@@ -408,7 +408,7 @@ export default function NewUnderlinePage() {
         {/* 선택된 밑줄 카드 목록 */}
         <div className="space-y-3">
           <p className="text-xs text-[var(--color-ink-faint)]">
-            선택한 밑줄{validCount > 0 ? ` ${validCount}개` : ""} · 직접 수정 가능해요
+            남길 문장{validCount > 0 ? ` ${validCount}개` : ""} · 직접 고칠 수 있어요
           </p>
           {selectedTexts.map((text, i) => (
             <div key={i} className="bg-white rounded-2xl p-4 border border-[var(--color-border)]">
@@ -459,10 +459,10 @@ export default function NewUnderlinePage() {
           className="w-full py-4 rounded-2xl bg-[var(--color-forest)] text-white font-medium hover:bg-[var(--color-forest-light)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           {isSaving
-            ? "저장 중..."
+            ? "남기는 중..."
             : validCount === 1
-            ? "이 문장 저장하기"
-            : `${validCount}개 문장 저장하기`}
+            ? "이 문장 남기기"
+            : `${validCount}개 문장 남기기`}
         </button>
       </div>
     );
@@ -483,7 +483,7 @@ export default function NewUnderlinePage() {
           onClick={resetToUpload}
           className="block w-full py-3.5 rounded-2xl border border-[var(--color-forest)] text-[var(--color-forest)] font-medium hover:bg-[var(--color-forest)] hover:text-white transition-colors"
         >
-          다른 밑줄 기록하기
+          다른 밑줄 남기기
         </button>
         <Link
           href="/feed"
