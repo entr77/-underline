@@ -18,8 +18,7 @@ type ClaudeAnalysisJson = {
   fullText?: string;
   pageNumber?: string | null;
   headerText?: string;
-  hasUnderline?: boolean;
-  underlinedText?: string;
+  highlightedTexts?: string[];
 };
 
 export async function POST(request: Request) {
@@ -61,9 +60,14 @@ export async function POST(request: Request) {
   "fullText": "페이지의 전체 텍스트 (줄바꿈은 \\n으로)",
   "pageNumber": "페이지 번호 숫자 문자열 또는 null",
   "headerText": "페이지 상단 헤더 텍스트 (챕터명, 책 제목 등) 또는 빈 문자열",
-  "hasUnderline": true 또는 false,
-  "underlinedText": "밑줄/형광펜으로 표시된 텍스트. 없으면 빈 문자열"
-}`,
+  "highlightedTexts": ["형광펜·밑줄·마커로 표시된 텍스트 조각들의 배열. 색상과 무관하게 모두 포함. 없으면 빈 배열 []"]
+}
+
+highlightedTexts 작성 규칙:
+- 노랑·초록·주황·분홍·파랑 등 모든 색상의 형광펜을 감지
+- 펜 밑줄, 볼펜 밑줄, 형광 마커 모두 포함
+- 각 표시된 구간을 fullText에 등장하는 원문 그대로 배열 원소로 추가
+- 표시된 부분이 여러 곳이면 각각 별도 원소로 분리`,
           },
         ],
       },
@@ -84,7 +88,7 @@ export async function POST(request: Request) {
   }
 
   const fullText = parsed.fullText ?? "";
-  const underlinedText = parsed.underlinedText ?? "";
+  const highlightedTexts = Array.isArray(parsed.highlightedTexts) ? parsed.highlightedTexts : [];
 
   // Blocks: split fullText into paragraphs as virtual blocks (no bounding box from Claude)
   const blocks: TextBlock[] = fullText
@@ -95,15 +99,14 @@ export async function POST(request: Request) {
       boundingBox: { x: 0, y: i * 40, width: 400, height: 36 },
     }));
 
-  // Detect underline range in fullText
+  // Map each highlighted text segment to a {start, end} range in fullText
   const detectedUnderlineRanges: { start: number; end: number }[] = [];
-  if (underlinedText.trim().length > 0) {
-    const idx = fullText.indexOf(underlinedText.trim());
+  for (const segment of highlightedTexts) {
+    const trimmed = segment.trim();
+    if (!trimmed) continue;
+    const idx = fullText.indexOf(trimmed);
     if (idx >= 0) {
-      detectedUnderlineRanges.push({ start: idx, end: idx + underlinedText.trim().length });
-    } else if (fullText.length > 0) {
-      // Fallback: first 200 chars
-      detectedUnderlineRanges.push({ start: 0, end: Math.min(200, fullText.length) });
+      detectedUnderlineRanges.push({ start: idx, end: idx + trimmed.length });
     }
   }
 
