@@ -278,11 +278,12 @@ export default function NewUnderlinePage() {
           <div className="relative">
             <button
               type="button"
-              className="relative w-full h-36 rounded-xl overflow-hidden border border-[var(--color-border)] block cursor-zoom-in group"
+              className="relative w-full rounded-xl overflow-hidden border border-[var(--color-border)] block cursor-zoom-in group"
               onClick={() => setIsImageZoomed(true)}
               aria-label="사진 확대"
             >
-              <Image src={imagePreview} alt="촬영 이미지" fill className="object-cover" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={imagePreview} alt="촬영 이미지" className="w-full h-auto block" />
               <span className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
                 <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 rounded-full p-1.5">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
