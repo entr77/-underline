@@ -98,7 +98,10 @@ export class VisionOrchestrator {
         }),
       }
     );
-    if (!res.ok) throw new Error(`Google Vision HTTP ${res.status}`);
+    if (!res.ok) {
+      const body = await res.text().catch(() => "(body 없음)");
+      throw new Error(`Google Vision HTTP ${res.status}: ${body}`);
+    }
 
     const data = await res.json();
     const annotation = data.responses?.[0]?.fullTextAnnotation;
