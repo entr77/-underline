@@ -34,7 +34,7 @@ export type BookResult = {
   publisher: string;
   thumbnail: string;
   isbn: string;
-  strategy: "header" | "footer" | "first-line" | "last-line" | "claude-text" | "claude-multi" | "google-books" | "claude-image";
+  strategy: "header" | "footer" | "first-line" | "last-line" | "claude-text" | "claude-multi" | "gpt-multi" | "google-books" | "claude-image";
 } | null;
 
 // /api/vision/analyze 의 응답 타입
