@@ -5,6 +5,7 @@ import ProfileChip from "@/components/ui/ProfileChip";
 import TagBadge from "@/components/ui/TagBadge";
 import LikeButton from "@/components/features/LikeButton";
 import DeleteUnderlineButton from "@/components/features/DeleteUnderlineButton";
+import ShareCardButton from "@/components/features/ShareCardButton";
 import { createClient } from "@/lib/supabase/server";
 import type { Underline } from "@/types";
 
@@ -238,6 +239,7 @@ export default async function UnderlineDetailPage({ params }: Props) {
             {isOwner && !usingMock && (
               <DeleteUnderlineButton underlineId={underline.id} />
             )}
+            <ShareCardButton underlineId={underline.id} content={underline.content} />
             <LikeButton
               underlineId={underline.id}
               initialLiked={underline.is_liked ?? false}
