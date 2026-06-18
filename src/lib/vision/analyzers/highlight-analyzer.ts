@@ -26,7 +26,7 @@ ${fullText}
 지시사항:
 1. 이미지에서 시각적으로 표시된 부분을 확인하세요.
 2. 위 OCR 텍스트에서 표시된 구간을 한 글자도 바꾸지 말고 그대로 복사하세요.
-3. 줄바꿈이 있으면 공백으로 연결해도 됩니다.
+3. 줄바꿈은 제거하고 앞뒤 텍스트를 자연스럽게 이어 붙이세요. 한국어 조사·어미는 앞 단어에 바로 붙습니다 (예: '결핍\n을' → '결핍을', '풀어\n본' → '풀어본').
 4. 수정·요약·번역 절대 금지 — 반드시 위 텍스트에 있는 문자 그대로 복사하세요.
 5. 표시된 구간이 없으면 빈 배열 []을 반환하세요.
 
@@ -69,12 +69,29 @@ export class HighlightAnalyzer {
     try {
       const match = rawText.match(/\{[\s\S]*\}/);
       const parsed = JSON.parse(match?.[0] ?? "{}");
-      return Array.isArray(parsed.highlightedTexts)
-        ? parsed.highlightedTexts.filter((s: unknown) => typeof s === "string" && s.trim())
-        : [];
+      if (!Array.isArray(parsed.highlightedTexts)) return [];
+      return parsed.highlightedTexts
+        .filter((s: unknown) => typeof s === "string" && s.trim())
+        .map((s: string) => this.normalizeSegment(s));
     } catch {
       return [];
     }
+  }
+
+  private normalizeSegment(text: string): string {
+    return (
+      text
+        // 줄바꿈 제거 후 앞뒤 공백 정리
+        .replace(/[ \t]*\r?\n[ \t]*/g, " ")
+        // 연속 공백 → 단일 공백
+        .replace(/[ \t]{2,}/g, " ")
+        // 한국어 조사: 공백 + 단일 조사 음절 → 공백 제거 (을/를/이/가/은/는/의/에/와/과/로/도/만/서/야/며)
+        .replace(
+          /([가-힣]) (을|를|이|가|은|는|의|와|과|로|도|만|서|야|며|랑|고|면|야|아|요)/g,
+          (_, prev, particle) => prev + particle
+        )
+        .trim()
+    );
   }
 
   private toRanges(
