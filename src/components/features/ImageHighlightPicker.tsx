@@ -4,8 +4,13 @@ import { useRef, useState, useEffect } from "react";
 
 type Box = { x: number; y: number; w: number; h: number }; // 0~1 비율
 
+export type InitialHighlight = { box: Box; text: string };
+
+type Highlight = { id: number; box: Box; text: string; loading: boolean };
+
 type Props = {
   src: string;
+  initialHighlights?: InitialHighlight[];
   onTextExtracted: (text: string) => void;
 };
 
@@ -13,9 +18,7 @@ function mergeBox(a: Box | null, b: Box): Box {
   if (!a) return b;
   const x = Math.min(a.x, b.x);
   const y = Math.min(a.y, b.y);
-  const x2 = Math.max(a.x + a.w, b.x + b.w);
-  const y2 = Math.max(a.y + a.h, b.y + b.h);
-  return { x, y, w: x2 - x, h: y2 - y };
+  return { x, y, w: Math.max(a.x + a.w, b.x + b.w) - x, h: Math.max(a.y + a.h, b.y + b.h) - y };
 }
 
 async function cropToBase64(src: string, box: Box): Promise<string> {
@@ -36,17 +39,22 @@ async function cropToBase64(src: string, box: Box): Promise<string> {
   });
 }
 
-export default function ImageHighlightPicker({ src, onTextExtracted }: Props) {
+let uid = 0;
+
+export default function ImageHighlightPicker({ src, initialHighlights = [], onTextExtracted }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawing = useRef(false);
   const lastPos = useRef<{ x: number; y: number } | null>(null);
   const strokeBounds = useRef<{ minX: number; minY: number; maxX: number; maxY: number } | null>(null);
-  const accBox = useRef<Box | null>(null); // 모든 획을 합친 누적 박스
+  const pendingBox = useRef<Box | null>(null);    // 현재 누적 중인 box
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingId = useRef<number | null>(null);  // 현재 debounce 중인 highlight id
 
-  const [selectionBox, setSelectionBox] = useState<Box | null>(null); // 화면에 표시되는 단일 박스
-  const [isLoading, setIsLoading] = useState(false);
+  const [highlights, setHighlights] = useState<Highlight[]>([]);
+  const [pendingDisplay, setPendingDisplay] = useState<Box | null>(null); // 그리는 중 미리보기
 
+  // 캔버스 크기 동기화
   useEffect(() => {
     const container = containerRef.current;
     const canvas = canvasRef.current;
@@ -58,6 +66,17 @@ export default function ImageHighlightPicker({ src, onTextExtracted }: Props) {
     return () => ro.disconnect();
   }, []);
 
+  // 초기 자동 감지 밑줄 표시 + 텍스트 카드 채우기
+  useEffect(() => {
+    const valid = initialHighlights.filter((h) => h.box.w > 0.01 && h.box.h > 0.01);
+    if (!valid.length) return;
+    setHighlights(
+      valid.map((h) => ({ id: uid++, box: h.box, text: h.text, loading: false }))
+    );
+    valid.forEach((h) => { if (h.text) onTextExtracted(h.text); });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function relPos(e: React.PointerEvent) {
     const rect = containerRef.current!.getBoundingClientRect();
     return { x: e.clientX - rect.left, y: e.clientY - rect.top };
@@ -67,14 +86,12 @@ export default function ImageHighlightPicker({ src, onTextExtracted }: Props) {
     const canvas = canvasRef.current!;
     const ctx = canvas.getContext("2d")!;
     const R = 18;
-
     ctx.globalAlpha = 0.45;
     ctx.fillStyle = "#FCD34D";
     ctx.strokeStyle = "#FCD34D";
     ctx.lineWidth = R * 2;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-
     if (lastPos.current) {
       ctx.beginPath();
       ctx.moveTo(lastPos.current.x, lastPos.current.y);
@@ -98,6 +115,8 @@ export default function ImageHighlightPicker({ src, onTextExtracted }: Props) {
 
   function onPointerDown(e: React.PointerEvent) {
     e.currentTarget.setPointerCapture(e.pointerId);
+    // 새 획 시작 전 debounce 취소 → 이어 그리기로 처리
+    if (debounceRef.current) { clearTimeout(debounceRef.current); debounceRef.current = null; }
     isDrawing.current = true;
     lastPos.current = null;
     strokeBounds.current = null;
@@ -119,14 +138,13 @@ export default function ImageHighlightPicker({ src, onTextExtracted }: Props) {
     const b = strokeBounds.current;
     strokeBounds.current = null;
 
-    // 캔버스 지우기 (누적 박스 div가 표시를 대신함)
+    // 실시간 캔버스 획 지우기
     const canvas = canvasRef.current!;
     canvas.getContext("2d")!.clearRect(0, 0, canvas.width, canvas.height);
 
     if (!b || b.maxX - b.minX < 10) return;
 
-    const W = canvas.width;
-    const H = canvas.height;
+    const W = canvas.width, H = canvas.height;
     const strokeBox: Box = {
       x: Math.max(0, b.minX) / W,
       y: Math.max(0, b.minY) / H,
@@ -134,35 +152,39 @@ export default function ImageHighlightPicker({ src, onTextExtracted }: Props) {
       h: (Math.min(H, b.maxY) - Math.max(0, b.minY)) / H,
     };
 
-    // 기존 선택 영역과 합침
-    accBox.current = mergeBox(accBox.current, strokeBox);
-    setSelectionBox(accBox.current);
+    // 기존 pending과 합침
+    pendingBox.current = mergeBox(pendingBox.current, strokeBox);
+    setPendingDisplay(pendingBox.current);
+
+    // 700ms 후 이어 그리기 없으면 자동 commit
+    debounceRef.current = setTimeout(commitPending, 700);
   }
 
-  function clearSelection() {
-    accBox.current = null;
-    setSelectionBox(null);
-    const canvas = canvasRef.current;
-    if (canvas) canvas.getContext("2d")!.clearRect(0, 0, canvas.width, canvas.height);
-  }
+  async function commitPending() {
+    debounceRef.current = null;
+    const box = pendingBox.current;
+    pendingBox.current = null;
+    setPendingDisplay(null);
+    if (!box) return;
 
-  async function confirmExtract() {
-    if (!selectionBox || isLoading) return;
-    setIsLoading(true);
+    const id = uid++;
+    pendingId.current = id;
+    setHighlights((prev) => [...prev, { id, box, text: "", loading: true }]);
+
     try {
-      const base64 = await cropToBase64(src, selectionBox);
+      const base64 = await cropToBase64(src, box);
       const res = await fetch("/api/vision/region", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ croppedImageBase64: base64 }),
       });
       const { text } = (await res.json()) as { text?: string };
-      if (text) {
-        onTextExtracted(text);
-        clearSelection();
-      }
-    } finally {
-      setIsLoading(false);
+      setHighlights((prev) =>
+        prev.map((h) => (h.id === id ? { ...h, text: text ?? "", loading: false } : h))
+      );
+      if (text) onTextExtracted(text);
+    } catch {
+      setHighlights((prev) => prev.filter((h) => h.id !== id));
     }
   }
 
@@ -179,44 +201,39 @@ export default function ImageHighlightPicker({ src, onTextExtracted }: Props) {
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={src} alt="책 페이지" className="w-full h-auto block" draggable={false} />
 
-      {/* 단일 누적 선택 영역 */}
-      {selectionBox && (
+      {/* 확정된 하이라이트 (여러 개 가능) */}
+      {highlights.map((h) => (
         <div
+          key={h.id}
           className="absolute"
           style={{
-            left: `${selectionBox.x * 100}%`,
-            top: `${selectionBox.y * 100}%`,
-            width: `${selectionBox.w * 100}%`,
-            height: `${selectionBox.h * 100}%`,
+            left: `${h.box.x * 100}%`,
+            top: `${h.box.y * 100}%`,
+            width: `${h.box.w * 100}%`,
+            height: `${h.box.h * 100}%`,
           }}
         >
-          <div className="w-full h-full bg-amber-300/55 rounded-sm" />
-
-          {/* 확인 / 취소 버튼 */}
-          {!isLoading && (
-            <div className="absolute -bottom-9 left-1/2 -translate-x-1/2 flex gap-1.5 pointer-events-auto">
-              <button
-                onClick={(e) => { e.stopPropagation(); clearSelection(); }}
-                className="px-3 py-1.5 rounded-full bg-white border border-[var(--color-border)] text-xs text-[var(--color-ink-muted)] shadow-md whitespace-nowrap"
-              >
-                취소
-              </button>
-              <button
-                onClick={(e) => { e.stopPropagation(); confirmExtract(); }}
-                className="px-3 py-1.5 rounded-full bg-[var(--color-forest)] text-white text-xs font-medium shadow-md whitespace-nowrap"
-              >
-                이 문장 추출
-              </button>
-            </div>
-          )}
-          {isLoading && (
-            <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 pointer-events-none">
-              <span className="bg-black/60 text-white text-xs rounded-full px-3 py-1.5 backdrop-blur-sm whitespace-nowrap">
-                읽고 있어요...
-              </span>
-            </div>
+          <div className={`w-full h-full rounded-sm ${h.loading ? "bg-amber-300/40 animate-pulse" : "bg-amber-300/55"}`} />
+          {!h.loading && (
+            <button
+              className="absolute -top-2.5 -right-2.5 w-5 h-5 rounded-full bg-white border border-amber-400 text-[10px] flex items-center justify-center shadow pointer-events-auto z-10"
+              onClick={(e) => { e.stopPropagation(); setHighlights((p) => p.filter((x) => x.id !== h.id)); }}
+            >×</button>
           )}
         </div>
+      ))}
+
+      {/* 그리는 중 누적 미리보기 */}
+      {pendingDisplay && (
+        <div
+          className="absolute pointer-events-none border-2 border-amber-400 bg-amber-300/30 rounded-sm"
+          style={{
+            left: `${pendingDisplay.x * 100}%`,
+            top: `${pendingDisplay.y * 100}%`,
+            width: `${pendingDisplay.w * 100}%`,
+            height: `${pendingDisplay.h * 100}%`,
+          }}
+        />
       )}
 
       {/* 실시간 브러시 캔버스 */}
@@ -226,8 +243,17 @@ export default function ImageHighlightPicker({ src, onTextExtracted }: Props) {
         style={{ width: "100%", height: "100%" }}
       />
 
+      {/* OCR 중 */}
+      {highlights.some((h) => h.loading) && (
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 pointer-events-none z-20">
+          <span className="bg-black/60 text-white text-xs rounded-full px-3 py-1.5 backdrop-blur-sm">
+            읽고 있어요...
+          </span>
+        </div>
+      )}
+
       {/* 초기 힌트 */}
-      {!selectionBox && (
+      {highlights.length === 0 && !pendingDisplay && (
         <div className="absolute inset-0 flex items-end justify-center pb-3 pointer-events-none">
           <span className="text-white/85 text-xs bg-black/50 rounded-full px-3 py-1.5 backdrop-blur-sm">
             밑줄 친 부분 위에 그어주세요

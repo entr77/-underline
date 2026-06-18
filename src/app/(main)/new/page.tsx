@@ -7,7 +7,7 @@ import Link from "next/link";
 import Image from "next/image";
 import BookSearchInput, { type KakaoBook } from "@/components/features/BookSearchInput";
 import ImageCropRotate from "@/components/features/ImageCropRotate";
-import ImageHighlightPicker from "@/components/features/ImageHighlightPicker";
+import ImageHighlightPicker, { type InitialHighlight } from "@/components/features/ImageHighlightPicker";
 import { imageFileToBase64, uploadImage } from "@/lib/storage";
 import { createUnderlinesBulk } from "@/app/actions/underline";
 import { createClient } from "@/lib/supabase/client";
@@ -122,11 +122,18 @@ export default function NewUnderlinePage() {
         setAnalyzeResult(data);
         if (data.pageNumber) setPageNumber(data.pageNumber);
 
-        // 감지된 모든 밑줄 범위를 텍스트 배열로 변환
-        const texts = (data.detectedUnderlineRanges ?? [])
-          .map(({ start, end }) => data.fullText.slice(start, end).trim())
-          .filter(Boolean);
-        setSelectedTexts(texts.length > 0 ? texts : [""]);
+        // 이미지 하이라이트 피커가 있으면 텍스트를 직접 채우므로 빈 배열로 시작
+        // 없을 경우(이미지 없음) 텍스트 범위로 채움
+        const hasImageHighlights =
+          (data.highlights?.boxes?.filter((b) => b.w > 0.01).length ?? 0) > 0;
+        if (hasImageHighlights) {
+          setSelectedTexts([""]);
+        } else {
+          const texts = (data.detectedUnderlineRanges ?? [])
+            .map(({ start, end }) => data.fullText.slice(start, end).trim())
+            .filter(Boolean);
+          setSelectedTexts(texts.length > 0 ? texts : [""]);
+        }
 
         if (data.book) {
           setBook({
@@ -404,6 +411,14 @@ export default function NewUnderlinePage() {
             <p className="text-xs text-[var(--color-ink-faint)]">밑줄 친 구간을 드래그해서 선택하세요</p>
             <ImageHighlightPicker
               src={imagePreview}
+              initialHighlights={
+                (analyzeResult?.highlights?.boxes ?? [])
+                  .map((box, i) => ({
+                    box,
+                    text: analyzeResult?.highlights?.segments?.[i] ?? "",
+                  }))
+                  .filter((h) => h.box.w > 0.01 && h.box.h > 0.01) as InitialHighlight[]
+              }
               onTextExtracted={(text) =>
                 setSelectedTexts((prev) => {
                   const filtered = prev.filter((t) => t.trim());
