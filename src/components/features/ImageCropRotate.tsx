@@ -164,7 +164,7 @@ export default function ImageCropRotate({ src, onConfirm, onCancel }: Props) {
       <div className="flex gap-2">
         <button
           onClick={() => handleRotate("ccw")}
-          className="flex-1 h-11 rounded-2xl bg-[var(--color-cream-dark)] flex items-center justify-center gap-1.5 text-sm text-[var(--color-ink-muted)] hover:bg-[var(--color-border)] transition-colors"
+          className="flex-1 h-11 rounded-2xl border border-[var(--color-border)] bg-white flex items-center justify-center gap-1.5 text-sm text-[var(--color-ink)] hover:border-[var(--color-forest)] hover:text-[var(--color-forest)] transition-colors"
         >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
@@ -174,7 +174,7 @@ export default function ImageCropRotate({ src, onConfirm, onCancel }: Props) {
         </button>
         <button
           onClick={() => handleRotate("cw")}
-          className="flex-1 h-11 rounded-2xl bg-[var(--color-cream-dark)] flex items-center justify-center gap-1.5 text-sm text-[var(--color-ink-muted)] hover:bg-[var(--color-border)] transition-colors"
+          className="flex-1 h-11 rounded-2xl border border-[var(--color-border)] bg-white flex items-center justify-center gap-1.5 text-sm text-[var(--color-ink)] hover:border-[var(--color-forest)] hover:text-[var(--color-forest)] transition-colors"
         >
           오른쪽 회전
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -199,7 +199,7 @@ export default function ImageCropRotate({ src, onConfirm, onCancel }: Props) {
           disabled={isProcessing}
           className="flex-1 py-3 rounded-2xl bg-[var(--color-forest)] text-white font-medium hover:bg-[var(--color-forest-light)] disabled:opacity-50 transition-colors"
         >
-          {isProcessing ? "처리 중..." : cropRect ? "선택 영역 분석하기" : "전체 분석하기"}
+          {isProcessing ? "읽는 중..." : cropRect ? "여기만 읽기" : "밑줄 찾기"}
         </button>
       </div>
 
@@ -207,7 +207,7 @@ export default function ImageCropRotate({ src, onConfirm, onCancel }: Props) {
         onClick={onCancel}
         className="text-center text-sm text-[var(--color-ink-faint)] hover:text-[var(--color-ink)] transition-colors py-1"
       >
-        처음으로 돌아가기
+        다시 찍기
       </button>
     </div>
   );
