@@ -124,9 +124,10 @@ export default function EditForm({ id, initialContent, initialPageNumber, initia
                   setBgSearchLoading(true);
                   setBgSearchResults([]);
                   try {
-                    const res = await fetch(`/api/books/search?q=${encodeURIComponent(bookTitle)}`);
+                    const res = await fetch(`/api/books/search?q=${encodeURIComponent(bookTitle)}&size=10`);
                     const json = await res.json();
-                    const urls: string[] = (json.books ?? [])
+                    const list = Array.isArray(json) ? json : [];
+                    const urls: string[] = list
                       .map((b: { cover_url?: string }) => b.cover_url)
                       .filter((u: string | undefined): u is string => !!u && u.length > 0);
                     setBgSearchResults(urls);

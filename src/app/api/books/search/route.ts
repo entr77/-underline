@@ -35,8 +35,9 @@ export async function GET(request: NextRequest) {
 
   try {
     const url = new URL("https://dapi.kakao.com/v3/search/book");
+    const size = request.nextUrl.searchParams.get("size") ?? "5";
     url.searchParams.set("query", q.trim());
-    url.searchParams.set("size", "5");
+    url.searchParams.set("size", size);
 
     const res = await fetch(url.toString(), {
       headers: {
