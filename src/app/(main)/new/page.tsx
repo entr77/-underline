@@ -542,17 +542,20 @@ export default function NewUnderlinePage() {
                 onClick={async () => {
                   if (value === "search") {
                     setCardBg("search");
-                    const query = (selectedTexts.find(t => t.trim()) ?? book?.title ?? "").slice(0, 60);
-                    setBgSearchQuery(query);
+                    setBgSearchQuery("");
                     setBgModalOpen(true);
-                    setBgSearchLoading(true);
-                    setBgSearchResults([]);
-                    try {
-                      const res = await fetch(`/api/images/search?q=${encodeURIComponent(query || "reading book")}`);
-                      const json = await res.json();
-                      setBgSearchResults(json.images ?? []);
-                    } finally {
-                      setBgSearchLoading(false);
+                    const sourceText = selectedTexts.find(t => t.trim()) ?? book?.title ?? "";
+                    if (sourceText) {
+                      setBgSearchLoading(true);
+                      setBgSearchResults([]);
+                      try {
+                        const res = await fetch(`/api/images/search?text=${encodeURIComponent(sourceText.trim())}`);
+                        const json = await res.json();
+                        setBgSearchResults(json.images ?? []);
+                        if (json.query) setBgSearchQuery(json.query);
+                      } finally {
+                        setBgSearchLoading(false);
+                      }
                     }
                   } else {
                     setCardBg(value);
@@ -613,12 +616,12 @@ export default function NewUnderlinePage() {
                         } finally { setBgSearchLoading(false); }
                       }
                     }}
-                    placeholder="검색어 입력..."
+                    placeholder="검색어로 다시 검색..."
                     className="flex-1 bg-[var(--color-cream)] rounded-xl px-3 py-2 text-sm text-[var(--color-ink)] outline-none"
                   />
                   <button
                     type="button"
-                    disabled={bgSearchLoading}
+                    disabled={bgSearchLoading || !bgSearchQuery.trim()}
                     onClick={async () => {
                       if (!bgSearchQuery.trim()) return;
                       setBgSearchLoading(true);

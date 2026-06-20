@@ -80,19 +80,22 @@ export default function EditForm({
   async function openBgModal() {
     setCardBg("search");
     setBgModalOpen(true);
-    const query = content.trim().slice(0, 60) || bookTitle;
-    setBgSearchQuery(query);
-    await doSearch(query);
+    setBgSearchQuery("");
+    await doSearch(content.trim() || bookTitle, true);
   }
 
-  async function doSearch(q: string) {
+  async function doSearch(q: string, useTextExtraction = false) {
     if (!q.trim()) return;
     setBgSearchLoading(true);
     setBgSearchResults([]);
     try {
-      const res = await fetch(`/api/images/search?q=${encodeURIComponent(q.trim())}`);
+      const param = useTextExtraction
+        ? `text=${encodeURIComponent(q.trim())}`
+        : `q=${encodeURIComponent(q.trim())}`;
+      const res = await fetch(`/api/images/search?${param}`);
       const json = await res.json();
       setBgSearchResults(json.images ?? []);
+      if (json.query) setBgSearchQuery(json.query);
     } finally {
       setBgSearchLoading(false);
     }
@@ -293,13 +296,13 @@ export default function EditForm({
                   value={bgSearchQuery}
                   onChange={(e) => setBgSearchQuery(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter") doSearch(bgSearchQuery); }}
-                  placeholder="검색어 입력..."
+                  placeholder="검색어로 다시 검색..."
                   className="flex-1 bg-[var(--color-cream)] rounded-xl px-3 py-2 text-sm text-[var(--color-ink)] outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => doSearch(bgSearchQuery)}
-                  disabled={bgSearchLoading}
+                  disabled={bgSearchLoading || !bgSearchQuery.trim()}
                   className="px-4 py-2 bg-[var(--color-forest)] text-white text-sm rounded-xl font-medium disabled:opacity-40"
                 >
                   검색

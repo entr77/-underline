@@ -1,8 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getAnthropicClient } from "@/lib/vision/client";
+
+async function extractKeywords(text: string): Promise<string> {
+  const client = getAnthropicClient();
+  const msg = await client.messages.create({
+    model: "claude-haiku-4-5-20251001",
+    max_tokens: 60,
+    messages: [{
+      role: "user",
+      content: `Extract 3-5 English keywords from this text for image search. Output ONLY the keywords separated by spaces, no explanation.\n\nText: ${text}`,
+    }],
+  });
+  const raw = msg.content[0].type === "text" ? msg.content[0].text.trim() : "";
+  return raw || text.slice(0, 50);
+}
 
 export async function GET(request: NextRequest) {
   const q = request.nextUrl.searchParams.get("q");
-  if (!q || q.trim().length === 0) {
+  const text = request.nextUrl.searchParams.get("text");
+
+  if (!q && !text) {
     return NextResponse.json({ error: "검색어를 입력해주세요." }, { status: 400 });
   }
 
@@ -12,14 +29,21 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    let query: string;
+
+    if (text) {
+      query = await extractKeywords(text);
+    } else {
+      query = q!.trim();
+    }
+
     const url = new URL("https://api.unsplash.com/search/photos");
-    url.searchParams.set("query", q.trim());
+    url.searchParams.set("query", query);
     url.searchParams.set("per_page", "12");
     url.searchParams.set("orientation", "squarish");
 
     const res = await fetch(url.toString(), {
       headers: { Authorization: `Client-ID ${accessKey}` },
-      next: { revalidate: 300 },
     });
 
     if (!res.ok) {
@@ -27,7 +51,7 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await res.json() as {
-      results: { urls: { small: string; regular: string }; alt_description: string | null }[];
+      results: { urls: { small: string; regular: string } }[];
     };
 
     const images = data.results.map((r) => ({
@@ -35,7 +59,7 @@ export async function GET(request: NextRequest) {
       url: r.urls.regular,
     }));
 
-    return NextResponse.json({ images });
+    return NextResponse.json({ images, query });
   } catch (err) {
     console.error("Image search error:", err);
     return NextResponse.json({ error: "이미지 검색 중 오류가 발생했습니다." }, { status: 500 });
