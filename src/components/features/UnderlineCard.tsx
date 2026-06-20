@@ -35,72 +35,70 @@ export default function UnderlineCard({ underline, compact }: Props) {
   const bookDisplay = underline.book_display ?? "full";
 
   if (usePhoto) {
-    // 사진 카드 — 정사각형 풀블리드 + 하단 오버레이
+    // 사진 카드 — 정사각형: 상단 사진 / 하단 다크 텍스트 영역
+    const showCoverP = bookDisplay === "cover" || bookDisplay === "full" || bookDisplay === "full-author";
+    const showTitleP = bookDisplay === "title" || bookDisplay === "title-author" || bookDisplay === "full" || bookDisplay === "full-author";
+    const showAuthorP = bookDisplay === "title-author" || bookDisplay === "full-author";
     return (
-      <article className="relative aspect-square rounded-2xl overflow-hidden border border-[var(--color-border)] hover:border-white/20 transition-colors">
-        <Image
-          src={underline.image_url!}
-          alt="밑줄 친 페이지"
-          fill
-          className="object-cover"
-          sizes="(max-width: 430px) 100vw, 430px"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
+      <article className="relative aspect-square rounded-2xl overflow-hidden border border-[var(--color-border)] hover:border-white/20 transition-colors flex flex-col bg-[#1C1917]">
+        {/* 상단 사진 영역 */}
+        <Link href={`/underline/${underline.id}`} className="relative flex-none h-[52%] block">
+          <Image
+            src={underline.image_url!}
+            alt="밑줄 친 페이지"
+            fill
+            className="object-cover"
+            sizes="(max-width: 430px) 100vw, 430px"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#1C1917]/80" />
+        </Link>
 
-        {/* 인용문 + 책 제목 */}
-        <Link
-          href={`/underline/${underline.id}`}
-          className="absolute inset-x-0 bottom-11 top-0 flex flex-col justify-end px-4 pb-3"
-        >
-          <blockquote
-            className={`font-serif text-white leading-[1.7] ${compact ? "text-[11px] line-clamp-3" : "text-sm line-clamp-4"}`}
-            style={{ textShadow: "0 1px 4px rgba(0,0,0,0.6)" }}
-          >
-            &ldquo;{underline.content}&rdquo;
-          </blockquote>
-          {/* 책 정보 */}
-          {bookDisplay !== "none" && (() => {
-            const showCover = bookDisplay === "cover" || bookDisplay === "full" || bookDisplay === "full-author";
-            const showTitle = bookDisplay === "title" || bookDisplay === "title-author" || bookDisplay === "full" || bookDisplay === "full-author";
-            const showAuthor = bookDisplay === "title-author" || bookDisplay === "full-author";
-            return (
+        {/* 하단 텍스트 영역 */}
+        <div className="flex-1 flex flex-col justify-between px-4 pt-3 pb-0 min-h-0">
+          <Link href={`/underline/${underline.id}`} className="flex-1 min-h-0">
+            <blockquote
+              className={`font-serif text-white/90 leading-[1.7] ${compact ? "text-[11px] line-clamp-3" : "text-[13px] line-clamp-4"}`}
+            >
+              &ldquo;{underline.content}&rdquo;
+            </blockquote>
+            {bookDisplay !== "none" && (
               <div className="flex items-center gap-2 mt-2">
-                {showCover && underline.book.cover_url && (
+                {showCoverP && underline.book.cover_url && (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={underline.book.cover_url} alt="" className="h-6 w-auto rounded-sm opacity-90" />
+                  <img src={underline.book.cover_url} alt="" className="h-5 w-auto rounded-sm opacity-70" />
                 )}
-                {(showTitle || showAuthor) && (
+                {(showTitleP || showAuthorP) && (
                   <div className="min-w-0">
-                    {showTitle && (
-                      <p className="text-white/60 text-[10px] truncate">
+                    {showTitleP && (
+                      <p className="text-white/40 text-[10px] truncate">
                         {underline.book.title}
                         {underline.page_number ? ` · p.${underline.page_number}` : ""}
                       </p>
                     )}
-                    {showAuthor && (
-                      <p className="text-white/40 text-[10px] truncate">{underline.book.author}</p>
+                    {showAuthorP && (
+                      <p className="text-white/30 text-[10px] truncate">{underline.book.author}</p>
                     )}
                   </div>
                 )}
               </div>
-            );
-          })()}
-        </Link>
+            )}
+          </Link>
 
-        {/* 하단 바 */}
-        <div className="absolute bottom-0 inset-x-0 h-11 px-4 flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-white/80 text-[10px] font-medium flex-shrink-0">
-              {underline.user.username[0].toUpperCase()}
+          {/* 하단 바 */}
+          <div className="h-11 flex items-center justify-between flex-shrink-0">
+            <div className="flex items-center gap-1.5">
+              <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-white/80 text-[10px] font-medium flex-shrink-0">
+                {underline.user.username[0].toUpperCase()}
+              </div>
+              <span className="text-white/60 text-[11px]">{underline.user.username}</span>
             </div>
-            <span className="text-white/60 text-[11px]">{underline.user.username}</span>
+            <LikeButton
+              underlineId={underline.id}
+              initialLiked={underline.is_liked ?? false}
+              initialCount={underline.like_count}
+              size="sm"
+            />
           </div>
-          <LikeButton
-            underlineId={underline.id}
-            initialLiked={underline.is_liked ?? false}
-            initialCount={underline.like_count}
-            size="sm"
-          />
         </div>
       </article>
     );

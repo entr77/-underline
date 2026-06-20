@@ -27,43 +27,48 @@ export default function UnderlineGroupCard({ underlines }: Props) {
   const bookDisplay = first.book_display ?? "full";
 
   if (usePhoto) {
-    // 사진 그룹 카드 — 정사각형 + 하단 인용 카드 스택
+    // 사진 그룹 카드 — 정사각형: 상단 사진 / 하단 다크 인용 카드 스택
     return (
-      <article className="relative aspect-square rounded-2xl overflow-hidden border border-[var(--color-border)] hover:border-white/20 transition-colors">
-        <Image
-          src={first.image_url!}
-          alt="밑줄 친 페이지"
-          fill
-          className="object-cover"
-          sizes="(max-width: 430px) 100vw, 430px"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
-
-        {/* 인용 카드들 */}
-        <div className="absolute bottom-11 inset-x-0 px-3 space-y-1.5">
-          {underlines.map((u) => (
-            <Link key={u.id} href={`/underline/${u.id}`} className="block group">
-              <div className="bg-white/90 rounded-xl px-3 py-2 group-hover:bg-white transition-colors">
-                {u.page_number && (
-                  <p className="text-[9px] text-[var(--color-ink-faint)] font-medium">p. {u.page_number}</p>
-                )}
-                <blockquote className="font-serif text-[var(--color-ink)] text-[11px] leading-[1.55] line-clamp-2">
-                  {u.content}
-                </blockquote>
-              </div>
-            </Link>
-          ))}
+      <article className="aspect-square rounded-2xl overflow-hidden border border-[var(--color-border)] hover:border-white/20 transition-colors flex flex-col bg-[#1C1917]">
+        {/* 상단 사진 영역 */}
+        <div className="relative flex-none h-[42%]">
+          <Image
+            src={first.image_url!}
+            alt="밑줄 친 페이지"
+            fill
+            className="object-cover"
+            sizes="(max-width: 430px) 100vw, 430px"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#1C1917]/80" />
         </div>
 
-        {/* 하단 바 */}
-        <div className="absolute bottom-0 inset-x-0 h-11 px-4 flex items-center justify-between">
-          <div className="flex items-center gap-1.5">
-            <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-white/80 text-[10px] font-medium">
-              {user.username[0].toUpperCase()}
-            </div>
-            <span className="text-white/60 text-[11px]">{user.username}</span>
+        {/* 하단: 인용 카드 스택 */}
+        <div className="flex-1 flex flex-col justify-between px-3 pt-2 pb-0 min-h-0 overflow-hidden">
+          <div className="space-y-1.5 overflow-hidden">
+            {underlines.map((u) => (
+              <Link key={u.id} href={`/underline/${u.id}`} className="block group">
+                <div className="bg-white rounded-xl px-3 py-2 group-hover:bg-[var(--color-cream)] transition-colors">
+                  {u.page_number && (
+                    <p className="text-[9px] text-[var(--color-ink-faint)] font-medium">p. {u.page_number}</p>
+                  )}
+                  <blockquote className="font-serif text-[var(--color-ink)] text-[11px] leading-[1.55] line-clamp-2">
+                    {u.content}
+                  </blockquote>
+                </div>
+              </Link>
+            ))}
           </div>
-          <span className="text-white/30 text-[11px]">{timeAgo(first.created_at)}</span>
+
+          {/* 하단 바 */}
+          <div className="h-11 flex items-center justify-between flex-shrink-0">
+            <div className="flex items-center gap-1.5">
+              <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-white/80 text-[10px] font-medium">
+                {user.username[0].toUpperCase()}
+              </div>
+              <span className="text-white/60 text-[11px]">{user.username}</span>
+            </div>
+            <span className="text-white/30 text-[11px]">{timeAgo(first.created_at)}</span>
+          </div>
         </div>
       </article>
     );
