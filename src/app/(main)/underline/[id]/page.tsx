@@ -206,6 +206,14 @@ export default async function UnderlineDetailPage({ params }: Props) {
 
   const usePhoto = underline.card_style === "photo" && !!underline.image_url;
 
+  function detailQuoteSize(len: number): string {
+    if (len < 40)  return "text-[1.9rem]";
+    if (len < 80)  return "text-[1.6rem]";
+    if (len < 130) return "text-[1.4rem]";
+    if (len < 200) return "text-[1.2rem]";
+    return "text-[1.05rem]";
+  }
+
   return (
     <div className="space-y-6">
       {usingMock && (
@@ -239,9 +247,10 @@ export default async function UnderlineDetailPage({ params }: Props) {
           </div>
         ) : (
           <div className="text-center px-8 pt-10 pb-8">
-            <p className="font-serif text-[36px] leading-none text-[var(--color-forest)] opacity-20 mb-5 select-none">&ldquo;</p>
-            <blockquote className="font-serif text-[1.35rem] leading-[1.9] text-[var(--color-ink)]">
+            <blockquote className={`font-serif leading-[1.9] text-[var(--color-ink)] ${detailQuoteSize(underline.content.length)}`}>
+              <span className="text-[var(--color-forest)]">&ldquo;</span>
               {underline.content}
+              <span className="text-[var(--color-forest)]">&rdquo;</span>
             </blockquote>
           </div>
         )}
@@ -263,20 +272,21 @@ export default async function UnderlineDetailPage({ params }: Props) {
           </div>
         ) : (
           <div className="px-6 pb-6">
-            <div className="border-t border-[var(--color-border)] mb-5" />
-            <div className="flex gap-4 items-center">
+            <div className="flex items-center gap-2 w-full justify-center">
+              <div className="flex-1 h-px bg-[var(--color-border)]" />
               <BookCover src={underline.book.cover_url} title={underline.book.title} size="md" />
-              <div className="min-w-0">
-                <Link href={`/book/${underline.book.id}`} className="text-base font-semibold text-[var(--color-ink)] hover:text-[var(--color-forest)] transition-colors leading-snug block">
-                  {underline.book.title}
-                </Link>
-                <p className="text-sm text-[var(--color-ink-muted)] mt-0.5">{underline.book.author}</p>
-                {(underline.book.publisher || underline.page_number) && (
-                  <p className="text-xs text-[var(--color-ink-faint)] mt-0.5">
-                    {[underline.book.publisher, underline.page_number ? `p.${underline.page_number}` : null].filter(Boolean).join(" · ")}
-                  </p>
-                )}
-              </div>
+              <div className="flex-1 h-px bg-[var(--color-border)]" />
+            </div>
+            <div className="text-center mt-3">
+              <Link href={`/book/${underline.book.id}`} className="text-[15px] font-semibold text-[var(--color-ink)] hover:text-[var(--color-forest)] transition-colors leading-snug block">
+                {underline.book.title}
+              </Link>
+              <p className="text-[13px] text-[var(--color-ink-muted)] mt-0.5">{underline.book.author}</p>
+              {(underline.book.publisher || underline.page_number) && (
+                <p className="text-xs text-[var(--color-ink-faint)] mt-0.5">
+                  {[underline.book.publisher, underline.page_number ? `p.${underline.page_number}` : null].filter(Boolean).join(" · ")}
+                </p>
+              )}
             </div>
           </div>
         )}
