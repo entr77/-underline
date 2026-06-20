@@ -542,14 +542,17 @@ export default function NewUnderlinePage() {
                   if (value === "search") {
                     setCardBg("search");
                     setBgModalOpen(true);
-                    if (bgSearchResults.length === 0 && book) {
-                      setBgSearchLoading(true);
-                      try {
-                        const res = await fetch(`/api/images/search?q=${encodeURIComponent(book.title)}`);
-                        const json = await res.json();
-                        setBgSearchResults(json.images ?? []);
-                      } finally {
-                        setBgSearchLoading(false);
+                    if (bgSearchResults.length === 0) {
+                      const query = selectedTexts.find(t => t.trim()) ?? book?.title ?? "";
+                      if (query) {
+                        setBgSearchLoading(true);
+                        try {
+                          const res = await fetch(`/api/images/search?q=${encodeURIComponent(query)}`);
+                          const json = await res.json();
+                          setBgSearchResults(json.images ?? []);
+                        } finally {
+                          setBgSearchLoading(false);
+                        }
                       }
                     }
                   } else {
@@ -569,6 +572,16 @@ export default function NewUnderlinePage() {
               </button>
             ))}
           </div>
+          {cardBg === "search" && cardBgUrl && (
+            <div className="flex items-center gap-3 mt-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={cardBgUrl} alt="" className="w-16 h-16 object-cover rounded-xl flex-shrink-0" />
+              <div className="min-w-0">
+                <p className="text-xs text-[var(--color-ink-muted)]">선택된 배경 이미지</p>
+                <button type="button" onClick={() => setBgModalOpen(true)} className="text-xs text-[var(--color-forest)] mt-0.5">다시 선택</button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* 이미지 선택 모달 */}
