@@ -146,7 +146,7 @@ export default function UnderlineCard({ underline, compact }: Props) {
                 <div className="text-center min-w-0">
                   {showTitle && (
                     <p className="text-white/40 text-[11px] tracking-wide line-clamp-1">
-                      — {underline.book.title}
+                      {underline.book.title}
                       {underline.page_number ? ` · p.${underline.page_number}` : ""}
                     </p>
                   )}
