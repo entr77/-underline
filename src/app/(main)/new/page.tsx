@@ -117,7 +117,6 @@ export default function NewUnderlinePage() {
   const [bookCandidates, setBookCandidates] = useState<BookCandidate[]>([]);
   const [selectedModel, setSelectedModel] = useState<ModelKey | null>(null);
   const [recentBooks, setRecentBooks] = useState<Book[]>([]);
-  const [cardStyle, setCardStyle] = useState<CardStyle>("text");
   const [displayMode, setDisplayMode] = useState<DisplayMode>("full");
   const [showAuthor, setShowAuthor] = useState(false);
   const [cardBg, setCardBg] = useState<CardBg>("cover");
@@ -127,6 +126,7 @@ export default function NewUnderlinePage() {
   const bookDisplay: BookDisplay = displayMode === "none" || displayMode === "cover"
     ? displayMode
     : showAuthor ? `${displayMode}-author` as BookDisplay : displayMode as BookDisplay;
+  const cardStyle: CardStyle = cardBg === "photo" ? "photo" : "text";
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadWarning, setUploadWarning] = useState<string | null>(null);
@@ -141,7 +141,6 @@ export default function NewUnderlinePage() {
     setSelectedModel(null);
     setPageNumber("");
     setSelectedTexts([""]);
-    setCardStyle("text");
     setDisplayMode("full");
     setShowAuthor(false);
     setCardBg("cover");
@@ -255,7 +254,7 @@ export default function NewUnderlinePage() {
     if (!file) return;
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
-    setCardStyle("photo");
+    setCardBg("photo");
     setStep("crop");
   };
 
@@ -621,16 +620,28 @@ export default function NewUnderlinePage() {
             ))}
           </div>
           {(displayMode === "title" || displayMode === "full") && (
-            <button
-              onClick={() => setShowAuthor((v) => !v)}
-              className={`w-full py-2 rounded-xl border text-xs font-medium transition-all ${
-                showAuthor
-                  ? "border-[var(--color-forest)] bg-[var(--color-forest)]/8 text-[var(--color-forest)]"
-                  : "border-[var(--color-border)] bg-white text-[var(--color-ink-muted)]"
-              }`}
-            >
-              {showAuthor ? "저자 표기 ✓" : "저자 표기 안함"}
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowAuthor(true)}
+                className={`flex-1 py-2 rounded-xl border text-xs font-medium transition-all ${
+                  showAuthor
+                    ? "border-[var(--color-forest)] bg-[var(--color-forest)]/8 text-[var(--color-forest)]"
+                    : "border-[var(--color-border)] bg-white text-[var(--color-ink-muted)]"
+                }`}
+              >
+                저자 표기
+              </button>
+              <button
+                onClick={() => setShowAuthor(false)}
+                className={`flex-1 py-2 rounded-xl border text-xs font-medium transition-all ${
+                  !showAuthor
+                    ? "border-[var(--color-forest)] bg-[var(--color-forest)]/8 text-[var(--color-forest)]"
+                    : "border-[var(--color-border)] bg-white text-[var(--color-ink-muted)]"
+                }`}
+              >
+                안함
+              </button>
+            </div>
           )}
         </div>
 
@@ -743,44 +754,6 @@ export default function NewUnderlinePage() {
             + 밑줄 추가
           </button>
         </div>
-
-        {/* 카드 레이아웃 — 사진 있을 때만 */}
-        {imageFile && imagePreview && (
-          <div>
-            <p className="text-xs text-[var(--color-ink-faint)] mb-2">카드 레이아웃</p>
-            <div className="flex gap-3">
-              {/* 사진 포함 미리보기 */}
-              <button
-                onClick={() => setCardStyle("photo")}
-                className={`flex-1 rounded-xl p-0.5 transition-all ${cardStyle === "photo" ? "ring-2 ring-[var(--color-forest)] ring-offset-1" : ""}`}
-              >
-                <div className="rounded-[10px] h-28 overflow-hidden bg-white border border-[var(--color-border)] flex flex-col text-left">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={imagePreview} alt="" className="w-full h-14 object-cover flex-shrink-0" />
-                  <div className="flex-1 px-2 py-1.5 overflow-hidden">
-                    <p className="text-[8px] text-[var(--color-ink)] font-serif leading-tight line-clamp-3">
-                      {selectedTexts[0]?.trim() || "밑줄 친 문장"}
-                    </p>
-                  </div>
-                </div>
-                <p className="text-[11px] text-center mt-1 text-[var(--color-ink-muted)]">사진 포함</p>
-              </button>
-              {/* 텍스트만 미리보기 */}
-              <button
-                onClick={() => setCardStyle("text")}
-                className={`flex-1 rounded-xl p-0.5 transition-all ${cardStyle === "text" ? "ring-2 ring-[var(--color-forest)] ring-offset-1" : ""}`}
-              >
-                <div className="rounded-[10px] h-28 bg-[#F7F3EE] px-2.5 pt-2 pb-2 flex flex-col text-left overflow-hidden">
-                  <span className="text-[14px] leading-none font-serif text-[#1E3A2F] opacity-25 select-none">"</span>
-                  <p className="text-[8px] text-[var(--color-ink)] font-serif leading-tight mt-1 line-clamp-5">
-                    {selectedTexts[0]?.trim() || "밑줄 친 문장이 여기 표시됩니다"}
-                  </p>
-                </div>
-                <p className="text-[11px] text-center mt-1 text-[var(--color-ink-muted)]">텍스트만</p>
-              </button>
-            </div>
-          </div>
-        )}
 
         {uploadWarning && <Alert variant="warning">{uploadWarning}</Alert>}
         {error && <Alert variant="error">{error}</Alert>}

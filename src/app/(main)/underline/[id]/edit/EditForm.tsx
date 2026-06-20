@@ -11,19 +11,18 @@ type Props = {
   id: string;
   initialContent: string;
   initialPageNumber: number | null;
-  initialCardStyle: string;
   initialBookDisplay: string;
   initialCardBg: string;
   initialCardBgUrl?: string;
+  bookTitle: string;
   hasImage: boolean;
   imageUrl?: string;
 };
 
-export default function EditForm({ id, initialContent, initialPageNumber, initialCardStyle, initialBookDisplay, initialCardBg, initialCardBgUrl, hasImage, imageUrl }: Props) {
+export default function EditForm({ id, initialContent, initialPageNumber, initialBookDisplay, initialCardBg, initialCardBgUrl, bookTitle, hasImage, imageUrl }: Props) {
   const router = useRouter();
   const [content, setContent] = useState(initialContent);
   const [pageNumber, setPageNumber] = useState(initialPageNumber?.toString() ?? "");
-  const [cardStyle, setCardStyle] = useState(initialCardStyle === "photo" || initialCardStyle === "text" ? initialCardStyle : "text");
   const initMode = ((): DisplayMode => {
     if (initialBookDisplay === "none") return "none";
     if (initialBookDisplay === "cover") return "cover";
@@ -43,6 +42,7 @@ export default function EditForm({ id, initialContent, initialPageNumber, initia
   const [cardBgUrl, setCardBgUrl] = useState<string | null>(initialCardBgUrl ?? null);
   const [bgSearchResults, setBgSearchResults] = useState<string[]>([]);
   const [bgSearchLoading, setBgSearchLoading] = useState(false);
+  const cardStyle = cardBg === "photo" ? "photo" : "text";
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -101,47 +101,6 @@ export default function EditForm({ id, initialContent, initialPageNumber, initia
         />
       </div>
 
-      {hasImage && (
-        <div>
-          <p className="text-xs text-[var(--color-ink-faint)] mb-2">카드 레이아웃</p>
-          <div className="flex gap-3">
-            {/* 사진 포함 */}
-            <button
-              onClick={() => setCardStyle("photo")}
-              className={`flex-1 rounded-xl p-0.5 transition-all ${cardStyle === "photo" ? "ring-2 ring-[var(--color-forest)] ring-offset-1" : ""}`}
-            >
-              <div className="rounded-[10px] h-28 overflow-hidden bg-white border border-[var(--color-border)] flex flex-col text-left">
-                {imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={imageUrl} alt="" className="w-full h-14 object-cover flex-shrink-0" />
-                ) : (
-                  <div className="w-full h-14 bg-[var(--color-cream-dark)] flex-shrink-0" />
-                )}
-                <div className="flex-1 px-2 py-1.5 overflow-hidden">
-                  <p className="text-[8px] text-[var(--color-ink)] font-serif leading-tight line-clamp-3">
-                    {content.trim() || "밑줄 친 문장"}
-                  </p>
-                </div>
-              </div>
-              <p className="text-[11px] text-center mt-1 text-[var(--color-ink-muted)]">사진 포함</p>
-            </button>
-            {/* 텍스트만 */}
-            <button
-              onClick={() => setCardStyle("text")}
-              className={`flex-1 rounded-xl p-0.5 transition-all ${cardStyle === "text" ? "ring-2 ring-[var(--color-forest)] ring-offset-1" : ""}`}
-            >
-              <div className="rounded-[10px] h-28 bg-[#F7F3EE] px-2.5 pt-2 pb-2 flex flex-col text-left overflow-hidden">
-                <span className="text-[14px] leading-none font-serif text-[#1E3A2F] opacity-25 select-none">"</span>
-                <p className="text-[8px] text-[var(--color-ink)] font-serif leading-tight mt-1 line-clamp-5">
-                  {content.trim() || "밑줄 친 문장이 여기 표시됩니다"}
-                </p>
-              </div>
-              <p className="text-[11px] text-center mt-1 text-[var(--color-ink-muted)]">텍스트만</p>
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* 배경 이미지 */}
       <div className="space-y-2.5">
         <p className="text-xs text-[var(--color-ink-faint)]">카드 배경</p>
@@ -165,7 +124,7 @@ export default function EditForm({ id, initialContent, initialPageNumber, initia
                   setBgSearchLoading(true);
                   setBgSearchResults([]);
                   try {
-                    const res = await fetch(`/api/books/search?q=${encodeURIComponent(content.slice(0, 20))}`);
+                    const res = await fetch(`/api/books/search?q=${encodeURIComponent(bookTitle)}`);
                     const json = await res.json();
                     const urls: string[] = (json.books ?? [])
                       .map((b: { cover_url?: string }) => b.cover_url)
@@ -208,7 +167,7 @@ export default function EditForm({ id, initialContent, initialPageNumber, initia
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-[var(--color-ink-faint)] py-3 text-center">책 제목을 먼저 확인하세요</p>
+              <p className="text-xs text-[var(--color-ink-faint)] py-3 text-center">검색 결과가 없어요</p>
             )}
           </div>
         )}
@@ -240,16 +199,30 @@ export default function EditForm({ id, initialContent, initialPageNumber, initia
           ))}
         </div>
         {(displayMode === "title" || displayMode === "full") && (
-          <button
-            onClick={() => setShowAuthor((v) => !v)}
-            className={`w-full py-2 rounded-xl border text-xs font-medium transition-all ${
-              showAuthor
-                ? "border-[var(--color-forest)] bg-[var(--color-forest)]/8 text-[var(--color-forest)]"
-                : "border-[var(--color-border)] bg-white text-[var(--color-ink-muted)]"
-            }`}
-          >
-            {showAuthor ? "저자 표기 ✓" : "저자 표기 안함"}
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setShowAuthor(true)}
+              className={`flex-1 py-2 rounded-xl border text-xs font-medium transition-all ${
+                showAuthor
+                  ? "border-[var(--color-forest)] bg-[var(--color-forest)]/8 text-[var(--color-forest)]"
+                  : "border-[var(--color-border)] bg-white text-[var(--color-ink-muted)]"
+              }`}
+            >
+              저자 표기
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowAuthor(false)}
+              className={`flex-1 py-2 rounded-xl border text-xs font-medium transition-all ${
+                !showAuthor
+                  ? "border-[var(--color-forest)] bg-[var(--color-forest)]/8 text-[var(--color-forest)]"
+                  : "border-[var(--color-border)] bg-white text-[var(--color-ink-muted)]"
+              }`}
+            >
+              안함
+            </button>
+          </div>
         )}
       </div>
 
