@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import BookCover from "@/components/ui/BookCover";
 import ProfileChip from "@/components/ui/ProfileChip";
 import LikeButton from "@/components/features/LikeButton";
@@ -26,39 +25,31 @@ function timeAgo(dateStr: string) {
 
 export default function UnderlineCard({ underline, compact }: Props) {
   return (
-    <article className="bg-white rounded-2xl overflow-hidden border border-[var(--color-border)] hover:border-[var(--color-ink-faint)] transition-colors">
+    <article className="bg-[var(--color-cream)] rounded-2xl overflow-hidden border border-[var(--color-border)] hover:border-[var(--color-ink-faint)] transition-colors">
       <Link href={`/underline/${underline.id}`} className="block">
-        {underline.image_url && (
-          <div className="relative w-full h-52 bg-[var(--color-cream-dark)]">
-            <Image
-              src={underline.image_url}
-              alt="책 페이지"
-              fill
-              className="object-cover"
-              sizes="(max-width: 430px) 100vw, 430px"
-            />
-          </div>
-        )}
-
-        <div className="p-5">
-          <div className="flex gap-3 mb-4">
-            <BookCover src={underline.book.cover_url} title={underline.book.title} size="sm" />
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-[var(--color-ink)] truncate">{underline.book.title}</p>
-              <p className="text-xs text-[var(--color-ink-faint)] truncate">{underline.book.author}</p>
-              {underline.page_number && (
-                <p className="text-xs text-[var(--color-ink-faint)] mt-0.5">p.{underline.page_number}</p>
-              )}
-            </div>
-          </div>
-
-          <blockquote className={`font-serif text-[var(--color-ink)] leading-relaxed ${compact ? "text-base" : "text-lg"}`}>
-            "{underline.content}"
+        {/* 인용문 히어로 */}
+        <div className={`px-6 ${compact ? "pt-5 pb-4" : "pt-7 pb-5"}`}>
+          <span className="block font-serif text-4xl leading-none text-[var(--color-forest)]/25 mb-1 select-none">"</span>
+          <blockquote className={`font-serif text-[var(--color-ink)] leading-relaxed ${compact ? "text-base" : "text-[1.2rem]"}`}>
+            {underline.content}
           </blockquote>
+        </div>
+
+        {/* 책 정보 */}
+        <div className="mx-4 mb-4 bg-white rounded-xl px-3 py-2.5 flex gap-3 items-center border border-[var(--color-border)]">
+          <BookCover src={underline.book.cover_url} title={underline.book.title} size="sm" />
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-[var(--color-ink)] truncate">{underline.book.title}</p>
+            <p className="text-xs text-[var(--color-ink-faint)] truncate">
+              {underline.book.author}
+              {underline.page_number ? ` · p.${underline.page_number}` : ""}
+            </p>
+          </div>
         </div>
       </Link>
 
-      <div className="px-5 pb-5 flex items-center justify-between">
+      {/* 하단 바 */}
+      <div className="px-4 pb-4 flex items-center justify-between">
         <ProfileChip user={underline.user} size="sm" />
         <div className="flex items-center gap-3 text-xs text-[var(--color-ink-faint)]">
           <LikeButton
