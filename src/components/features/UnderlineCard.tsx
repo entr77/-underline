@@ -30,19 +30,9 @@ function timeAgo(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("ko-KR");
 }
 
-function Avatar({ username }: { username: string }) {
-  return (
-    <div className="flex items-center gap-1.5">
-      <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-white/80 text-[10px] font-medium flex-shrink-0">
-        {username[0].toUpperCase()}
-      </div>
-      <span className="text-white/60 text-[11px]">{username}</span>
-    </div>
-  );
-}
-
 export default function UnderlineCard({ underline, compact }: Props) {
   const usePhoto = underline.card_style === "photo" && !!underline.image_url;
+  const bookDisplay = underline.book_display ?? "full";
 
   if (usePhoto) {
     // 사진 카드 — 정사각형 풀블리드 + 하단 오버레이
@@ -55,7 +45,6 @@ export default function UnderlineCard({ underline, compact }: Props) {
           className="object-cover"
           sizes="(max-width: 430px) 100vw, 430px"
         />
-        {/* 하단 그라디언트 오버레이 */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
 
         {/* 인용문 + 책 제목 */}
@@ -69,15 +58,31 @@ export default function UnderlineCard({ underline, compact }: Props) {
           >
             &ldquo;{underline.content}&rdquo;
           </blockquote>
-          <p className="text-white/50 text-[10px] mt-1.5 truncate">
-            {underline.book.title}
-            {underline.page_number ? ` · p.${underline.page_number}` : ""}
-          </p>
+          {/* 책 정보 */}
+          {bookDisplay !== "none" && (
+            <div className="flex items-center gap-2 mt-2">
+              {(bookDisplay === "cover" || bookDisplay === "full") && underline.book.cover_url && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={underline.book.cover_url} alt="" className="h-6 w-auto rounded-sm opacity-90" />
+              )}
+              {bookDisplay === "full" && (
+                <p className="text-white/60 text-[10px] truncate">
+                  {underline.book.title}
+                  {underline.page_number ? ` · p.${underline.page_number}` : ""}
+                </p>
+              )}
+            </div>
+          )}
         </Link>
 
-        {/* 하단 바 — 프로필 + 좋아요 */}
+        {/* 하단 바 */}
         <div className="absolute bottom-0 inset-x-0 h-11 px-4 flex items-center justify-between">
-          <Avatar username={underline.user.username} />
+          <div className="flex items-center gap-1.5">
+            <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-white/80 text-[10px] font-medium flex-shrink-0">
+              {underline.user.username[0].toUpperCase()}
+            </div>
+            <span className="text-white/60 text-[11px]">{underline.user.username}</span>
+          </div>
           <LikeButton
             underlineId={underline.id}
             initialLiked={underline.is_liked ?? false}
@@ -92,7 +97,6 @@ export default function UnderlineCard({ underline, compact }: Props) {
   // 텍스트 카드 — 정사각형 다크 무드
   return (
     <article className="relative aspect-square bg-[#1C1917] rounded-2xl overflow-hidden border border-[var(--color-border)] hover:border-white/20 transition-colors">
-      {/* 책 표지 블러 배경 */}
       {underline.book.cover_url && (
         <div
           className="absolute inset-0"
@@ -107,7 +111,7 @@ export default function UnderlineCard({ underline, compact }: Props) {
       )}
       <div className="absolute inset-0 bg-[#1C1917]/60" />
 
-      {/* 인용문 — 하단 크림 바(44px) 위 중앙 정렬 */}
+      {/* 인용문 */}
       <Link
         href={`/underline/${underline.id}`}
         className="absolute inset-x-0 top-0 bottom-11 flex flex-col items-center justify-center px-7 text-center"
@@ -117,10 +121,21 @@ export default function UnderlineCard({ underline, compact }: Props) {
         >
           {underline.content}
         </blockquote>
-        <p className="mt-4 text-white/40 text-[11px] tracking-wide line-clamp-1">
-          — {underline.book.title}
-          {underline.page_number ? ` · p.${underline.page_number}` : ""}
-        </p>
+        {/* 책 정보 */}
+        {bookDisplay !== "none" && (
+          <div className="flex items-center gap-2 mt-4 justify-center">
+            {(bookDisplay === "cover" || bookDisplay === "full") && underline.book.cover_url && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={underline.book.cover_url} alt="" className="h-8 w-auto rounded-sm opacity-80" />
+            )}
+            {bookDisplay === "full" && (
+              <p className="text-white/40 text-[11px] tracking-wide line-clamp-1">
+                — {underline.book.title}
+                {underline.page_number ? ` · p.${underline.page_number}` : ""}
+              </p>
+            )}
+          </div>
+        )}
       </Link>
 
       {/* 하단 크림 바 */}
@@ -131,12 +146,15 @@ export default function UnderlineCard({ underline, compact }: Props) {
           </div>
           <span className="text-[var(--color-ink-muted)] text-[11px]">{underline.user.username}</span>
         </div>
-        <LikeButton
-          underlineId={underline.id}
-          initialLiked={underline.is_liked ?? false}
-          initialCount={underline.like_count}
-          size="sm"
-        />
+        <div className="flex items-center gap-2 text-[11px] text-[var(--color-ink-faint)]">
+          <span>{timeAgo(underline.created_at)}</span>
+          <LikeButton
+            underlineId={underline.id}
+            initialLiked={underline.is_liked ?? false}
+            initialCount={underline.like_count}
+            size="sm"
+          />
+        </div>
       </div>
     </article>
   );

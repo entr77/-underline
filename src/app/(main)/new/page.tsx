@@ -15,6 +15,7 @@ import type { Book } from "@/types";
 type Step = "upload" | "crop" | "processing" | "book" | "select" | "done";
 
 type CardStyle = "photo" | "text";
+type BookDisplay = "none" | "cover" | "full";
 
 type BookCandidate = {
   result: {
@@ -115,6 +116,7 @@ export default function NewUnderlinePage() {
   const [selectedModel, setSelectedModel] = useState<ModelKey | null>(null);
   const [recentBooks, setRecentBooks] = useState<Book[]>([]);
   const [cardStyle, setCardStyle] = useState<CardStyle>("text");
+  const [bookDisplay, setBookDisplay] = useState<BookDisplay>("full");
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadWarning, setUploadWarning] = useState<string | null>(null);
@@ -273,6 +275,7 @@ export default function NewUnderlinePage() {
         pageNumber: pageNumber ? parseInt(pageNumber) : undefined,
         imageUrl,
         cardStyle,
+        bookDisplay,
       });
 
       if (result && "error" in result) {
@@ -650,6 +653,33 @@ export default function NewUnderlinePage() {
             </div>
           </div>
         )}
+
+        {/* 책 표기 방식 */}
+        <div>
+          <p className="text-xs text-[var(--color-ink-faint)] mb-2">책 표기 방식</p>
+          <div className="flex gap-2">
+            {(
+              [
+                { value: "full",  label: "표지+이름", icon: "📖" },
+                { value: "cover", label: "표지만",   icon: "🖼" },
+                { value: "none",  label: "표기 안함", icon: "✕" },
+              ] as { value: BookDisplay; label: string; icon: string }[]
+            ).map(({ value, label, icon }) => (
+              <button
+                key={value}
+                onClick={() => setBookDisplay(value)}
+                className={`flex-1 py-2.5 rounded-xl border text-xs font-medium transition-all flex flex-col items-center gap-1 ${
+                  bookDisplay === value
+                    ? "border-[var(--color-forest)] bg-[var(--color-forest)]/8 text-[var(--color-forest)]"
+                    : "border-[var(--color-border)] bg-white text-[var(--color-ink-muted)]"
+                }`}
+              >
+                <span className="text-base leading-none">{icon}</span>
+                <span>{label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
 
         {uploadWarning && <Alert variant="warning">{uploadWarning}</Alert>}
         {error && <Alert variant="error">{error}</Alert>}

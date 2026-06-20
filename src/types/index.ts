@@ -17,6 +17,7 @@ export type Book = {
 };
 
 export type CardStyle = "photo" | "text";
+export type BookDisplay = "none" | "cover" | "full";
 
 export type Underline = {
   id: string;
@@ -26,6 +27,7 @@ export type Underline = {
   page_number?: number;
   image_url?: string;
   card_style?: CardStyle;
+  book_display?: BookDisplay;
   is_public: boolean;
   like_count: number;
   is_liked?: boolean;

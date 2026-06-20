@@ -92,6 +92,7 @@ type BulkCreateData = {
   pageNumber?: number;
   imageUrl?: string;
   cardStyle?: string;
+  bookDisplay?: string;
 };
 
 export async function createUnderlinesBulk(data: BulkCreateData) {
@@ -131,6 +132,7 @@ export async function createUnderlinesBulk(data: BulkCreateData) {
     image_url: data.imageUrl ?? null,
     is_public: true,
     card_style: data.cardStyle ?? "text",
+    book_display: data.bookDisplay ?? "full",
   }));
 
   const { data: inserted, error } = await supabaseAny
@@ -148,7 +150,7 @@ export async function createUnderlinesBulk(data: BulkCreateData) {
 
 export async function updateUnderline(
   id: string,
-  data: { content?: string; pageNumber?: number | null; cardStyle?: string }
+  data: { content?: string; pageNumber?: number | null; cardStyle?: string; bookDisplay?: string }
 ) {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -161,6 +163,7 @@ export async function updateUnderline(
       ...(data.content !== undefined && { content: data.content }),
       ...(data.pageNumber !== undefined && { page_number: data.pageNumber }),
       ...(data.cardStyle !== undefined && { card_style: data.cardStyle }),
+      ...(data.bookDisplay !== undefined && { book_display: data.bookDisplay }),
       updated_at: new Date().toISOString(),
     })
     .eq("id", id)
