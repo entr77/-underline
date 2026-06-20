@@ -45,26 +45,20 @@ export default function UnderlineCard({ underline, compact }: Props) {
               &ldquo;{underline.content}&rdquo;
             </blockquote>
           </div>
-          <div className="mx-4 mb-4 bg-[var(--color-cream)] rounded-xl px-3 py-2 flex gap-3 items-center border border-[var(--color-border)]">
+          <div className="px-4 pb-4 flex items-center gap-2.5">
             <BookCover src={underline.book.cover_url} title={underline.book.title} size="sm" />
             <div className="min-w-0">
-              <p className="text-sm font-medium truncate text-[var(--color-ink)]">{underline.book.title}</p>
-              <p className="text-xs truncate text-[var(--color-ink-faint)]">
-                {underline.book.author}
-                {underline.page_number ? ` · p.${underline.page_number}` : ""}
+              <p className="text-[13px] font-medium truncate text-[var(--color-ink)]">{underline.book.title}</p>
+              <p className="text-[11px] truncate text-[var(--color-ink-faint)]">
+                {underline.book.author}{underline.page_number ? ` · p.${underline.page_number}` : ""}
               </p>
             </div>
           </div>
         </Link>
-        <div className="px-4 pb-4 flex items-center justify-between">
+        <div className="px-4 pb-4 pt-3 border-t border-[var(--color-border)] flex items-center justify-between">
           <ProfileChip user={underline.user} size="sm" />
           <div className="flex items-center gap-3 text-xs">
-            <LikeButton
-              underlineId={underline.id}
-              initialLiked={underline.is_liked ?? false}
-              initialCount={underline.like_count}
-              size="sm"
-            />
+            <LikeButton underlineId={underline.id} initialLiked={underline.is_liked ?? false} initialCount={underline.like_count} size="sm" />
             <span className="text-[var(--color-ink-faint)]">{timeAgo(underline.created_at)}</span>
           </div>
         </div>
@@ -72,40 +66,35 @@ export default function UnderlineCard({ underline, compact }: Props) {
     );
   }
 
-  // text layout — 인용문 히어로
+  // 텍스트 레이아웃 — 중앙 정렬 인용문 카드
   return (
     <article className="bg-[var(--color-cream)] rounded-2xl overflow-hidden border border-[var(--color-border)] hover:border-[var(--color-ink-faint)] transition-colors">
       <Link href={`/underline/${underline.id}`} className="block">
-        {/* 대형 장식 인용부호 + 문장 */}
-        <div className={`relative px-5 ${compact ? "pt-6 pb-4" : "pt-8 pb-5"}`}>
-          <span className="absolute top-0 left-3 font-serif text-[88px] leading-none select-none pointer-events-none text-[var(--color-forest)] opacity-[0.07]">
-            &ldquo;
-          </span>
-          <blockquote className={`relative font-serif leading-[1.8] text-[var(--color-ink)] ${compact ? "text-[0.95rem] pt-4" : "text-[1.15rem] pt-6"}`}>
+        {/* 인용문 — 중앙 정렬 */}
+        <div className={`text-center ${compact ? "px-6 pt-7 pb-5" : "px-7 pt-9 pb-7"}`}>
+          <p className="font-serif text-[32px] leading-none text-[var(--color-forest)] opacity-20 mb-4 select-none">&ldquo;</p>
+          <blockquote className={`font-serif leading-[1.9] text-[var(--color-ink)] ${compact ? "text-[1rem]" : "text-[1.15rem]"}`}>
             {underline.content}
           </blockquote>
         </div>
-        {/* 책 정보 — 어트리뷰션 스타일 */}
-        <div className="px-5 pb-4 flex items-center gap-3">
-          <BookCover src={underline.book.cover_url} title={underline.book.title} size="sm" />
-          <div className="min-w-0">
-            <p className="text-[13px] font-medium truncate text-[var(--color-ink)]">{underline.book.title}</p>
-            <p className="text-[11px] truncate text-[var(--color-ink-faint)]">
-              {underline.book.author}
-              {underline.page_number ? ` · p.${underline.page_number}` : ""}
-            </p>
+        {/* 책 정보 — 구분선 + 인라인 */}
+        <div className="px-6 pb-5">
+          <div className="border-t border-[var(--color-border)] mb-4" />
+          <div className="flex items-center gap-3">
+            <BookCover src={underline.book.cover_url} title={underline.book.title} size="sm" />
+            <div className="min-w-0">
+              <p className="text-[13px] font-medium truncate text-[var(--color-ink)]">{underline.book.title}</p>
+              <p className="text-[11px] truncate text-[var(--color-ink-faint)]">
+                {underline.book.author}{underline.page_number ? ` · p.${underline.page_number}` : ""}
+              </p>
+            </div>
           </div>
         </div>
       </Link>
       <div className="px-5 pb-4 pt-3 border-t border-[var(--color-border)] flex items-center justify-between">
         <ProfileChip user={underline.user} size="sm" />
         <div className="flex items-center gap-3 text-xs">
-          <LikeButton
-            underlineId={underline.id}
-            initialLiked={underline.is_liked ?? false}
-            initialCount={underline.like_count}
-            size="sm"
-          />
+          <LikeButton underlineId={underline.id} initialLiked={underline.is_liked ?? false} initialCount={underline.like_count} size="sm" />
           <span className="text-[var(--color-ink-faint)]">{timeAgo(underline.created_at)}</span>
         </div>
       </div>
