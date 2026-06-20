@@ -11,11 +11,11 @@ type Props = {
 };
 
 function quoteTextSize(len: number): string {
-  if (len < 40)  return "text-[1.35rem]";
-  if (len < 80)  return "text-[1.2rem]";
-  if (len < 130) return "text-[1.1rem]";
-  if (len < 200) return "text-[1rem]";
-  return "text-[0.92rem]";
+  if (len < 40)  return "text-[0.92rem]";
+  if (len < 80)  return "text-[0.85rem]";
+  if (len < 130) return "text-[0.8rem]";
+  if (len < 200) return "text-[0.75rem]";
+  return "text-[0.72rem]";
 }
 
 function timeAgo(dateStr: string) {
@@ -32,7 +32,7 @@ function timeAgo(dateStr: string) {
 
 export default function UnderlineGroupCard({ underlines }: Props) {
   const first = underlines[0];
-  const { book, user, page_number } = first;
+  const { book, user } = first;
   const usePhoto = first.card_style === "photo" && !!first.image_url;
 
   if (usePhoto) {
@@ -45,18 +45,11 @@ export default function UnderlineGroupCard({ underlines }: Props) {
           {underlines.map((u, i) => (
             <Link key={u.id} href={`/underline/${u.id}`} className="block group">
               {i > 0 && <div className="border-t border-[var(--color-border)] pt-3" />}
-              <blockquote className="font-serif text-base text-[var(--color-ink)] leading-relaxed group-hover:text-[var(--color-ink-muted)] transition-colors line-clamp-3">
+              <blockquote className="font-serif text-sm text-[var(--color-ink)] leading-relaxed group-hover:text-[var(--color-ink-muted)] transition-colors line-clamp-3">
                 &ldquo;{u.content}&rdquo;
               </blockquote>
             </Link>
           ))}
-        </div>
-        <div className="px-4 pb-4 flex items-center gap-2.5">
-          <BookCover src={book.cover_url} title={book.title} size="sm" />
-          <div className="min-w-0">
-            <p className="text-[13px] font-medium truncate text-[var(--color-ink)]">{book.title}</p>
-            <p className="text-[11px] truncate text-[var(--color-ink-faint)]">{book.author}{page_number ? ` · p.${page_number}` : ""}</p>
-          </div>
         </div>
         <div className="px-4 pb-4 pt-3 border-t border-[var(--color-border)] flex items-center justify-between">
           <ProfileChip user={user} size="sm" />
@@ -66,35 +59,49 @@ export default function UnderlineGroupCard({ underlines }: Props) {
     );
   }
 
-  // 텍스트 레이아웃 — 문학 인용구 카드
+  // 텍스트 레이아웃 — 책 표지 + 인용 카드 스택
   return (
-    <article className="bg-[var(--color-cream)] rounded-2xl overflow-hidden border border-[var(--color-border)] hover:border-[var(--color-ink-faint)] transition-colors">
-      {/* 인용문들 */}
-      <div className="text-center px-8 pt-10 pb-8 space-y-5">
-        {underlines.map((u, i) => (
+    <article className="relative bg-[var(--color-ink)] rounded-2xl overflow-hidden border border-[var(--color-border)] hover:border-[var(--color-ink-faint)] transition-colors">
+      {/* 책 표지 블러 배경 */}
+      {book.cover_url && (
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `url(${book.cover_url})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            filter: "blur(12px) saturate(0.4) brightness(0.3)",
+            transform: "scale(1.15)",
+          }}
+        />
+      )}
+      <div className="absolute inset-0 bg-[var(--color-ink)]/60" />
+
+      {/* 책 표지 — 중앙 상단 */}
+      <div className="relative flex justify-center pt-7 pb-5">
+        <div className="shadow-2xl shadow-black/60">
+          <BookCover src={book.cover_url} title={book.title} size="lg" />
+        </div>
+      </div>
+
+      {/* 인용 카드 스택 */}
+      <div className="relative px-4 pb-3 space-y-2">
+        {underlines.map((u) => (
           <Link key={u.id} href={`/underline/${u.id}`} className="block group">
-            {i > 0 && <div className="border-t border-[var(--color-border)] pt-5" />}
-            <blockquote className={`font-serif leading-[1.9] text-[var(--color-ink)] group-hover:text-[var(--color-ink-muted)] transition-colors ${quoteTextSize(u.content.length)}`}>
-              <span className="text-[var(--color-forest)]">&ldquo;</span>
-              {u.content}
-              <span className="text-[var(--color-forest)]">&rdquo;</span>
-            </blockquote>
+            <div className="bg-white/88 backdrop-blur-sm rounded-xl px-4 py-3">
+              {u.page_number && (
+                <span className="text-[10px] text-[var(--color-ink-faint)] tracking-wider font-medium">p. {u.page_number}</span>
+              )}
+              <blockquote className={`font-serif text-[var(--color-ink)] leading-[1.7] mt-0.5 group-hover:text-[var(--color-ink-muted)] transition-colors ${quoteTextSize(u.content.length)}`}>
+                {u.content}
+              </blockquote>
+            </div>
           </Link>
         ))}
       </div>
-      {/* 책 정보 — 중앙 정렬 */}
-      <div className="flex flex-col items-center pb-5 px-6">
-        <div className="flex items-center gap-2 w-full justify-center">
-          <div className="flex-1 h-px bg-[var(--color-border)]" />
-          <BookCover src={book.cover_url} title={book.title} size="sm" />
-          <div className="flex-1 h-px bg-[var(--color-border)]" />
-        </div>
-        <div className="text-center mt-2">
-          <p className="text-[12px] font-medium text-[var(--color-ink)] leading-snug">{book.title}</p>
-          <p className="text-[11px] text-[var(--color-ink-faint)] mt-0.5">{book.author}{page_number ? ` · p.${page_number}` : ""}</p>
-        </div>
-      </div>
-      <div className="px-5 pb-4 pt-3 border-t border-[var(--color-border)] flex items-center justify-between">
+
+      {/* 프로필 바 */}
+      <div className="relative mt-3 px-4 py-3 bg-[#F7F3EE]/92 flex items-center justify-between">
         <ProfileChip user={user} size="sm" />
         <span className="text-xs text-[var(--color-ink-faint)]">{timeAgo(first.created_at)}</span>
       </div>
