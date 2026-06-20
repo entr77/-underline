@@ -123,6 +123,7 @@ export default function NewUnderlinePage() {
   const [cardBgUrl, setCardBgUrl] = useState<string | null>(null);
   const [bgSearchResults, setBgSearchResults] = useState<{ thumb: string; url: string }[]>([]);
   const [bgSearchLoading, setBgSearchLoading] = useState(false);
+  const [bgModalOpen, setBgModalOpen] = useState(false);
   const bookDisplay: BookDisplay = displayMode === "none" || displayMode === "cover"
     ? displayMode
     : showAuthor ? `${displayMode}-author` as BookDisplay : displayMode as BookDisplay;
@@ -538,18 +539,22 @@ export default function NewUnderlinePage() {
                 key={value}
                 disabled={!!disabled}
                 onClick={async () => {
-                  setCardBg(value);
-                  setCardBgUrl(null);
-                  if (value === "search" && book) {
-                    setBgSearchLoading(true);
-                    setBgSearchResults([]);
-                    try {
-                      const res = await fetch(`/api/images/search?q=${encodeURIComponent(book.title)}`);
-                      const json = await res.json();
-                      setBgSearchResults(json.images ?? []);
-                    } finally {
-                      setBgSearchLoading(false);
+                  if (value === "search") {
+                    setCardBg("search");
+                    setBgModalOpen(true);
+                    if (bgSearchResults.length === 0 && book) {
+                      setBgSearchLoading(true);
+                      try {
+                        const res = await fetch(`/api/images/search?q=${encodeURIComponent(book.title)}`);
+                        const json = await res.json();
+                        setBgSearchResults(json.images ?? []);
+                      } finally {
+                        setBgSearchLoading(false);
+                      }
                     }
+                  } else {
+                    setCardBg(value);
+                    setCardBgUrl(null);
                   }
                 }}
                 className={`flex-1 py-2 rounded-xl border text-xs font-medium transition-all ${
@@ -564,32 +569,44 @@ export default function NewUnderlinePage() {
               </button>
             ))}
           </div>
-          {/* 이미지 선택 — Unsplash 스탁 이미지 */}
-          {cardBg === "search" && (
-            <div className="overflow-x-auto -mx-1 px-1">
+        </div>
+
+        {/* 이미지 선택 모달 */}
+        {bgModalOpen && (
+          <div className="fixed inset-0 z-50 bg-black/60 flex items-end" onClick={() => setBgModalOpen(false)}>
+            <div
+              className="w-full bg-white rounded-t-3xl p-5 max-h-[70vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <p className="font-medium text-[var(--color-ink)]">배경 이미지 선택</p>
+                <button onClick={() => setBgModalOpen(false)} className="text-[var(--color-ink-faint)]">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+              </div>
               {bgSearchLoading ? (
-                <p className="text-xs text-[var(--color-ink-faint)] py-3 text-center">이미지 검색 중...</p>
+                <p className="text-sm text-[var(--color-ink-faint)] text-center py-8">이미지 검색 중...</p>
               ) : bgSearchResults.length > 0 ? (
-                <div className="flex gap-2 pb-1">
+                <div className="grid grid-cols-3 gap-2">
                   {bgSearchResults.map((img, i) => (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       key={i}
                       src={img.thumb}
                       alt=""
-                      onClick={() => setCardBgUrl(img.url)}
-                      className={`h-20 w-20 object-cover rounded-lg flex-shrink-0 cursor-pointer transition-all ${
-                        cardBgUrl === img.url ? "ring-2 ring-[var(--color-forest)] ring-offset-1" : "opacity-70 hover:opacity-100"
+                      onClick={() => { setCardBgUrl(img.url); setBgModalOpen(false); }}
+                      className={`w-full aspect-square object-cover rounded-xl cursor-pointer transition-all ${
+                        cardBgUrl === img.url ? "ring-2 ring-[var(--color-forest)] ring-offset-2" : "opacity-80 hover:opacity-100"
                       }`}
                     />
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-[var(--color-ink-faint)] py-3 text-center">검색 결과가 없어요</p>
+                <p className="text-sm text-[var(--color-ink-faint)] text-center py-8">검색 결과가 없어요</p>
               )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* 책 표기 방식 */}
         <div className="space-y-2.5">
