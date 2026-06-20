@@ -2,8 +2,6 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import BookCover from "@/components/ui/BookCover";
-import ProfileChip from "@/components/ui/ProfileChip";
 import LikeButton from "@/components/features/LikeButton";
 import type { Underline } from "@/types";
 
@@ -13,12 +11,11 @@ type Props = {
 };
 
 function quoteTextSize(len: number, compact: boolean): string {
-  if (compact) return len < 60 ? "text-[0.9rem]" : "text-[0.82rem]";
-  if (len < 40)  return "text-[1.15rem]";
-  if (len < 80)  return "text-[1rem]";
-  if (len < 130) return "text-[0.9rem]";
-  if (len < 200) return "text-[0.85rem]";
-  return "text-[0.8rem]";
+  if (compact) return "text-[11px]";
+  if (len < 60)  return "text-[0.95rem]";
+  if (len < 120) return "text-sm";
+  if (len < 200) return "text-[13px]";
+  return "text-xs";
 }
 
 function timeAgo(dateStr: string) {
@@ -33,51 +30,68 @@ function timeAgo(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("ko-KR");
 }
 
+function Avatar({ username }: { username: string }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-white/80 text-[10px] font-medium flex-shrink-0">
+        {username[0].toUpperCase()}
+      </div>
+      <span className="text-white/60 text-[11px]">{username}</span>
+    </div>
+  );
+}
+
 export default function UnderlineCard({ underline, compact }: Props) {
   const usePhoto = underline.card_style === "photo" && !!underline.image_url;
 
   if (usePhoto) {
+    // 사진 카드 — 정사각형 풀블리드 + 하단 오버레이
     return (
-      <article className="bg-white rounded-2xl overflow-hidden border border-[var(--color-border)] hover:border-[var(--color-ink-faint)] transition-colors">
-        <Link href={`/underline/${underline.id}`} className="block">
-          <div className="relative w-full aspect-[4/3] bg-[var(--color-cream-dark)]">
-            <Image
-              src={underline.image_url!}
-              alt="밑줄 친 페이지"
-              fill
-              className="object-cover"
-              sizes="(max-width: 430px) 100vw, 430px"
-            />
-          </div>
-          <div className={`px-4 ${compact ? "pt-3 pb-2" : "pt-4 pb-3"}`}>
-            <blockquote className={`font-serif text-[var(--color-ink)] leading-relaxed ${compact ? "text-sm" : "text-base"} line-clamp-3`}>
-              &ldquo;{underline.content}&rdquo;
-            </blockquote>
-          </div>
-          <div className="px-4 pb-4 flex items-center gap-2.5">
-            <BookCover src={underline.book.cover_url} title={underline.book.title} size="sm" />
-            <div className="min-w-0">
-              <p className="text-[13px] font-medium truncate text-[var(--color-ink)]">{underline.book.title}</p>
-              <p className="text-[11px] truncate text-[var(--color-ink-faint)]">
-                {underline.book.author}{underline.page_number ? ` · p.${underline.page_number}` : ""}
-              </p>
-            </div>
-          </div>
+      <article className="relative aspect-square rounded-2xl overflow-hidden border border-[var(--color-border)] hover:border-white/20 transition-colors">
+        <Image
+          src={underline.image_url!}
+          alt="밑줄 친 페이지"
+          fill
+          className="object-cover"
+          sizes="(max-width: 430px) 100vw, 430px"
+        />
+        {/* 하단 그라디언트 오버레이 */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
+
+        {/* 인용문 + 책 제목 */}
+        <Link
+          href={`/underline/${underline.id}`}
+          className="absolute inset-x-0 bottom-11 top-0 flex flex-col justify-end px-4 pb-3"
+        >
+          <blockquote
+            className={`font-serif text-white leading-[1.7] ${compact ? "text-[11px] line-clamp-3" : "text-sm line-clamp-4"}`}
+            style={{ textShadow: "0 1px 4px rgba(0,0,0,0.6)" }}
+          >
+            &ldquo;{underline.content}&rdquo;
+          </blockquote>
+          <p className="text-white/50 text-[10px] mt-1.5 truncate">
+            {underline.book.title}
+            {underline.page_number ? ` · p.${underline.page_number}` : ""}
+          </p>
         </Link>
-        <div className="px-4 pb-4 pt-3 border-t border-[var(--color-border)] flex items-center justify-between">
-          <ProfileChip user={underline.user} size="sm" />
-          <div className="flex items-center gap-3 text-xs">
-            <LikeButton underlineId={underline.id} initialLiked={underline.is_liked ?? false} initialCount={underline.like_count} size="sm" />
-            <span className="text-[var(--color-ink-faint)]">{timeAgo(underline.created_at)}</span>
-          </div>
+
+        {/* 하단 바 — 프로필 + 좋아요 */}
+        <div className="absolute bottom-0 inset-x-0 h-11 px-4 flex items-center justify-between">
+          <Avatar username={underline.user.username} />
+          <LikeButton
+            underlineId={underline.id}
+            initialLiked={underline.is_liked ?? false}
+            initialCount={underline.like_count}
+            size="sm"
+          />
         </div>
       </article>
     );
   }
 
-  // 텍스트 레이아웃 — 다크 무드 인용구 카드
+  // 텍스트 카드 — 정사각형 다크 무드
   return (
-    <article className="relative bg-[var(--color-ink)] rounded-2xl overflow-hidden border border-[var(--color-border)] hover:border-[var(--color-ink-faint)] transition-colors">
+    <article className="relative aspect-square bg-[#1C1917] rounded-2xl overflow-hidden border border-[var(--color-border)] hover:border-white/20 transition-colors">
       {/* 책 표지 블러 배경 */}
       {underline.book.cover_url && (
         <div
@@ -86,34 +100,43 @@ export default function UnderlineCard({ underline, compact }: Props) {
             backgroundImage: `url(${underline.book.cover_url})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
-            filter: "blur(12px) saturate(0.4) brightness(0.35)",
+            filter: "blur(14px) saturate(0.4) brightness(0.3)",
             transform: "scale(1.15)",
           }}
         />
       )}
-      <div className="absolute inset-0 bg-[var(--color-ink)]/65" />
+      <div className="absolute inset-0 bg-[#1C1917]/60" />
 
-      {/* 인용문 */}
-      <Link href={`/underline/${underline.id}`} className="relative block">
-        <div className={`text-center ${compact ? "px-6 pt-8 pb-5" : "px-8 pt-10 pb-7"}`}>
-          <blockquote className={`font-serif text-white/90 leading-[1.9] ${quoteTextSize(underline.content.length, compact ?? false)}`}>
-            {underline.content}
-          </blockquote>
-          <p className="mt-5 text-white/40 text-[11px] tracking-wider">
-            — {underline.book.title}
-            {underline.book.author ? ` · ${underline.book.author}` : ""}
-            {underline.page_number ? ` · p.${underline.page_number}` : ""}
-          </p>
-        </div>
+      {/* 인용문 — 하단 크림 바(44px) 위 중앙 정렬 */}
+      <Link
+        href={`/underline/${underline.id}`}
+        className="absolute inset-x-0 top-0 bottom-11 flex flex-col items-center justify-center px-7 text-center"
+      >
+        <blockquote
+          className={`font-serif text-white/90 leading-[1.9] ${quoteTextSize(underline.content.length, compact ?? false)}`}
+        >
+          {underline.content}
+        </blockquote>
+        <p className="mt-4 text-white/40 text-[11px] tracking-wide line-clamp-1">
+          — {underline.book.title}
+          {underline.page_number ? ` · p.${underline.page_number}` : ""}
+        </p>
       </Link>
 
-      {/* 프로필 바 — 크림 스트립 */}
-      <div className="relative px-4 py-3 bg-[#F7F3EE]/92 flex items-center justify-between">
-        <ProfileChip user={underline.user} size="sm" />
-        <div className="flex items-center gap-3 text-xs">
-          <LikeButton underlineId={underline.id} initialLiked={underline.is_liked ?? false} initialCount={underline.like_count} size="sm" />
-          <span className="text-[var(--color-ink-faint)]">{timeAgo(underline.created_at)}</span>
+      {/* 하단 크림 바 */}
+      <div className="absolute bottom-0 inset-x-0 h-11 bg-[#F7F3EE]/92 px-4 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-5 h-5 rounded-full bg-[var(--color-forest)]/20 flex items-center justify-center text-[var(--color-ink)] text-[10px] font-medium flex-shrink-0">
+            {underline.user.username[0].toUpperCase()}
+          </div>
+          <span className="text-[var(--color-ink-muted)] text-[11px]">{underline.user.username}</span>
         </div>
+        <LikeButton
+          underlineId={underline.id}
+          initialLiked={underline.is_liked ?? false}
+          initialCount={underline.like_count}
+          size="sm"
+        />
       </div>
     </article>
   );
