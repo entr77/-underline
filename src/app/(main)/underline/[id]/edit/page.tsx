@@ -8,7 +8,7 @@ export default async function EditPage({ params }: { params: Promise<{ id: strin
   const [{ data: { user } }, { data }] = await Promise.all([
     supabase.auth.getUser(),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (supabase as any).from("underlines").select("id, content, page_number, card_style, image_url, user_id").eq("id", id).single(),
+    (supabase as any).from("underlines").select("id, content, page_number, card_style, book_display, image_url, user_id").eq("id", id).single(),
   ]);
   if (!user || !data || data.user_id !== user.id) notFound();
   return (
@@ -17,6 +17,7 @@ export default async function EditPage({ params }: { params: Promise<{ id: strin
       initialContent={data.content}
       initialPageNumber={data.page_number}
       initialCardStyle={data.card_style ?? "text"}
+      initialBookDisplay={data.book_display ?? "full"}
       hasImage={!!data.image_url}
       imageUrl={data.image_url ?? undefined}
     />

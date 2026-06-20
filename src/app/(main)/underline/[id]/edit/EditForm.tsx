@@ -4,20 +4,26 @@ import { useRouter } from "next/navigation";
 import { updateUnderline } from "@/app/actions/underline";
 import Alert from "@/components/ui/Alert";
 
+type BookDisplay = "none" | "cover" | "full";
+
 type Props = {
   id: string;
   initialContent: string;
   initialPageNumber: number | null;
   initialCardStyle: string;
+  initialBookDisplay: string;
   hasImage: boolean;
   imageUrl?: string;
 };
 
-export default function EditForm({ id, initialContent, initialPageNumber, initialCardStyle, hasImage, imageUrl }: Props) {
+export default function EditForm({ id, initialContent, initialPageNumber, initialCardStyle, initialBookDisplay, hasImage, imageUrl }: Props) {
   const router = useRouter();
   const [content, setContent] = useState(initialContent);
   const [pageNumber, setPageNumber] = useState(initialPageNumber?.toString() ?? "");
   const [cardStyle, setCardStyle] = useState(initialCardStyle === "photo" || initialCardStyle === "text" ? initialCardStyle : "text");
+  const [bookDisplay, setBookDisplay] = useState<BookDisplay>(
+    ["none", "cover", "full"].includes(initialBookDisplay) ? initialBookDisplay as BookDisplay : "full"
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -28,6 +34,7 @@ export default function EditForm({ id, initialContent, initialPageNumber, initia
       content,
       pageNumber: pageNumber ? parseInt(pageNumber) : null,
       cardStyle,
+      bookDisplay,
     });
     setSaving(false);
     if (result.error) {
@@ -113,6 +120,33 @@ export default function EditForm({ id, initialContent, initialPageNumber, initia
           </div>
         </div>
       )}
+
+      {/* 책 표기 방식 */}
+      <div>
+        <p className="text-xs text-[var(--color-ink-faint)] mb-2">책 표기 방식</p>
+        <div className="flex gap-2">
+          {(
+            [
+              { value: "full",  label: "표지+이름", icon: "📖" },
+              { value: "cover", label: "표지만",   icon: "🖼" },
+              { value: "none",  label: "표기 안함", icon: "✕" },
+            ] as { value: BookDisplay; label: string; icon: string }[]
+          ).map(({ value, label, icon }) => (
+            <button
+              key={value}
+              onClick={() => setBookDisplay(value)}
+              className={`flex-1 py-2.5 rounded-xl border text-xs font-medium transition-all flex flex-col items-center gap-1 ${
+                bookDisplay === value
+                  ? "border-[var(--color-forest)] bg-[var(--color-forest)]/8 text-[var(--color-forest)]"
+                  : "border-[var(--color-border)] bg-white text-[var(--color-ink-muted)]"
+              }`}
+            >
+              <span className="text-base leading-none">{icon}</span>
+              <span>{label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
 
       {error && <Alert variant="error">{error}</Alert>}
 
