@@ -33,6 +33,12 @@ function timeAgo(dateStr: string) {
 export default function UnderlineCard({ underline, compact }: Props) {
   const usePhoto = underline.card_style === "photo" && !!underline.image_url;
   const bookDisplay = underline.book_display ?? "full";
+  const cardBg = underline.card_bg ?? "cover";
+  const bgSrc =
+    cardBg === "cover"  ? (underline.book.cover_url ?? null) :
+    cardBg === "photo"  ? (underline.image_url ?? null) :
+    cardBg === "search" ? (underline.card_bg_url ?? null) :
+    null;
 
   if (usePhoto) {
     // 사진 카드 — 정사각형: 상단 사진 / 하단 다크 텍스트 영역
@@ -107,11 +113,11 @@ export default function UnderlineCard({ underline, compact }: Props) {
   // 텍스트 카드 — 정사각형 다크 무드
   return (
     <article className="relative aspect-square bg-[#1C1917] rounded-2xl overflow-hidden border border-[var(--color-border)] hover:border-white/20 transition-colors">
-      {underline.book.cover_url && (
+      {bgSrc && (
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage: `url(${underline.book.cover_url})`,
+            backgroundImage: `url(${bgSrc})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
             filter: "blur(14px) saturate(0.4) brightness(0.3)",

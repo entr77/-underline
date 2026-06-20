@@ -76,6 +76,8 @@ type SupabaseUnderlineRow = {
   image_url: string | null;
   card_style: string | null;
   book_display: string | null;
+  card_bg: string | null;
+  card_bg_url: string | null;
   is_public: boolean;
   like_count: number;
   created_at: string;
@@ -104,6 +106,8 @@ function rowToUnderline(row: SupabaseUnderlineRow, likedIds: Set<string>): Under
     image_url: row.image_url ?? undefined,
     card_style: (row.card_style ?? "text") as import("@/types").CardStyle,
     book_display: (row.book_display ?? "full") as import("@/types").BookDisplay,
+    card_bg: (row.card_bg ?? "cover") as import("@/types").CardBg,
+    card_bg_url: row.card_bg_url ?? undefined,
     is_public: row.is_public,
     like_count: row.like_count,
     is_liked: likedIds.has(row.id),

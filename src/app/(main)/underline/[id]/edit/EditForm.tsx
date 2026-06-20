@@ -5,6 +5,7 @@ import { updateUnderline } from "@/app/actions/underline";
 import Alert from "@/components/ui/Alert";
 
 type DisplayMode = "none" | "cover" | "title" | "full";
+type CardBg = "cover" | "photo" | "search" | "none";
 
 type Props = {
   id: string;
@@ -12,11 +13,13 @@ type Props = {
   initialPageNumber: number | null;
   initialCardStyle: string;
   initialBookDisplay: string;
+  initialCardBg: string;
+  initialCardBgUrl?: string;
   hasImage: boolean;
   imageUrl?: string;
 };
 
-export default function EditForm({ id, initialContent, initialPageNumber, initialCardStyle, initialBookDisplay, hasImage, imageUrl }: Props) {
+export default function EditForm({ id, initialContent, initialPageNumber, initialCardStyle, initialBookDisplay, initialCardBg, initialCardBgUrl, hasImage, imageUrl }: Props) {
   const router = useRouter();
   const [content, setContent] = useState(initialContent);
   const [pageNumber, setPageNumber] = useState(initialPageNumber?.toString() ?? "");
@@ -34,6 +37,12 @@ export default function EditForm({ id, initialContent, initialPageNumber, initia
   const bookDisplay = displayMode === "none" || displayMode === "cover"
     ? displayMode
     : showAuthor ? `${displayMode}-author` : displayMode;
+  const [cardBg, setCardBg] = useState<CardBg>(
+    ["cover","photo","search","none"].includes(initialCardBg) ? initialCardBg as CardBg : "cover"
+  );
+  const [cardBgUrl, setCardBgUrl] = useState<string | null>(initialCardBgUrl ?? null);
+  const [bgSearchResults, setBgSearchResults] = useState<string[]>([]);
+  const [bgSearchLoading, setBgSearchLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,6 +54,8 @@ export default function EditForm({ id, initialContent, initialPageNumber, initia
       pageNumber: pageNumber ? parseInt(pageNumber) : null,
       cardStyle,
       bookDisplay,
+      cardBg,
+      cardBgUrl,
     });
     setSaving(false);
     if (result.error) {
@@ -130,6 +141,78 @@ export default function EditForm({ id, initialContent, initialPageNumber, initia
           </div>
         </div>
       )}
+
+      {/* 배경 이미지 */}
+      <div className="space-y-2.5">
+        <p className="text-xs text-[var(--color-ink-faint)]">카드 배경</p>
+        <div className="flex gap-2">
+          {(
+            [
+              { value: "cover" as CardBg,  label: "책표지" },
+              { value: "photo" as CardBg,  label: "사진", disabled: !hasImage },
+              { value: "search" as CardBg, label: "이미지 선택" },
+              { value: "none" as CardBg,   label: "없음" },
+            ]
+          ).map(({ value, label, disabled }) => (
+            <button
+              key={value}
+              type="button"
+              disabled={!!disabled}
+              onClick={async () => {
+                setCardBg(value);
+                setCardBgUrl(null);
+                if (value === "search") {
+                  setBgSearchLoading(true);
+                  setBgSearchResults([]);
+                  try {
+                    const res = await fetch(`/api/books/search?q=${encodeURIComponent(content.slice(0, 20))}`);
+                    const json = await res.json();
+                    const urls: string[] = (json.books ?? [])
+                      .map((b: { cover_url?: string }) => b.cover_url)
+                      .filter((u: string | undefined): u is string => !!u && u.length > 0);
+                    setBgSearchResults(urls);
+                  } finally {
+                    setBgSearchLoading(false);
+                  }
+                }
+              }}
+              className={`flex-1 py-2 rounded-xl border text-xs font-medium transition-all ${
+                disabled
+                  ? "border-[var(--color-border)] bg-white/50 text-[var(--color-ink-faint)] cursor-not-allowed"
+                  : cardBg === value
+                  ? "border-[var(--color-forest)] bg-[var(--color-forest)]/8 text-[var(--color-forest)]"
+                  : "border-[var(--color-border)] bg-white text-[var(--color-ink-muted)]"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {cardBg === "search" && (
+          <div className="overflow-x-auto -mx-1 px-1">
+            {bgSearchLoading ? (
+              <p className="text-xs text-[var(--color-ink-faint)] py-3 text-center">이미지 검색 중...</p>
+            ) : bgSearchResults.length > 0 ? (
+              <div className="flex gap-2 pb-1">
+                {bgSearchResults.map((url, i) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    key={i}
+                    src={url}
+                    alt=""
+                    onClick={() => setCardBgUrl(url)}
+                    className={`h-20 w-14 object-cover rounded-lg flex-shrink-0 cursor-pointer transition-all ${
+                      cardBgUrl === url ? "ring-2 ring-[var(--color-forest)] ring-offset-1" : "opacity-70 hover:opacity-100"
+                    }`}
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-[var(--color-ink-faint)] py-3 text-center">책 제목을 먼저 확인하세요</p>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* 책 표기 방식 */}
       <div className="space-y-2.5">

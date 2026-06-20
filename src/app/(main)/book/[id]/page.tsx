@@ -16,6 +16,8 @@ type SupabaseUnderlineRow = {
   image_url: string | null;
   card_style: string | null;
   book_display: string | null;
+  card_bg: string | null;
+  card_bg_url: string | null;
   is_public: boolean;
   like_count: number;
   created_at: string;
@@ -69,6 +71,8 @@ export default async function BookDetailPage({ params }: Props) {
         image_url: r.image_url ?? undefined,
         card_style: (r.card_style ?? "text") as import("@/types").CardStyle,
         book_display: (r.book_display ?? "full") as import("@/types").BookDisplay,
+        card_bg: (r.card_bg ?? "cover") as import("@/types").CardBg,
+        card_bg_url: r.card_bg_url ?? undefined,
         is_public: r.is_public,
         like_count: r.like_count,
         created_at: r.created_at,

@@ -1,0 +1,3 @@
+ALTER TABLE public.underlines
+  ADD COLUMN IF NOT EXISTS card_bg  TEXT NOT NULL DEFAULT 'cover',
+  ADD COLUMN IF NOT EXISTS card_bg_url TEXT;
