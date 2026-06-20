@@ -32,17 +32,29 @@ const THEMES: Record<Style, {
   },
 }
 
+async function fetchWithTimeout(url: string, options: RequestInit, ms = 5000): Promise<Response> {
+  const controller = new AbortController()
+  const id = setTimeout(() => controller.abort(), ms)
+  try {
+    return await fetch(url, { ...options, signal: controller.signal })
+  } finally {
+    clearTimeout(id)
+  }
+}
+
 async function loadKoreanFont(text: string): Promise<ArrayBuffer | null> {
   try {
-    const css = await fetch(
-      `https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400&text=${encodeURIComponent(text)}`,
-      { headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' } }
+    const shortText = text.slice(0, 120)
+    const css = await fetchWithTimeout(
+      `https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400&text=${encodeURIComponent(shortText)}`,
+      { headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' } },
+      5000
     ).then(r => r.text())
 
     const fontUrl = css.match(/src: url\(([^)]+\.woff2[^)]*)\)/)?.[1]
     if (!fontUrl) return null
 
-    return fetch(fontUrl).then(r => r.arrayBuffer())
+    return fetchWithTimeout(fontUrl, {}, 6000).then(r => r.arrayBuffer())
   } catch {
     return null
   }

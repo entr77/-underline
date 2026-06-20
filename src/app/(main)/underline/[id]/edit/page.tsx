@@ -18,6 +18,7 @@ export default async function EditPage({ params }: { params: Promise<{ id: strin
       initialPageNumber={data.page_number}
       initialCardStyle={data.card_style ?? "text"}
       hasImage={!!data.image_url}
+      imageUrl={data.image_url ?? undefined}
     />
   );
 }

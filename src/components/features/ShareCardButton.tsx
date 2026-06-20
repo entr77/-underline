@@ -21,6 +21,8 @@ export default function ShareCardButton({ underlineId, content }: Props) {
   const [style, setStyle] = useState<Style>('light')
   const [format, setFormat] = useState<Format>('portrait')
   const [imgLoaded, setImgLoaded] = useState(false)
+  const [imgError, setImgError] = useState(false)
+  const [nonce, setNonce] = useState(0)
   const [downloading, setDownloading] = useState(false)
   const [sharing, setSharing] = useState(false)
   const [canShare, setCanShare] = useState(false)
@@ -29,17 +31,19 @@ export default function ShareCardButton({ underlineId, content }: Props) {
     setCanShare(typeof navigator !== 'undefined' && 'share' in navigator)
   }, [])
 
-  // Reset preview loading state when options change
   useEffect(() => {
     setImgLoaded(false)
-  }, [style, format])
+    setImgError(false)
+  }, [style, format, nonce])
 
-  const imageUrl = `/api/og/underline/${underlineId}?style=${style}&format=${format}`
+  const imageUrl = `/api/og/underline/${underlineId}?style=${style}&format=${format}&_=${nonce}`
 
   async function handleDownload() {
     try {
       setDownloading(true)
-      const blob = await fetch(imageUrl).then(r => r.blob())
+      const res = await fetch(imageUrl)
+      if (!res.ok) throw new Error('생성 실패')
+      const blob = await res.blob()
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
@@ -58,7 +62,9 @@ export default function ShareCardButton({ underlineId, content }: Props) {
   async function handleShare() {
     try {
       setSharing(true)
-      const blob = await fetch(imageUrl).then(r => r.blob())
+      const res = await fetch(imageUrl)
+      if (!res.ok) throw new Error('생성 실패')
+      const blob = await res.blob()
       const file = new File([blob], `underline-${underlineId}.png`, { type: 'image/png' })
       await navigator.share({
         files: [file],
@@ -91,20 +97,12 @@ export default function ShareCardButton({ underlineId, content }: Props) {
 
       {open && (
         <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 bg-black/40 z-40"
-            onClick={() => setOpen(false)}
-          />
+          <div className="fixed inset-0 bg-black/40 z-40" onClick={() => setOpen(false)} />
 
-          {/* Bottom sheet */}
           <div className="fixed bottom-0 left-0 right-0 z-50 max-w-[430px] mx-auto bg-[var(--color-cream)] rounded-t-3xl px-5 pt-4 pb-8 space-y-4">
-            {/* Handle */}
             <div className="w-10 h-1 bg-[var(--color-border)] rounded-full mx-auto" />
-
             <h3 className="text-base font-semibold text-[var(--color-ink)] text-center pb-1">카드로 저장</h3>
 
-            {/* Style toggle */}
             <div className="flex gap-2">
               {(['light', 'dark'] as Style[]).map(s => (
                 <button
@@ -121,7 +119,6 @@ export default function ShareCardButton({ underlineId, content }: Props) {
               ))}
             </div>
 
-            {/* Format tabs */}
             <div className="flex gap-2">
               {(Object.keys(FORMAT_LABELS) as Format[]).map(f => (
                 <button
@@ -139,36 +136,47 @@ export default function ShareCardButton({ underlineId, content }: Props) {
             </div>
 
             {/* Preview */}
-            <div className="flex items-center justify-center bg-[var(--color-cream-dark)] rounded-2xl overflow-hidden min-h-[200px]">
-              {!imgLoaded && (
-                <div className="absolute flex flex-col items-center gap-2 text-[var(--color-ink-faint)] text-xs">
+            <div className="relative flex items-center justify-center bg-[var(--color-cream-dark)] rounded-2xl overflow-hidden min-h-[200px]">
+              {!imgLoaded && !imgError && (
+                <div className="flex flex-col items-center gap-2 text-[var(--color-ink-faint)] text-xs">
                   <div className="w-6 h-6 border-2 border-[var(--color-border)] border-t-[var(--color-forest)] rounded-full animate-spin" />
                   생성 중…
+                </div>
+              )}
+              {imgError && (
+                <div className="flex flex-col items-center gap-3 px-4 text-center">
+                  <p className="text-sm text-[var(--color-ink-muted)]">이미지 생성에 실패했어요</p>
+                  <button
+                    onClick={() => setNonce(n => n + 1)}
+                    className="text-xs text-[var(--color-forest)] underline underline-offset-2"
+                  >
+                    다시 시도
+                  </button>
                 </div>
               )}
               <img
                 key={imageUrl}
                 src={imageUrl}
                 alt="카드 미리보기"
-                onLoad={() => setImgLoaded(true)}
-                className={`max-h-64 w-auto object-contain transition-opacity duration-300 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
+                onLoad={() => { setImgLoaded(true); setImgError(false); }}
+                onError={() => { setImgLoaded(true); setImgError(true); }}
+                className={`max-h-64 w-auto object-contain transition-opacity duration-300 ${imgLoaded && !imgError ? 'opacity-100' : 'opacity-0 absolute'}`}
               />
             </div>
 
-            {/* Actions */}
             <div className="flex gap-3 pt-1">
               <button
                 onClick={handleDownload}
-                disabled={downloading}
-                className="flex-1 py-3.5 rounded-2xl bg-[var(--color-forest)] text-white text-sm font-semibold disabled:opacity-60 transition-opacity"
+                disabled={downloading || imgError || !imgLoaded}
+                className="flex-1 py-3.5 rounded-2xl bg-[var(--color-forest)] text-white text-sm font-semibold disabled:opacity-40 transition-opacity"
               >
                 {downloading ? '저장 중…' : '이미지 저장'}
               </button>
               {canShare && (
                 <button
                   onClick={handleShare}
-                  disabled={sharing}
-                  className="flex-1 py-3.5 rounded-2xl border border-[var(--color-forest)] text-[var(--color-forest)] text-sm font-semibold disabled:opacity-60 transition-opacity"
+                  disabled={sharing || imgError || !imgLoaded}
+                  className="flex-1 py-3.5 rounded-2xl border border-[var(--color-forest)] text-[var(--color-forest)] text-sm font-semibold disabled:opacity-40 transition-opacity"
                 >
                   {sharing ? '공유 중…' : '공유하기'}
                 </button>

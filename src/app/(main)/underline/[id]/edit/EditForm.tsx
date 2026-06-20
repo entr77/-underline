@@ -10,9 +10,10 @@ type Props = {
   initialPageNumber: number | null;
   initialCardStyle: string;
   hasImage: boolean;
+  imageUrl?: string;
 };
 
-export default function EditForm({ id, initialContent, initialPageNumber, initialCardStyle, hasImage }: Props) {
+export default function EditForm({ id, initialContent, initialPageNumber, initialCardStyle, hasImage, imageUrl }: Props) {
   const router = useRouter();
   const [content, setContent] = useState(initialContent);
   const [pageNumber, setPageNumber] = useState(initialPageNumber?.toString() ?? "");
@@ -75,29 +76,37 @@ export default function EditForm({ id, initialContent, initialPageNumber, initia
       {hasImage && (
         <div>
           <p className="text-xs text-[var(--color-ink-faint)] mb-2">카드 레이아웃</p>
-          <div className="flex gap-2">
+          <div className="flex gap-3">
+            {/* 사진 포함 */}
             <button
               onClick={() => setCardStyle("photo")}
               className={`flex-1 rounded-xl p-0.5 transition-all ${cardStyle === "photo" ? "ring-2 ring-[var(--color-forest)] ring-offset-1" : ""}`}
             >
-              <div className="rounded-[10px] h-20 overflow-hidden bg-white border border-[var(--color-border)] flex flex-col">
-                <div className="flex-1 bg-[var(--color-cream-dark)]" />
-                <div className="h-[28px] px-2 flex items-center">
-                  <div className="h-[3px] rounded-full flex-1 bg-[var(--color-ink)] opacity-20" />
+              <div className="rounded-[10px] h-28 overflow-hidden bg-white border border-[var(--color-border)] flex flex-col text-left">
+                {imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={imageUrl} alt="" className="w-full h-14 object-cover flex-shrink-0" />
+                ) : (
+                  <div className="w-full h-14 bg-[var(--color-cream-dark)] flex-shrink-0" />
+                )}
+                <div className="flex-1 px-2 py-1.5 overflow-hidden">
+                  <p className="text-[8px] text-[var(--color-ink)] font-serif leading-tight line-clamp-3">
+                    {content.trim() || "밑줄 친 문장"}
+                  </p>
                 </div>
               </div>
               <p className="text-[11px] text-center mt-1 text-[var(--color-ink-muted)]">사진 포함</p>
             </button>
+            {/* 텍스트만 */}
             <button
               onClick={() => setCardStyle("text")}
               className={`flex-1 rounded-xl p-0.5 transition-all ${cardStyle === "text" ? "ring-2 ring-[var(--color-forest)] ring-offset-1" : ""}`}
             >
-              <div className="rounded-[10px] h-20 bg-[#F7F3EE] p-2.5 flex flex-col justify-between">
-                <span className="text-[18px] leading-none font-serif text-[var(--color-forest)] opacity-25">"</span>
-                <div>
-                  <div className="h-[3px] rounded-full w-full mb-1 bg-[var(--color-ink)] opacity-20" />
-                  <div className="h-[3px] rounded-full w-3/4 bg-[var(--color-ink)] opacity-12" />
-                </div>
+              <div className="rounded-[10px] h-28 bg-[#F7F3EE] px-2.5 pt-2 pb-2 flex flex-col text-left overflow-hidden">
+                <span className="text-[14px] leading-none font-serif text-[#1E3A2F] opacity-25 select-none">"</span>
+                <p className="text-[8px] text-[var(--color-ink)] font-serif leading-tight mt-1 line-clamp-5">
+                  {content.trim() || "밑줄 친 문장이 여기 표시됩니다"}
+                </p>
               </div>
               <p className="text-[11px] text-center mt-1 text-[var(--color-ink-muted)]">텍스트만</p>
             </button>
