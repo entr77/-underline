@@ -70,15 +70,19 @@ export default function UnderlineGroupCard({ underlines }: Props) {
   }
 
   // 텍스트 그룹 카드 — 정사각형: 책 표지 히어로 + 흰 인용 카드 스택
-  const heroHeight = bookDisplay !== "none" ? "h-[40%]" : "h-0";
+  const showCover = bookDisplay === "cover" || bookDisplay === "full" || bookDisplay === "full-author";
+  const showTitle = bookDisplay === "title" || bookDisplay === "title-author" || bookDisplay === "full" || bookDisplay === "full-author";
+  const showAuthorText = bookDisplay === "title-author" || bookDisplay === "full-author";
+  const hasHero = bookDisplay !== "none";
+  const heroHeight = hasHero ? "h-[40%]" : "h-0";
 
   return (
     <article className="aspect-square relative bg-[#1C1917] rounded-2xl overflow-hidden border border-[var(--color-border)] hover:border-white/20 transition-colors">
       <div className="absolute inset-0 flex flex-col">
         {/* ── 책 히어로 (상단) — book_display가 none이면 숨김 ── */}
-        {bookDisplay !== "none" && (
+        {hasHero && (
           <div className={`relative flex-none ${heroHeight} flex items-center justify-center`}>
-            {book.cover_url && (
+            {showCover && book.cover_url && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={book.cover_url}
@@ -89,31 +93,47 @@ export default function UnderlineGroupCard({ underlines }: Props) {
             )}
             <div className="absolute inset-0 bg-black/30" />
             <div className="absolute bottom-0 inset-x-0 h-10 bg-gradient-to-t from-[#1C1917] to-transparent" />
-            <Link href={`/book/${book.id}`} className="relative z-10 block">
-              {book.cover_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={book.cover_url}
-                  alt={book.title}
-                  className="h-24 w-auto rounded"
-                  style={{ boxShadow: "0 16px 48px rgba(0,0,0,0.8)" }}
-                />
-              ) : (
-                <div
-                  className="h-24 w-16 bg-[var(--color-forest)] rounded flex items-center justify-center"
-                  style={{ boxShadow: "0 16px 48px rgba(0,0,0,0.8)" }}
-                >
-                  <span className="text-white/70 text-[10px] font-serif text-center px-1.5 leading-tight line-clamp-4">
-                    {book.title}
-                  </span>
+            <div className="relative z-10 flex flex-col items-center gap-2">
+              {showCover && (
+                <Link href={`/book/${book.id}`} className="block">
+                  {book.cover_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={book.cover_url}
+                      alt={book.title}
+                      className="h-20 w-auto rounded"
+                      style={{ boxShadow: "0 16px 48px rgba(0,0,0,0.8)" }}
+                    />
+                  ) : (
+                    <div
+                      className="h-20 w-14 bg-[var(--color-forest)] rounded flex items-center justify-center"
+                      style={{ boxShadow: "0 16px 48px rgba(0,0,0,0.8)" }}
+                    >
+                      <span className="text-white/70 text-[10px] font-serif text-center px-1.5 leading-tight line-clamp-4">
+                        {book.title}
+                      </span>
+                    </div>
+                  )}
+                </Link>
+              )}
+              {!showCover && showTitle && (
+                <div className="text-center px-4">
+                  <p className="text-white/70 text-xs font-medium leading-snug line-clamp-2">{book.title}</p>
+                  {showAuthorText && (
+                    <p className="text-white/40 text-[10px] mt-0.5">{book.author}</p>
+                  )}
                 </div>
               )}
-            </Link>
-            {/* 책 이름 — full일 때만 */}
-            {bookDisplay === "full" && (
-              <p className="absolute bottom-2 inset-x-0 text-center text-white/40 text-[10px] px-4 truncate">
-                {book.title}
-              </p>
+            </div>
+            {showCover && (showTitle || showAuthorText) && (
+              <div className="absolute bottom-2 inset-x-0 text-center px-4">
+                {showTitle && (
+                  <p className="text-white/40 text-[10px] truncate">{book.title}</p>
+                )}
+                {showAuthorText && (
+                  <p className="text-white/30 text-[9px] truncate">{book.author}</p>
+                )}
+              </div>
             )}
           </div>
         )}

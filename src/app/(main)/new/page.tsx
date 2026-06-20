@@ -15,7 +15,8 @@ import type { Book } from "@/types";
 type Step = "upload" | "crop" | "processing" | "book" | "select" | "done";
 
 type CardStyle = "photo" | "text";
-type BookDisplay = "none" | "cover" | "full";
+type BookDisplay = "none" | "cover" | "title" | "title-author" | "full" | "full-author";
+type DisplayMode = "none" | "cover" | "title" | "full";
 
 type BookCandidate = {
   result: {
@@ -116,7 +117,11 @@ export default function NewUnderlinePage() {
   const [selectedModel, setSelectedModel] = useState<ModelKey | null>(null);
   const [recentBooks, setRecentBooks] = useState<Book[]>([]);
   const [cardStyle, setCardStyle] = useState<CardStyle>("text");
-  const [bookDisplay, setBookDisplay] = useState<BookDisplay>("full");
+  const [displayMode, setDisplayMode] = useState<DisplayMode>("full");
+  const [showAuthor, setShowAuthor] = useState(false);
+  const bookDisplay: BookDisplay = displayMode === "none" || displayMode === "cover"
+    ? displayMode
+    : showAuthor ? `${displayMode}-author` as BookDisplay : displayMode as BookDisplay;
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadWarning, setUploadWarning] = useState<string | null>(null);
@@ -132,6 +137,8 @@ export default function NewUnderlinePage() {
     setPageNumber("");
     setSelectedTexts([""]);
     setCardStyle("text");
+    setDisplayMode("full");
+    setShowAuthor(false);
     setError(null);
     setStep("upload");
   }, []);
@@ -507,30 +514,42 @@ export default function NewUnderlinePage() {
         </div>
 
         {/* 책 표기 방식 */}
-        <div>
-          <p className="text-xs text-[var(--color-ink-faint)] mb-2">책 표기 방식</p>
+        <div className="space-y-2.5">
+          <p className="text-xs text-[var(--color-ink-faint)]">책 표기 방식</p>
           <div className="flex gap-2">
             {(
               [
-                { value: "full",  label: "표지+이름", icon: "📖" },
-                { value: "cover", label: "표지만",   icon: "🖼" },
-                { value: "none",  label: "표기 안함", icon: "✕" },
-              ] as { value: BookDisplay; label: string; icon: string }[]
-            ).map(({ value, label, icon }) => (
+                { value: "full" as DisplayMode,  label: "표지+이름" },
+                { value: "cover" as DisplayMode, label: "표지만"   },
+                { value: "title" as DisplayMode, label: "이름만"   },
+                { value: "none" as DisplayMode,  label: "표기 안함" },
+              ]
+            ).map(({ value, label }) => (
               <button
                 key={value}
-                onClick={() => setBookDisplay(value)}
-                className={`flex-1 py-2.5 rounded-xl border text-xs font-medium transition-all flex flex-col items-center gap-1 ${
-                  bookDisplay === value
+                onClick={() => setDisplayMode(value)}
+                className={`flex-1 py-2 rounded-xl border text-xs font-medium transition-all ${
+                  displayMode === value
                     ? "border-[var(--color-forest)] bg-[var(--color-forest)]/8 text-[var(--color-forest)]"
                     : "border-[var(--color-border)] bg-white text-[var(--color-ink-muted)]"
                 }`}
               >
-                <span className="text-base leading-none">{icon}</span>
-                <span>{label}</span>
+                {label}
               </button>
             ))}
           </div>
+          {(displayMode === "title" || displayMode === "full") && (
+            <button
+              onClick={() => setShowAuthor((v) => !v)}
+              className={`w-full py-2 rounded-xl border text-xs font-medium transition-all ${
+                showAuthor
+                  ? "border-[var(--color-forest)] bg-[var(--color-forest)]/8 text-[var(--color-forest)]"
+                  : "border-[var(--color-border)] bg-white text-[var(--color-ink-muted)]"
+              }`}
+            >
+              {showAuthor ? "저자 표기 ✓" : "저자 표기 안함"}
+            </button>
+          )}
         </div>
 
         <button

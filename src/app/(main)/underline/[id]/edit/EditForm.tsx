@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { updateUnderline } from "@/app/actions/underline";
 import Alert from "@/components/ui/Alert";
 
-type BookDisplay = "none" | "cover" | "full";
+type DisplayMode = "none" | "cover" | "title" | "full";
 
 type Props = {
   id: string;
@@ -21,9 +21,19 @@ export default function EditForm({ id, initialContent, initialPageNumber, initia
   const [content, setContent] = useState(initialContent);
   const [pageNumber, setPageNumber] = useState(initialPageNumber?.toString() ?? "");
   const [cardStyle, setCardStyle] = useState(initialCardStyle === "photo" || initialCardStyle === "text" ? initialCardStyle : "text");
-  const [bookDisplay, setBookDisplay] = useState<BookDisplay>(
-    ["none", "cover", "full"].includes(initialBookDisplay) ? initialBookDisplay as BookDisplay : "full"
+  const initMode = ((): DisplayMode => {
+    if (initialBookDisplay === "none") return "none";
+    if (initialBookDisplay === "cover") return "cover";
+    if (initialBookDisplay === "title" || initialBookDisplay === "title-author") return "title";
+    return "full";
+  })();
+  const [displayMode, setDisplayMode] = useState<DisplayMode>(initMode);
+  const [showAuthor, setShowAuthor] = useState(
+    initialBookDisplay === "title-author" || initialBookDisplay === "full-author"
   );
+  const bookDisplay = displayMode === "none" || displayMode === "cover"
+    ? displayMode
+    : showAuthor ? `${displayMode}-author` : displayMode;
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -122,30 +132,42 @@ export default function EditForm({ id, initialContent, initialPageNumber, initia
       )}
 
       {/* 책 표기 방식 */}
-      <div>
-        <p className="text-xs text-[var(--color-ink-faint)] mb-2">책 표기 방식</p>
+      <div className="space-y-2.5">
+        <p className="text-xs text-[var(--color-ink-faint)]">책 표기 방식</p>
         <div className="flex gap-2">
           {(
             [
-              { value: "full",  label: "표지+이름", icon: "📖" },
-              { value: "cover", label: "표지만",   icon: "🖼" },
-              { value: "none",  label: "표기 안함", icon: "✕" },
-            ] as { value: BookDisplay; label: string; icon: string }[]
-          ).map(({ value, label, icon }) => (
+              { value: "full" as DisplayMode,  label: "표지+이름" },
+              { value: "cover" as DisplayMode, label: "표지만"   },
+              { value: "title" as DisplayMode, label: "이름만"   },
+              { value: "none" as DisplayMode,  label: "표기 안함" },
+            ]
+          ).map(({ value, label }) => (
             <button
               key={value}
-              onClick={() => setBookDisplay(value)}
-              className={`flex-1 py-2.5 rounded-xl border text-xs font-medium transition-all flex flex-col items-center gap-1 ${
-                bookDisplay === value
+              onClick={() => setDisplayMode(value)}
+              className={`flex-1 py-2 rounded-xl border text-xs font-medium transition-all ${
+                displayMode === value
                   ? "border-[var(--color-forest)] bg-[var(--color-forest)]/8 text-[var(--color-forest)]"
                   : "border-[var(--color-border)] bg-white text-[var(--color-ink-muted)]"
               }`}
             >
-              <span className="text-base leading-none">{icon}</span>
-              <span>{label}</span>
+              {label}
             </button>
           ))}
         </div>
+        {(displayMode === "title" || displayMode === "full") && (
+          <button
+            onClick={() => setShowAuthor((v) => !v)}
+            className={`w-full py-2 rounded-xl border text-xs font-medium transition-all ${
+              showAuthor
+                ? "border-[var(--color-forest)] bg-[var(--color-forest)]/8 text-[var(--color-forest)]"
+                : "border-[var(--color-border)] bg-white text-[var(--color-ink-muted)]"
+            }`}
+          >
+            {showAuthor ? "저자 표기 ✓" : "저자 표기 안함"}
+          </button>
+        )}
       </div>
 
       {error && <Alert variant="error">{error}</Alert>}

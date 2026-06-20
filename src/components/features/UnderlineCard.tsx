@@ -59,20 +59,32 @@ export default function UnderlineCard({ underline, compact }: Props) {
             &ldquo;{underline.content}&rdquo;
           </blockquote>
           {/* 책 정보 */}
-          {bookDisplay !== "none" && (
-            <div className="flex items-center gap-2 mt-2">
-              {(bookDisplay === "cover" || bookDisplay === "full") && underline.book.cover_url && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={underline.book.cover_url} alt="" className="h-6 w-auto rounded-sm opacity-90" />
-              )}
-              {bookDisplay === "full" && (
-                <p className="text-white/60 text-[10px] truncate">
-                  {underline.book.title}
-                  {underline.page_number ? ` · p.${underline.page_number}` : ""}
-                </p>
-              )}
-            </div>
-          )}
+          {bookDisplay !== "none" && (() => {
+            const showCover = bookDisplay === "cover" || bookDisplay === "full" || bookDisplay === "full-author";
+            const showTitle = bookDisplay === "title" || bookDisplay === "title-author" || bookDisplay === "full" || bookDisplay === "full-author";
+            const showAuthor = bookDisplay === "title-author" || bookDisplay === "full-author";
+            return (
+              <div className="flex items-center gap-2 mt-2">
+                {showCover && underline.book.cover_url && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={underline.book.cover_url} alt="" className="h-6 w-auto rounded-sm opacity-90" />
+                )}
+                {(showTitle || showAuthor) && (
+                  <div className="min-w-0">
+                    {showTitle && (
+                      <p className="text-white/60 text-[10px] truncate">
+                        {underline.book.title}
+                        {underline.page_number ? ` · p.${underline.page_number}` : ""}
+                      </p>
+                    )}
+                    {showAuthor && (
+                      <p className="text-white/40 text-[10px] truncate">{underline.book.author}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </Link>
 
         {/* 하단 바 */}
@@ -122,20 +134,32 @@ export default function UnderlineCard({ underline, compact }: Props) {
           {underline.content}
         </blockquote>
         {/* 책 정보 */}
-        {bookDisplay !== "none" && (
-          <div className="flex items-center gap-2 mt-4 justify-center">
-            {(bookDisplay === "cover" || bookDisplay === "full") && underline.book.cover_url && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={underline.book.cover_url} alt="" className="h-8 w-auto rounded-sm opacity-80" />
-            )}
-            {bookDisplay === "full" && (
-              <p className="text-white/40 text-[11px] tracking-wide line-clamp-1">
-                — {underline.book.title}
-                {underline.page_number ? ` · p.${underline.page_number}` : ""}
-              </p>
-            )}
-          </div>
-        )}
+        {bookDisplay !== "none" && (() => {
+          const showCover = bookDisplay === "cover" || bookDisplay === "full" || bookDisplay === "full-author";
+          const showTitle = bookDisplay === "title" || bookDisplay === "title-author" || bookDisplay === "full" || bookDisplay === "full-author";
+          const showAuthor = bookDisplay === "title-author" || bookDisplay === "full-author";
+          return (
+            <div className="flex items-center gap-2 mt-4 justify-center">
+              {showCover && underline.book.cover_url && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={underline.book.cover_url} alt="" className="h-8 w-auto rounded-sm opacity-80" />
+              )}
+              {(showTitle || showAuthor) && (
+                <div className="text-center min-w-0">
+                  {showTitle && (
+                    <p className="text-white/40 text-[11px] tracking-wide line-clamp-1">
+                      — {underline.book.title}
+                      {underline.page_number ? ` · p.${underline.page_number}` : ""}
+                    </p>
+                  )}
+                  {showAuthor && (
+                    <p className="text-white/30 text-[10px] line-clamp-1">{underline.book.author}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })()}
       </Link>
 
       {/* 하단 크림 바 */}
