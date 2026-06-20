@@ -130,7 +130,7 @@ export async function createUnderlinesBulk(data: BulkCreateData) {
     page_number: data.pageNumber ?? null,
     image_url: data.imageUrl ?? null,
     is_public: true,
-    card_style: data.cardStyle ?? "classic",
+    card_style: data.cardStyle ?? "text",
   }));
 
   const { data: inserted, error } = await supabaseAny

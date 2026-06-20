@@ -66,7 +66,7 @@ export default async function BookDetailPage({ params }: Props) {
         content: r.content,
         page_number: r.page_number ?? undefined,
         image_url: r.image_url ?? undefined,
-        card_style: (r.card_style ?? "classic") as import("@/types").CardStyle,
+        card_style: (r.card_style ?? "text") as import("@/types").CardStyle,
         is_public: r.is_public,
         like_count: r.like_count,
         created_at: r.created_at,

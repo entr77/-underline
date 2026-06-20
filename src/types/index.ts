@@ -16,7 +16,7 @@ export type Book = {
   cover_url?: string;
 };
 
-export type CardStyle = "classic" | "dark" | "forest";
+export type CardStyle = "photo" | "text";
 
 export type Underline = {
   id: string;

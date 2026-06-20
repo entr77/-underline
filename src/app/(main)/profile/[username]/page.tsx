@@ -139,7 +139,7 @@ export default async function ProfilePage({ params }: Props) {
           content: row.content,
           page_number: row.page_number ?? undefined,
           image_url: row.image_url ?? undefined,
-          card_style: (row.card_style ?? "classic") as import("@/types").CardStyle,
+          card_style: (row.card_style ?? "text") as import("@/types").CardStyle,
           is_public: row.is_public,
           like_count: row.like_count,
           created_at: row.created_at,

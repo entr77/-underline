@@ -204,46 +204,7 @@ export default async function UnderlineDetailPage({ params }: Props) {
     ? Math.max(0, underline.like_count - mockSympathizers.length)
     : extraCount;
 
-  const styleMap = {
-    classic: {
-      bg: "bg-[var(--color-cream)]",
-      text: "text-[var(--color-ink)]",
-      quoteDecor: "text-[var(--color-forest)]/25",
-      border: "border-[var(--color-border)]",
-      divider: "border-[var(--color-border)]",
-      bookBg: "bg-white",
-      bookBorder: "border-[var(--color-border)]",
-      bookTitle: "text-[var(--color-ink)] hover:text-[var(--color-forest)]",
-      bookMeta: "text-[var(--color-ink-faint)]",
-      actionMuted: "text-[var(--color-ink-faint)] hover:text-[var(--color-ink)]",
-    },
-    dark: {
-      bg: "bg-[#1C1917]",
-      text: "text-white",
-      quoteDecor: "text-white/10",
-      border: "border-white/10",
-      divider: "border-white/10",
-      bookBg: "bg-white/10",
-      bookBorder: "border-white/10",
-      bookTitle: "text-white hover:text-white/70",
-      bookMeta: "text-white/50",
-      actionMuted: "text-white/50 hover:text-white",
-    },
-    forest: {
-      bg: "bg-[var(--color-forest)]",
-      text: "text-white",
-      quoteDecor: "text-white/10",
-      border: "border-white/10",
-      divider: "border-white/10",
-      bookBg: "bg-white/10",
-      bookBorder: "border-white/10",
-      bookTitle: "text-white hover:text-white/70",
-      bookMeta: "text-white/50",
-      actionMuted: "text-white/50 hover:text-white",
-    },
-  };
-  const style = styleMap[underline.card_style ?? "classic"] ?? styleMap.classic;
-  const isDark = underline.card_style === "dark" || underline.card_style === "forest";
+  const usePhoto = underline.card_style === "photo" && !!underline.image_url;
 
   return (
     <div className="space-y-6">
@@ -256,11 +217,11 @@ export default async function UnderlineDetailPage({ params }: Props) {
         피드로
       </Link>
 
-      <div className={`${style.bg} rounded-2xl overflow-hidden border ${style.border}`}>
-        {underline.image_url && (
-          <div className="relative w-full aspect-[3/4] bg-[var(--color-cream-dark)]">
+      <div className={`${usePhoto ? "bg-white" : "bg-[var(--color-cream)]"} rounded-2xl overflow-hidden border border-[var(--color-border)]`}>
+        {usePhoto && (
+          <div className="relative w-full aspect-[4/3] bg-[var(--color-cream-dark)]">
             <Image
-              src={underline.image_url}
+              src={underline.image_url!}
               alt="밑줄 친 책 페이지"
               fill
               className="object-cover"
@@ -269,22 +230,24 @@ export default async function UnderlineDetailPage({ params }: Props) {
           </div>
         )}
 
-        {/* 인용문 히어로 */}
+        {/* 인용문 */}
         <div className="px-6 pt-7 pb-5">
-          <span className={`block font-serif text-4xl leading-none mb-1 select-none ${style.quoteDecor}`}>"</span>
-          <blockquote className={`font-serif text-xl leading-relaxed ${style.text}`}>
-            {underline.content}
+          {!usePhoto && (
+            <span className="block font-serif text-4xl leading-none mb-1 select-none text-[var(--color-forest)]/25">"</span>
+          )}
+          <blockquote className="font-serif text-xl leading-relaxed text-[var(--color-ink)]">
+            {usePhoto ? `"${underline.content}"` : underline.content}
           </blockquote>
         </div>
 
         {/* 책 정보 필 */}
-        <div className={`mx-4 mb-4 ${style.bookBg} rounded-xl px-3 py-2.5 flex gap-3 items-center border ${style.bookBorder}`}>
+        <div className={`mx-4 mb-4 ${usePhoto ? "bg-[var(--color-cream)]" : "bg-white"} rounded-xl px-3 py-2.5 flex gap-3 items-center border border-[var(--color-border)]`}>
           <BookCover src={underline.book.cover_url} title={underline.book.title} size="sm" />
           <div className="min-w-0 flex-1">
-            <Link href={`/book/${underline.book.id}`} className={`text-sm font-medium truncate block transition-colors ${style.bookTitle}`}>
+            <Link href={`/book/${underline.book.id}`} className="text-sm font-medium truncate block text-[var(--color-ink)] hover:text-[var(--color-forest)] transition-colors">
               {underline.book.title}
             </Link>
-            <p className={`text-xs truncate ${style.bookMeta}`}>
+            <p className="text-xs truncate text-[var(--color-ink-faint)]">
               {underline.book.author}
               {underline.book.publisher ? ` · ${underline.book.publisher}` : ""}
               {underline.page_number ? ` · p.${underline.page_number}` : ""}
@@ -292,12 +255,12 @@ export default async function UnderlineDetailPage({ params }: Props) {
           </div>
         </div>
 
-        <div className={`px-4 pb-4 flex items-center justify-between border-t ${style.divider} pt-4`}>
+        <div className="px-4 pb-4 flex items-center justify-between border-t border-[var(--color-border)] pt-4">
           <ProfileChip user={underline.user} />
           <div className="flex items-center gap-2">
             {isOwner && !usingMock && (
               <>
-                <Link href={`/underline/${underline.id}/edit`} className={`p-2 transition-colors ${style.actionMuted}`}>
+                <Link href={`/underline/${underline.id}/edit`} className="p-2 text-[var(--color-ink-faint)] hover:text-[var(--color-ink)] transition-colors">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import BookCover from "@/components/ui/BookCover";
 import ProfileChip from "@/components/ui/ProfileChip";
 import LikeButton from "@/components/features/LikeButton";
@@ -23,59 +24,75 @@ function timeAgo(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("ko-KR");
 }
 
-const styleMap = {
-  classic: {
-    bg: "bg-[var(--color-cream)]",
-    text: "text-[var(--color-ink)]",
-    quote: "text-[var(--color-forest)]/25",
-    bookBg: "bg-white",
-    bookBorder: "border-[var(--color-border)]",
-  },
-  dark: {
-    bg: "bg-[#1C1917]",
-    text: "text-white",
-    quote: "text-white/10",
-    bookBg: "bg-white/10",
-    bookBorder: "border-white/10",
-  },
-  forest: {
-    bg: "bg-[var(--color-forest)]",
-    text: "text-white",
-    quote: "text-white/10",
-    bookBg: "bg-white/10",
-    bookBorder: "border-white/10",
-  },
-};
-
 export default function UnderlineCard({ underline, compact }: Props) {
-  const style = styleMap[underline.card_style ?? "classic"] ?? styleMap.classic;
-  const isDark = underline.card_style === "dark" || underline.card_style === "forest";
+  const usePhoto = underline.card_style === "photo" && !!underline.image_url;
 
+  if (usePhoto) {
+    return (
+      <article className="bg-white rounded-2xl overflow-hidden border border-[var(--color-border)] hover:border-[var(--color-ink-faint)] transition-colors">
+        <Link href={`/underline/${underline.id}`} className="block">
+          <div className="relative w-full aspect-[4/3] bg-[var(--color-cream-dark)]">
+            <Image
+              src={underline.image_url!}
+              alt="밑줄 친 페이지"
+              fill
+              className="object-cover"
+              sizes="(max-width: 430px) 100vw, 430px"
+            />
+          </div>
+          <div className={`px-4 ${compact ? "pt-3 pb-2" : "pt-4 pb-3"}`}>
+            <blockquote className={`font-serif text-[var(--color-ink)] leading-relaxed ${compact ? "text-sm" : "text-base"} line-clamp-3`}>
+              &ldquo;{underline.content}&rdquo;
+            </blockquote>
+          </div>
+          <div className="mx-4 mb-4 bg-[var(--color-cream)] rounded-xl px-3 py-2 flex gap-3 items-center border border-[var(--color-border)]">
+            <BookCover src={underline.book.cover_url} title={underline.book.title} size="sm" />
+            <div className="min-w-0">
+              <p className="text-sm font-medium truncate text-[var(--color-ink)]">{underline.book.title}</p>
+              <p className="text-xs truncate text-[var(--color-ink-faint)]">
+                {underline.book.author}
+                {underline.page_number ? ` · p.${underline.page_number}` : ""}
+              </p>
+            </div>
+          </div>
+        </Link>
+        <div className="px-4 pb-4 flex items-center justify-between">
+          <ProfileChip user={underline.user} size="sm" />
+          <div className="flex items-center gap-3 text-xs">
+            <LikeButton
+              underlineId={underline.id}
+              initialLiked={underline.is_liked ?? false}
+              initialCount={underline.like_count}
+              size="sm"
+            />
+            <span className="text-[var(--color-ink-faint)]">{timeAgo(underline.created_at)}</span>
+          </div>
+        </div>
+      </article>
+    );
+  }
+
+  // text layout — 인용문 히어로
   return (
-    <article className={`${style.bg} rounded-2xl overflow-hidden border border-[var(--color-border)] hover:border-[var(--color-ink-faint)] transition-colors`}>
+    <article className="bg-[var(--color-cream)] rounded-2xl overflow-hidden border border-[var(--color-border)] hover:border-[var(--color-ink-faint)] transition-colors">
       <Link href={`/underline/${underline.id}`} className="block">
-        {/* 인용문 히어로 */}
         <div className={`px-6 ${compact ? "pt-5 pb-4" : "pt-7 pb-5"}`}>
-          <span className={`block font-serif text-4xl leading-none mb-1 select-none ${style.quote}`}>"</span>
-          <blockquote className={`font-serif leading-relaxed ${style.text} ${compact ? "text-base" : "text-[1.2rem]"}`}>
+          <span className="block font-serif text-4xl leading-none mb-1 select-none text-[var(--color-forest)]/25">"</span>
+          <blockquote className={`font-serif leading-relaxed text-[var(--color-ink)] ${compact ? "text-base" : "text-[1.2rem]"}`}>
             {underline.content}
           </blockquote>
         </div>
-
-        {/* 책 정보 */}
-        <div className={`mx-4 mb-4 ${style.bookBg} rounded-xl px-3 py-2.5 flex gap-3 items-center border ${style.bookBorder}`}>
+        <div className="mx-4 mb-4 bg-white rounded-xl px-3 py-2.5 flex gap-3 items-center border border-[var(--color-border)]">
           <BookCover src={underline.book.cover_url} title={underline.book.title} size="sm" />
           <div className="min-w-0">
-            <p className={`text-sm font-medium truncate ${style.text}`}>{underline.book.title}</p>
-            <p className={`text-xs truncate ${isDark ? "text-white/50" : "text-[var(--color-ink-faint)]"}`}>
+            <p className="text-sm font-medium truncate text-[var(--color-ink)]">{underline.book.title}</p>
+            <p className="text-xs truncate text-[var(--color-ink-faint)]">
               {underline.book.author}
               {underline.page_number ? ` · p.${underline.page_number}` : ""}
             </p>
           </div>
         </div>
       </Link>
-
-      {/* 하단 바 */}
       <div className="px-4 pb-4 flex items-center justify-between">
         <ProfileChip user={underline.user} size="sm" />
         <div className="flex items-center gap-3 text-xs">
@@ -85,7 +102,7 @@ export default function UnderlineCard({ underline, compact }: Props) {
             initialCount={underline.like_count}
             size="sm"
           />
-          <span className={isDark ? "text-white/50" : "text-[var(--color-ink-faint)]"}>{timeAgo(underline.created_at)}</span>
+          <span className="text-[var(--color-ink-faint)]">{timeAgo(underline.created_at)}</span>
         </div>
       </div>
     </article>

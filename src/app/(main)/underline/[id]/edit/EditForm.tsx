@@ -4,24 +4,19 @@ import { useRouter } from "next/navigation";
 import { updateUnderline } from "@/app/actions/underline";
 import Alert from "@/components/ui/Alert";
 
-const CARD_STYLES = [
-  { id: "classic", label: "크림", bg: "#F7F3EE", text: "#1C1917" },
-  { id: "dark", label: "다크", bg: "#1C1917", text: "#F7F3EE" },
-  { id: "forest", label: "숲", bg: "#1E3A2F", text: "#F7F3EE" },
-] as const;
-
 type Props = {
   id: string;
   initialContent: string;
   initialPageNumber: number | null;
   initialCardStyle: string;
+  hasImage: boolean;
 };
 
-export default function EditForm({ id, initialContent, initialPageNumber, initialCardStyle }: Props) {
+export default function EditForm({ id, initialContent, initialPageNumber, initialCardStyle, hasImage }: Props) {
   const router = useRouter();
   const [content, setContent] = useState(initialContent);
   const [pageNumber, setPageNumber] = useState(initialPageNumber?.toString() ?? "");
-  const [cardStyle, setCardStyle] = useState(initialCardStyle);
+  const [cardStyle, setCardStyle] = useState(initialCardStyle === "photo" || initialCardStyle === "text" ? initialCardStyle : "text");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -77,33 +72,38 @@ export default function EditForm({ id, initialContent, initialPageNumber, initia
         />
       </div>
 
-      <div>
-        <p className="text-xs text-[var(--color-ink-faint)] mb-2">카드 스타일</p>
-        <div className="flex gap-2">
-          {CARD_STYLES.map((s) => (
+      {hasImage && (
+        <div>
+          <p className="text-xs text-[var(--color-ink-faint)] mb-2">카드 레이아웃</p>
+          <div className="flex gap-2">
             <button
-              key={s.id}
-              onClick={() => setCardStyle(s.id)}
-              className={`flex-1 rounded-xl p-0.5 transition-all ${cardStyle === s.id ? "ring-2 ring-[var(--color-forest)] ring-offset-1" : ""}`}
+              onClick={() => setCardStyle("photo")}
+              className={`flex-1 rounded-xl p-0.5 transition-all ${cardStyle === "photo" ? "ring-2 ring-[var(--color-forest)] ring-offset-1" : ""}`}
             >
-              <div
-                className="rounded-[10px] p-2.5 h-20 flex flex-col justify-between"
-                style={{ backgroundColor: s.bg }}
-              >
-                <span
-                  className="text-[18px] leading-none font-serif"
-                  style={{ color: s.text, opacity: 0.3 }}
-                >"</span>
-                <div>
-                  <div className="h-[3px] rounded-full w-full mb-1" style={{ backgroundColor: s.text, opacity: 0.2 }} />
-                  <div className="h-[3px] rounded-full w-3/4" style={{ backgroundColor: s.text, opacity: 0.12 }} />
+              <div className="rounded-[10px] h-20 overflow-hidden bg-white border border-[var(--color-border)] flex flex-col">
+                <div className="flex-1 bg-[var(--color-cream-dark)]" />
+                <div className="h-[28px] px-2 flex items-center">
+                  <div className="h-[3px] rounded-full flex-1 bg-[var(--color-ink)] opacity-20" />
                 </div>
               </div>
-              <p className="text-[11px] text-center mt-1 text-[var(--color-ink-muted)]">{s.label}</p>
+              <p className="text-[11px] text-center mt-1 text-[var(--color-ink-muted)]">사진 포함</p>
             </button>
-          ))}
+            <button
+              onClick={() => setCardStyle("text")}
+              className={`flex-1 rounded-xl p-0.5 transition-all ${cardStyle === "text" ? "ring-2 ring-[var(--color-forest)] ring-offset-1" : ""}`}
+            >
+              <div className="rounded-[10px] h-20 bg-[#F7F3EE] p-2.5 flex flex-col justify-between">
+                <span className="text-[18px] leading-none font-serif text-[var(--color-forest)] opacity-25">"</span>
+                <div>
+                  <div className="h-[3px] rounded-full w-full mb-1 bg-[var(--color-ink)] opacity-20" />
+                  <div className="h-[3px] rounded-full w-3/4 bg-[var(--color-ink)] opacity-12" />
+                </div>
+              </div>
+              <p className="text-[11px] text-center mt-1 text-[var(--color-ink-muted)]">텍스트만</p>
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {error && <Alert variant="error">{error}</Alert>}
 
