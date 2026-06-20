@@ -76,24 +76,28 @@ export default function UnderlineCard({ underline, compact }: Props) {
   return (
     <article className="bg-[var(--color-cream)] rounded-2xl overflow-hidden border border-[var(--color-border)] hover:border-[var(--color-ink-faint)] transition-colors">
       <Link href={`/underline/${underline.id}`} className="block">
-        <div className={`px-6 ${compact ? "pt-5 pb-4" : "pt-7 pb-5"}`}>
-          <span className="block font-serif text-4xl leading-none mb-1 select-none text-[var(--color-forest)]/25">"</span>
-          <blockquote className={`font-serif leading-relaxed text-[var(--color-ink)] ${compact ? "text-base" : "text-[1.2rem]"}`}>
+        {/* 대형 장식 인용부호 + 문장 */}
+        <div className={`relative px-5 ${compact ? "pt-6 pb-4" : "pt-8 pb-5"}`}>
+          <span className="absolute top-0 left-3 font-serif text-[88px] leading-none select-none pointer-events-none text-[var(--color-forest)] opacity-[0.07]">
+            &ldquo;
+          </span>
+          <blockquote className={`relative font-serif leading-[1.8] text-[var(--color-ink)] ${compact ? "text-[0.95rem] pt-4" : "text-[1.15rem] pt-6"}`}>
             {underline.content}
           </blockquote>
         </div>
-        <div className="mx-4 mb-4 bg-white rounded-xl px-3 py-2.5 flex gap-3 items-center border border-[var(--color-border)]">
+        {/* 책 정보 — 어트리뷰션 스타일 */}
+        <div className="px-5 pb-4 flex items-center gap-3">
           <BookCover src={underline.book.cover_url} title={underline.book.title} size="sm" />
           <div className="min-w-0">
-            <p className="text-sm font-medium truncate text-[var(--color-ink)]">{underline.book.title}</p>
-            <p className="text-xs truncate text-[var(--color-ink-faint)]">
+            <p className="text-[13px] font-medium truncate text-[var(--color-ink)]">{underline.book.title}</p>
+            <p className="text-[11px] truncate text-[var(--color-ink-faint)]">
               {underline.book.author}
               {underline.page_number ? ` · p.${underline.page_number}` : ""}
             </p>
           </div>
         </div>
       </Link>
-      <div className="px-4 pb-4 flex items-center justify-between">
+      <div className="px-5 pb-4 pt-3 border-t border-[var(--color-border)] flex items-center justify-between">
         <ProfileChip user={underline.user} size="sm" />
         <div className="flex items-center gap-3 text-xs">
           <LikeButton

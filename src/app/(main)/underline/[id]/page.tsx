@@ -231,31 +231,56 @@ export default async function UnderlineDetailPage({ params }: Props) {
         )}
 
         {/* 인용문 */}
-        <div className="px-6 pt-7 pb-5">
-          {!usePhoto && (
-            <span className="block font-serif text-4xl leading-none mb-1 select-none text-[var(--color-forest)]/25">"</span>
-          )}
-          <blockquote className="font-serif text-xl leading-relaxed text-[var(--color-ink)]">
-            {usePhoto ? `"${underline.content}"` : underline.content}
-          </blockquote>
-        </div>
-
-        {/* 책 정보 필 */}
-        <div className={`mx-4 mb-4 ${usePhoto ? "bg-[var(--color-cream)]" : "bg-white"} rounded-xl px-3 py-2.5 flex gap-3 items-center border border-[var(--color-border)]`}>
-          <BookCover src={underline.book.cover_url} title={underline.book.title} size="sm" />
-          <div className="min-w-0 flex-1">
-            <Link href={`/book/${underline.book.id}`} className="text-sm font-medium truncate block text-[var(--color-ink)] hover:text-[var(--color-forest)] transition-colors">
-              {underline.book.title}
-            </Link>
-            <p className="text-xs truncate text-[var(--color-ink-faint)]">
-              {underline.book.author}
-              {underline.book.publisher ? ` · ${underline.book.publisher}` : ""}
-              {underline.page_number ? ` · p.${underline.page_number}` : ""}
-            </p>
+        {usePhoto ? (
+          <div className="px-6 pt-6 pb-5">
+            <blockquote className="font-serif text-xl leading-[1.8] text-[var(--color-ink)]">
+              &ldquo;{underline.content}&rdquo;
+            </blockquote>
           </div>
-        </div>
+        ) : (
+          <div className="relative px-6 pt-8 pb-6">
+            <span className="absolute top-0 left-4 font-serif text-[108px] leading-none select-none pointer-events-none text-[var(--color-forest)] opacity-[0.07]">
+              &ldquo;
+            </span>
+            <blockquote className="relative font-serif text-[1.4rem] leading-[1.85] text-[var(--color-ink)] pt-8">
+              {underline.content}
+            </blockquote>
+          </div>
+        )}
 
-        <div className="px-4 pb-4 flex items-center justify-between border-t border-[var(--color-border)] pt-4">
+        {/* 책 정보 */}
+        {usePhoto ? (
+          <div className="mx-4 mb-4 bg-[var(--color-cream)] rounded-xl px-3 py-2.5 flex gap-3 items-center border border-[var(--color-border)]">
+            <BookCover src={underline.book.cover_url} title={underline.book.title} size="sm" />
+            <div className="min-w-0 flex-1">
+              <Link href={`/book/${underline.book.id}`} className="text-sm font-medium truncate block text-[var(--color-ink)] hover:text-[var(--color-forest)] transition-colors">
+                {underline.book.title}
+              </Link>
+              <p className="text-xs truncate text-[var(--color-ink-faint)]">
+                {underline.book.author}
+                {underline.book.publisher ? ` · ${underline.book.publisher}` : ""}
+                {underline.page_number ? ` · p.${underline.page_number}` : ""}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="px-6 pb-5 flex gap-4 items-center">
+            <BookCover src={underline.book.cover_url} title={underline.book.title} size="md" />
+            <div className="min-w-0">
+              <Link href={`/book/${underline.book.id}`} className="text-base font-medium text-[var(--color-ink)] hover:text-[var(--color-forest)] transition-colors leading-snug block">
+                {underline.book.title}
+              </Link>
+              <p className="text-sm text-[var(--color-ink-muted)] mt-0.5">{underline.book.author}</p>
+              {(underline.book.publisher || underline.page_number) && (
+                <p className="text-xs text-[var(--color-ink-faint)] mt-0.5">
+                  {[underline.book.publisher, underline.page_number ? `p.${underline.page_number}` : null].filter(Boolean).join(" · ")}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="px-5 pb-4 flex items-center justify-between border-t border-[var(--color-border)] pt-4">
           <ProfileChip user={underline.user} />
           <div className="flex items-center gap-2">
             {isOwner && !usingMock && (
