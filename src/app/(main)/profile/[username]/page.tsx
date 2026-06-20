@@ -24,6 +24,7 @@ type SupabaseUnderlineRow = {
   content: string;
   page_number: number | null;
   image_url: string | null;
+  card_style: string | null;
   is_public: boolean;
   like_count: number;
   created_at: string;
@@ -138,6 +139,7 @@ export default async function ProfilePage({ params }: Props) {
           content: row.content,
           page_number: row.page_number ?? undefined,
           image_url: row.image_url ?? undefined,
+          card_style: (row.card_style ?? "classic") as import("@/types").CardStyle,
           is_public: row.is_public,
           like_count: row.like_count,
           created_at: row.created_at,

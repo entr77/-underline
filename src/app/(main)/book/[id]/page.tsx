@@ -14,6 +14,7 @@ type SupabaseUnderlineRow = {
   content: string;
   page_number: number | null;
   image_url: string | null;
+  card_style: string | null;
   is_public: boolean;
   like_count: number;
   created_at: string;
@@ -52,7 +53,7 @@ export default async function BookDetailPage({ params }: Props) {
 
   const { data: ulData } = await supabase
     .from("underlines")
-    .select("id, content, page_number, image_url, is_public, like_count, created_at, user:users!underlines_user_id_fkey(id, username, bio, avatar_url, tags)")
+    .select("id, content, page_number, image_url, card_style, is_public, like_count, created_at, user:users!underlines_user_id_fkey(id, username, bio, avatar_url, tags)")
     .eq("book_id", id)
     .eq("is_public", true)
     .order("created_at", { ascending: false });
@@ -65,6 +66,7 @@ export default async function BookDetailPage({ params }: Props) {
         content: r.content,
         page_number: r.page_number ?? undefined,
         image_url: r.image_url ?? undefined,
+        card_style: (r.card_style ?? "classic") as import("@/types").CardStyle,
         is_public: r.is_public,
         like_count: r.like_count,
         created_at: r.created_at,
