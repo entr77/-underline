@@ -121,7 +121,7 @@ export default function NewUnderlinePage() {
   const [showAuthor, setShowAuthor] = useState(false);
   const [cardBg, setCardBg] = useState<CardBg>("cover");
   const [cardBgUrl, setCardBgUrl] = useState<string | null>(null);
-  const [bgSearchResults, setBgSearchResults] = useState<string[]>([]);
+  const [bgSearchResults, setBgSearchResults] = useState<{ thumb: string; url: string }[]>([]);
   const [bgSearchLoading, setBgSearchLoading] = useState(false);
   const bookDisplay: BookDisplay = displayMode === "none" || displayMode === "cover"
     ? displayMode
@@ -544,13 +544,9 @@ export default function NewUnderlinePage() {
                     setBgSearchLoading(true);
                     setBgSearchResults([]);
                     try {
-                      const res = await fetch(`/api/books/search?q=${encodeURIComponent(book.title)}&size=10`);
+                      const res = await fetch(`/api/images/search?q=${encodeURIComponent(book.title)}`);
                       const json = await res.json();
-                      const list = Array.isArray(json) ? json : [];
-                      const urls: string[] = list
-                        .map((b: { cover_url?: string }) => b.cover_url)
-                        .filter((u: string | undefined): u is string => !!u && u.length > 0);
-                      setBgSearchResults(urls);
+                      setBgSearchResults(json.images ?? []);
                     } finally {
                       setBgSearchLoading(false);
                     }
@@ -568,22 +564,22 @@ export default function NewUnderlinePage() {
               </button>
             ))}
           </div>
-          {/* 이미지 선택 — 카카오 검색 결과 */}
+          {/* 이미지 선택 — Unsplash 스탁 이미지 */}
           {cardBg === "search" && (
             <div className="overflow-x-auto -mx-1 px-1">
               {bgSearchLoading ? (
                 <p className="text-xs text-[var(--color-ink-faint)] py-3 text-center">이미지 검색 중...</p>
               ) : bgSearchResults.length > 0 ? (
                 <div className="flex gap-2 pb-1">
-                  {bgSearchResults.map((url, i) => (
+                  {bgSearchResults.map((img, i) => (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       key={i}
-                      src={url}
+                      src={img.thumb}
                       alt=""
-                      onClick={() => setCardBgUrl(url)}
-                      className={`h-20 w-14 object-cover rounded-lg flex-shrink-0 cursor-pointer transition-all ${
-                        cardBgUrl === url ? "ring-2 ring-[var(--color-forest)] ring-offset-1" : "opacity-70 hover:opacity-100"
+                      onClick={() => setCardBgUrl(img.url)}
+                      className={`h-20 w-20 object-cover rounded-lg flex-shrink-0 cursor-pointer transition-all ${
+                        cardBgUrl === img.url ? "ring-2 ring-[var(--color-forest)] ring-offset-1" : "opacity-70 hover:opacity-100"
                       }`}
                     />
                   ))}

@@ -40,7 +40,7 @@ export default function EditForm({ id, initialContent, initialPageNumber, initia
     ["cover","photo","search","none"].includes(initialCardBg) ? initialCardBg as CardBg : "cover"
   );
   const [cardBgUrl, setCardBgUrl] = useState<string | null>(initialCardBgUrl ?? null);
-  const [bgSearchResults, setBgSearchResults] = useState<string[]>([]);
+  const [bgSearchResults, setBgSearchResults] = useState<{ thumb: string; url: string }[]>([]);
   const [bgSearchLoading, setBgSearchLoading] = useState(false);
   const cardStyle = cardBg === "photo" ? "photo" : "text";
   const [saving, setSaving] = useState(false);
@@ -124,13 +124,9 @@ export default function EditForm({ id, initialContent, initialPageNumber, initia
                   setBgSearchLoading(true);
                   setBgSearchResults([]);
                   try {
-                    const res = await fetch(`/api/books/search?q=${encodeURIComponent(bookTitle)}&size=10`);
+                    const res = await fetch(`/api/images/search?q=${encodeURIComponent(bookTitle)}`);
                     const json = await res.json();
-                    const list = Array.isArray(json) ? json : [];
-                    const urls: string[] = list
-                      .map((b: { cover_url?: string }) => b.cover_url)
-                      .filter((u: string | undefined): u is string => !!u && u.length > 0);
-                    setBgSearchResults(urls);
+                    setBgSearchResults(json.images ?? []);
                   } finally {
                     setBgSearchLoading(false);
                   }
@@ -154,15 +150,15 @@ export default function EditForm({ id, initialContent, initialPageNumber, initia
               <p className="text-xs text-[var(--color-ink-faint)] py-3 text-center">이미지 검색 중...</p>
             ) : bgSearchResults.length > 0 ? (
               <div className="flex gap-2 pb-1">
-                {bgSearchResults.map((url, i) => (
+                {bgSearchResults.map((img, i) => (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     key={i}
-                    src={url}
+                    src={img.thumb}
                     alt=""
-                    onClick={() => setCardBgUrl(url)}
-                    className={`h-20 w-14 object-cover rounded-lg flex-shrink-0 cursor-pointer transition-all ${
-                      cardBgUrl === url ? "ring-2 ring-[var(--color-forest)] ring-offset-1" : "opacity-70 hover:opacity-100"
+                    onClick={() => setCardBgUrl(img.url)}
+                    className={`h-20 w-20 object-cover rounded-lg flex-shrink-0 cursor-pointer transition-all ${
+                      cardBgUrl === img.url ? "ring-2 ring-[var(--color-forest)] ring-offset-1" : "opacity-70 hover:opacity-100"
                     }`}
                   />
                 ))}
