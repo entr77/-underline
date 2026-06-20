@@ -14,6 +14,14 @@ import type { Book } from "@/types";
 
 type Step = "upload" | "crop" | "processing" | "book" | "select" | "done";
 
+type CardStyle = "classic" | "dark" | "forest";
+
+const CARD_STYLES: { id: CardStyle; label: string; desc: string; bg: string; text: string; quote: string }[] = [
+  { id: "classic", label: "크림", desc: "따뜻한", bg: "#F7F3EE", text: "#1C1917", quote: "#1E3A2F" },
+  { id: "dark", label: "다크", desc: "깊은 밤", bg: "#1C1917", text: "#F7F3EE", quote: "#A8A29E" },
+  { id: "forest", label: "숲", desc: "고요한", bg: "#1E3A2F", text: "#F7F3EE", quote: "#2D5A3D" },
+];
+
 type BookCandidate = {
   result: {
     title: string;
@@ -112,6 +120,7 @@ export default function NewUnderlinePage() {
   const [bookCandidates, setBookCandidates] = useState<BookCandidate[]>([]);
   const [selectedModel, setSelectedModel] = useState<ModelKey | null>(null);
   const [recentBooks, setRecentBooks] = useState<Book[]>([]);
+  const [cardStyle, setCardStyle] = useState<CardStyle>("classic");
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadWarning, setUploadWarning] = useState<string | null>(null);
@@ -126,6 +135,7 @@ export default function NewUnderlinePage() {
     setSelectedModel(null);
     setPageNumber("");
     setSelectedTexts([""]);
+    setCardStyle("classic");
     setError(null);
     setStep("upload");
   }, []);
@@ -267,6 +277,7 @@ export default function NewUnderlinePage() {
         contents: validTexts,
         pageNumber: pageNumber ? parseInt(pageNumber) : undefined,
         imageUrl,
+        cardStyle,
       });
 
       if (result && "error" in result) {
@@ -605,6 +616,33 @@ export default function NewUnderlinePage() {
           >
             + 밑줄 추가
           </button>
+        </div>
+
+        {/* 카드 스타일 */}
+        <div>
+          <p className="text-xs text-[var(--color-ink-faint)] mb-2">카드 스타일</p>
+          <div className="flex gap-2">
+            {CARD_STYLES.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => setCardStyle(s.id)}
+                className={`flex-1 rounded-xl p-0.5 transition-all ${cardStyle === s.id ? "ring-2 ring-[var(--color-forest)] ring-offset-1" : ""}`}
+              >
+                {/* 미니 카드 프리뷰 */}
+                <div
+                  className="rounded-[10px] p-2.5 flex flex-col justify-between h-20"
+                  style={{ backgroundColor: s.bg }}
+                >
+                  <span className="text-[18px] leading-none font-serif" style={{ color: s.quote, opacity: 0.4 }}>"</span>
+                  <div>
+                    <div className="h-[3px] rounded-full w-full mb-1" style={{ backgroundColor: s.text, opacity: 0.25 }} />
+                    <div className="h-[3px] rounded-full w-3/4" style={{ backgroundColor: s.text, opacity: 0.15 }} />
+                  </div>
+                </div>
+                <p className="text-[11px] text-center mt-1 text-[var(--color-ink-muted)]">{s.label}</p>
+              </button>
+            ))}
+          </div>
         </div>
 
         {uploadWarning && <Alert variant="warning">{uploadWarning}</Alert>}

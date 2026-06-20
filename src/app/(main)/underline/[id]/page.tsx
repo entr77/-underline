@@ -8,7 +8,7 @@ import LikeButton from "@/components/features/LikeButton";
 import DeleteUnderlineButton from "@/components/features/DeleteUnderlineButton";
 import ShareCardButton from "@/components/features/ShareCardButton";
 import { createClient } from "@/lib/supabase/server";
-import type { Underline } from "@/types";
+import type { Underline, CardStyle } from "@/types";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -32,6 +32,7 @@ type SupabaseUnderlineRow = {
   content: string;
   page_number: number | null;
   image_url: string | null;
+  card_style: string | null;
   is_public: boolean;
   like_count: number;
   created_at: string;
@@ -119,6 +120,7 @@ export default async function UnderlineDetailPage({ params }: Props) {
         content: row.content,
         page_number: row.page_number ?? undefined,
         image_url: row.image_url ?? undefined,
+        card_style: (row.card_style ?? "classic") as CardStyle,
         is_public: row.is_public,
         like_count: row.like_count,
         is_liked: isLiked,
@@ -250,7 +252,15 @@ export default async function UnderlineDetailPage({ params }: Props) {
           <ProfileChip user={underline.user} />
           <div className="flex items-center gap-2">
             {isOwner && !usingMock && (
-              <DeleteUnderlineButton underlineId={underline.id} />
+              <>
+                <Link href={`/underline/${underline.id}/edit`} className="p-2 text-[var(--color-ink-faint)] hover:text-[var(--color-ink)] transition-colors">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                  </svg>
+                </Link>
+                <DeleteUnderlineButton underlineId={underline.id} />
+              </>
             )}
             <ShareCardButton underlineId={underline.id} content={underline.content} />
             <LikeButton

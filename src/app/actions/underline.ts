@@ -91,6 +91,7 @@ type BulkCreateData = {
   contents: string[];
   pageNumber?: number;
   imageUrl?: string;
+  cardStyle?: string;
 };
 
 export async function createUnderlinesBulk(data: BulkCreateData) {
@@ -129,6 +130,7 @@ export async function createUnderlinesBulk(data: BulkCreateData) {
     page_number: data.pageNumber ?? null,
     image_url: data.imageUrl ?? null,
     is_public: true,
+    card_style: data.cardStyle ?? "classic",
   }));
 
   const { data: inserted, error } = await supabaseAny
@@ -142,6 +144,33 @@ export async function createUnderlinesBulk(data: BulkCreateData) {
 
   revalidatePath("/feed");
   return { ids: (inserted as { id: string }[]).map((r) => r.id) };
+}
+
+export async function updateUnderline(
+  id: string,
+  data: { content?: string; pageNumber?: number | null; cardStyle?: string }
+) {
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) return { error: "로그인이 필요합니다." };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase as any)
+    .from("underlines")
+    .update({
+      ...(data.content !== undefined && { content: data.content }),
+      ...(data.pageNumber !== undefined && { page_number: data.pageNumber }),
+      ...(data.cardStyle !== undefined && { card_style: data.cardStyle }),
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (error) return { error: "수정에 실패했습니다." };
+
+  revalidatePath(`/underline/${id}`);
+  revalidatePath("/feed");
+  return { success: true };
 }
 
 export async function deleteUnderline(underlineId: string) {
