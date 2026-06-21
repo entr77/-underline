@@ -20,16 +20,20 @@ type DisplayMode = "none" | "cover" | "title" | "full";
 type CardBg = "cover" | "photo" | "search" | "color" | "none";
 
 const BG_COLORS = [
-  { hex: "#1C1917", label: "블랙" },
-  { hex: "#1E3A2F", label: "포레스트" },
+  { hex: "#1C1917", label: "잉크" },
+  { hex: "#1E3A2F", label: "숲" },
   { hex: "#1A2744", label: "네이비" },
-  { hex: "#2C1A0E", label: "브라운" },
+  { hex: "#2C1A0E", label: "세피아" },
   { hex: "#3B1218", label: "버건디" },
-  { hex: "#1E1A3B", label: "인디고" },
-  { hex: "#0F2E2E", label: "틸" },
-  { hex: "#2D2010", label: "앰버" },
-  { hex: "#2A2A2A", label: "차콜" },
-  { hex: "#3D2B1F", label: "커피" },
+];
+
+const BG_GRADIENTS = [
+  { css: "linear-gradient(160deg, #0a1628 0%, #1e3a5f 100%)",              label: "밤바다" },
+  { css: "linear-gradient(160deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)", label: "달빛" },
+  { css: "linear-gradient(160deg, #2d0845 0%, #5c1e91 50%, #c2185b 100%)", label: "새벽" },
+  { css: "linear-gradient(160deg, #4a1942 0%, #7b2d8b 50%, #e53e3e 100%)", label: "노을" },
+  { css: "linear-gradient(160deg, #0b2027 0%, #203a3a 50%, #2c5364 100%)", label: "안개숲" },
+  { css: "linear-gradient(160deg, #1a0505 0%, #7c1515 50%, #8b4513 100%)", label: "가을" },
 ];
 
 type BookCandidate = {
@@ -601,6 +605,24 @@ export default function NewUnderlinePage() {
                     : "border-transparent opacity-60 hover:opacity-100"
                 }`}
                 style={{ background: hex }}
+              />
+            ))}
+
+            {/* 구분선 */}
+            <div className="w-px self-stretch my-2 bg-[var(--color-border)] flex-shrink-0" />
+
+            {/* 그라디언트 */}
+            {BG_GRADIENTS.map(({ css }) => (
+              <button
+                key={css}
+                type="button"
+                onClick={() => { setCardBg("color"); setCardBgUrl(css); }}
+                className={`w-14 h-14 rounded-2xl flex-shrink-0 border-2 transition-all ${
+                  cardBg === "color" && cardBgUrl === css
+                    ? "border-[var(--color-forest)]"
+                    : "border-transparent opacity-60 hover:opacity-100"
+                }`}
+                style={{ background: css }}
               />
             ))}
 

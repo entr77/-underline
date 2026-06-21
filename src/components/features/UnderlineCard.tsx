@@ -115,7 +115,7 @@ export default function UnderlineCard({ underline, compact }: Props) {
     <article className="relative aspect-square bg-[#1C1917] rounded-2xl overflow-hidden border border-[var(--color-border)] hover:border-white/20 transition-colors">
       {cardBg === "color" && underline.card_bg_url ? (
         /* 단색 배경 */
-        <div className="absolute inset-0" style={{ backgroundColor: underline.card_bg_url }} />
+        <div className="absolute inset-0" style={{ background: underline.card_bg_url }} />
       ) : bgSrc && cardBg === "search" ? (
         /* 이미지 선택 배경 — 선명하게 표시 + 오버레이 */
         <>
