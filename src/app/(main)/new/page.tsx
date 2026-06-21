@@ -138,6 +138,7 @@ export default function NewUnderlinePage() {
   const [bgSearchLoading, setBgSearchLoading] = useState(false);
   const [bgModalOpen, setBgModalOpen] = useState(false);
   const [bgSearchQuery, setBgSearchQuery] = useState("");
+  const [bgExtractedQuery, setBgExtractedQuery] = useState("");
   const bookDisplay: BookDisplay = displayMode === "none" || displayMode === "cover"
     ? displayMode
     : showAuthor ? `${displayMode}-author` as BookDisplay : displayMode as BookDisplay;
@@ -544,6 +545,7 @@ export default function NewUnderlinePage() {
             type="button"
             onClick={async () => {
               setBgModalOpen(true);
+              setBgSearchQuery("");
               if (bgSearchResults.length === 0) {
                 const sourceText = selectedTexts.find(t => t.trim()) ?? book?.title ?? "";
                 if (sourceText) {
@@ -552,7 +554,7 @@ export default function NewUnderlinePage() {
                     const res = await fetch(`/api/images/search?text=${encodeURIComponent(sourceText.trim())}`);
                     const json = await res.json();
                     setBgSearchResults(json.images ?? []);
-                    if (json.query) setBgSearchQuery(json.query);
+                    if (json.query) setBgExtractedQuery(json.query);
                   } finally { setBgSearchLoading(false); }
                 }
               }
@@ -632,7 +634,14 @@ export default function NewUnderlinePage() {
 
                 {/* 이미지 검색 */}
                 <div>
-                  <p className="text-xs text-[var(--color-ink-faint)] mb-3">이미지 검색</p>
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-xs text-[var(--color-ink-faint)]">이미지 검색</p>
+                    {bgExtractedQuery && !bgSearchLoading && bgSearchResults.length > 0 && (
+                      <span className="text-[10px] text-[var(--color-ink-faint)] bg-[var(--color-cream-dark)] px-2 py-0.5 rounded-full">
+                        AI: {bgExtractedQuery}
+                      </span>
+                    )}
+                  </div>
                   <div className="flex gap-2 mb-3">
                     <input
                       type="text"
@@ -649,7 +658,7 @@ export default function NewUnderlinePage() {
                           } finally { setBgSearchLoading(false); }
                         }
                       }}
-                      placeholder="검색어 입력..."
+                      placeholder="다른 키워드로 검색..."
                       className="flex-1 bg-[var(--color-cream)] rounded-xl px-3 py-2 text-sm text-[var(--color-ink)] outline-none"
                     />
                     <button
@@ -671,9 +680,12 @@ export default function NewUnderlinePage() {
                     </button>
                   </div>
                   {bgSearchLoading ? (
-                    <p className="text-sm text-[var(--color-ink-faint)] text-center py-6">이미지 검색 중...</p>
+                    <div className="flex items-center justify-center gap-2 py-8 text-[var(--color-ink-faint)]">
+                      <div className="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin" />
+                      <span className="text-sm">이미지 찾는 중…</span>
+                    </div>
                   ) : bgSearchResults.length > 0 ? (
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-3 gap-1.5">
                       {bgSearchResults.map((img, i) => (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
@@ -681,8 +693,8 @@ export default function NewUnderlinePage() {
                           src={img.thumb}
                           alt=""
                           onClick={() => { setCardBg("search"); setCardBgUrl(img.url); setBgModalOpen(false); }}
-                          className={`w-full aspect-square object-cover rounded-xl cursor-pointer transition-all ${
-                            cardBg === "search" && cardBgUrl === img.url ? "ring-2 ring-[var(--color-forest)] ring-offset-2" : "opacity-80 hover:opacity-100"
+                          className={`w-full aspect-square object-cover rounded-lg cursor-pointer transition-all ${
+                            cardBg === "search" && cardBgUrl === img.url ? "ring-2 ring-[var(--color-forest)] ring-offset-1" : "opacity-90 hover:opacity-100"
                           }`}
                         />
                       ))}
