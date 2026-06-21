@@ -84,7 +84,7 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
               <img
                 src={underline.book.cover_url}
                 alt=""
-                className="h-8 w-auto flex-shrink-0 rounded-[2px]"
+                className="h-8 w-auto flex-shrink-0"
                 style={{
                   boxShadow: "0 2px 8px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(255,255,255,0.12)",
                 }}
