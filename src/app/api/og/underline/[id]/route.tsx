@@ -108,6 +108,19 @@ export async function GET(
 
     const padding = format === 'story' ? 100 : 80
 
+    // 커버 이미지를 서버에서 data URL로 변환 (Satori가 직접 fetch하면 Kakao CDN에서 실패함)
+    let coverDataUrl: string | null = null
+    if (coverUrl) {
+      try {
+        const res = await fetchWithTimeout(coverUrl, {}, 4000)
+        if (res.ok) {
+          const buf = await res.arrayBuffer()
+          const mime = res.headers.get('content-type') || 'image/jpeg'
+          coverDataUrl = `data:${mime};base64,${Buffer.from(buf).toString('base64')}`
+        }
+      } catch { /* 실패 시 fallback placeholder 사용 */ }
+    }
+
     const fontText = `${displayContent}${bookTitle}${author}${username}밑줄`
     const fontData = await loadKoreanFont(fontText)
 
@@ -126,9 +139,9 @@ export async function GET(
         >
           {/* Book info */}
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: '28px', marginBottom: '60px' }}>
-            {coverUrl ? (
+            {coverDataUrl ? (
               <img
-                src={coverUrl}
+                src={coverDataUrl}
                 width={80}
                 height={110}
                 style={{ borderRadius: '4px', objectFit: 'cover', flexShrink: 0 }}

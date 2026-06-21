@@ -2,15 +2,6 @@
 
 import { useState, useEffect } from 'react'
 
-type Format = 'square' | 'portrait' | 'story'
-type Style = 'light' | 'dark'
-
-const FORMAT_LABELS: Record<Format, string> = {
-  square: '1:1',
-  portrait: '4:5',
-  story: '9:16',
-}
-
 type Props = {
   underlineId: string
   content: string
@@ -18,8 +9,6 @@ type Props = {
 
 export default function ShareCardButton({ underlineId, content }: Props) {
   const [open, setOpen] = useState(false)
-  const [style, setStyle] = useState<Style>('light')
-  const [format, setFormat] = useState<Format>('portrait')
   const [imgLoaded, setImgLoaded] = useState(false)
   const [imgError, setImgError] = useState(false)
   const [nonce, setNonce] = useState(0)
@@ -34,9 +23,9 @@ export default function ShareCardButton({ underlineId, content }: Props) {
   useEffect(() => {
     setImgLoaded(false)
     setImgError(false)
-  }, [style, format, nonce])
+  }, [nonce])
 
-  const imageUrl = `/api/og/underline/${underlineId}?style=${style}&format=${format}&_=${nonce}`
+  const imageUrl = `/api/og/underline/${underlineId}?style=light&format=portrait&_=${nonce}`
 
   async function handleDownload() {
     try {
@@ -102,38 +91,6 @@ export default function ShareCardButton({ underlineId, content }: Props) {
           <div className="fixed bottom-0 left-0 right-0 z-50 max-w-[430px] mx-auto bg-[var(--color-cream)] rounded-t-3xl px-5 pt-4 pb-8 space-y-4">
             <div className="w-10 h-1 bg-[var(--color-border)] rounded-full mx-auto" />
             <h3 className="text-base font-semibold text-[var(--color-ink)] text-center pb-1">카드로 저장</h3>
-
-            <div className="flex gap-2">
-              {(['light', 'dark'] as Style[]).map(s => (
-                <button
-                  key={s}
-                  onClick={() => setStyle(s)}
-                  className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                    style === s
-                      ? 'bg-[var(--color-forest)] text-white'
-                      : 'bg-[var(--color-cream-dark)] text-[var(--color-ink-muted)]'
-                  }`}
-                >
-                  {s === 'light' ? '라이트' : '다크'}
-                </button>
-              ))}
-            </div>
-
-            <div className="flex gap-2">
-              {(Object.keys(FORMAT_LABELS) as Format[]).map(f => (
-                <button
-                  key={f}
-                  onClick={() => setFormat(f)}
-                  className={`flex-1 py-2 rounded-xl text-xs font-medium transition-colors ${
-                    format === f
-                      ? 'bg-[var(--color-forest)] text-white'
-                      : 'bg-[var(--color-cream-dark)] text-[var(--color-ink-muted)]'
-                  }`}
-                >
-                  {FORMAT_LABELS[f]}
-                </button>
-              ))}
-            </div>
 
             {/* Preview */}
             <div className="relative flex items-center justify-center bg-[var(--color-cream-dark)] rounded-2xl overflow-hidden min-h-[200px]">
