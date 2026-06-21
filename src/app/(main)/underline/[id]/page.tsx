@@ -194,7 +194,7 @@ export default async function UnderlineDetailPage({ params }: Props) {
               <DeleteUnderlineButton underlineId={underline.id} />
             </>
           )}
-          <ShareCardButton underlineId={underline.id} content={underline.content} />
+          <ShareCardButton underline={underline} />
           <LikeButton
             underlineId={underline.id}
             initialLiked={underline.is_liked ?? false}

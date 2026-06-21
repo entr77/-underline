@@ -51,7 +51,7 @@ async function loadKoreanFont(text: string): Promise<ArrayBuffer | null> {
       5000
     ).then(r => r.text())
 
-    const fontUrl = css.match(/src: url\(([^)]+\.woff2[^)]*)\)/)?.[1]
+    const fontUrl = css.match(/src: url\(([^)]+)\)/)?.[1]
     if (!fontUrl) return null
 
     return fetchWithTimeout(fontUrl, {}, 6000).then(r => r.arrayBuffer())
@@ -117,8 +117,9 @@ export async function GET(
           const buf = await res.arrayBuffer()
           const mime = res.headers.get('content-type') || 'image/jpeg'
           coverDataUrl = `data:${mime};base64,${Buffer.from(buf).toString('base64')}`
+          console.log('[OG] step 3: cover image loaded ok')
         }
-      } catch { /* 실패 시 fallback placeholder 사용 */ }
+      } catch { /* fallback to placeholder */ }
     }
 
     const fontText = `${displayContent}${bookTitle}${author}${username}밑줄`
