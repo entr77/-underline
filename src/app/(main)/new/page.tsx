@@ -36,6 +36,22 @@ const BG_GRADIENTS = [
   { css: "linear-gradient(160deg, #1a0505 0%, #7c1515 50%, #8b4513 100%)", label: "가을" },
 ];
 
+const BASE = "https://images.unsplash.com/photo-";
+const PRESET_IMAGES = [
+  { label: "책장",   id: "1481627834876-b7833e8f5099" },
+  { label: "책 더미", id: "1497633762265-9d179a990aa6" },
+  { label: "도서관",  id: "1524995997946-a1180c536408" },
+  { label: "독서",   id: "1516979187457-637abb4f9353" },
+  { label: "빗소리",  id: "1428278757523-f86f891cf24e" },
+  { label: "안개숲",  id: "1448375240490-d3999de1abf8" },
+  { label: "산안개",  id: "1506905925346-21bda4d32df4" },
+  { label: "새벽",   id: "1507003211169-0a1dd7228f2d" },
+].map(({ id, label }) => ({
+  label,
+  thumb: `${BASE}${id}?auto=format&fit=crop&w=200&q=70`,
+  url:   `${BASE}${id}?auto=format&fit=crop&w=1200&q=85`,
+}));
+
 type BookCandidate = {
   result: {
     title: string;
@@ -578,7 +594,22 @@ export default function NewUnderlinePage() {
               </svg>
             </button>
 
-            {/* 사진 */}
+            {/* 책표지 */}
+            {book?.cover_url && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={book.cover_url}
+                alt="책표지"
+                onClick={() => { setCardBg("cover"); setCardBgUrl(null); }}
+                className={`w-14 h-14 rounded-2xl flex-shrink-0 object-cover cursor-pointer border-2 transition-all ${
+                  cardBg === "cover"
+                    ? "border-[var(--color-forest)]"
+                    : "border-[var(--color-border)] opacity-60 hover:opacity-100"
+                }`}
+              />
+            )}
+
+            {/* 업로드 사진 */}
             {imagePreview && (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -592,6 +623,9 @@ export default function NewUnderlinePage() {
                 }`}
               />
             )}
+
+            {/* 구분선 */}
+            <div className="w-px self-stretch my-2 bg-[var(--color-border)] flex-shrink-0" />
 
             {/* 단색 */}
             {BG_COLORS.map(({ hex }) => (
@@ -608,9 +642,6 @@ export default function NewUnderlinePage() {
               />
             ))}
 
-            {/* 구분선 */}
-            <div className="w-px self-stretch my-2 bg-[var(--color-border)] flex-shrink-0" />
-
             {/* 그라디언트 */}
             {BG_GRADIENTS.map(({ css }) => (
               <button
@@ -626,9 +657,29 @@ export default function NewUnderlinePage() {
               />
             ))}
 
-            {/* Unsplash 이미지 */}
+            {/* 구분선 */}
+            <div className="w-px self-stretch my-2 bg-[var(--color-border)] flex-shrink-0" />
+
+            {/* 큐레이션 실사 이미지 */}
+            {PRESET_IMAGES.map((img) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={img.url}
+                src={img.thumb}
+                alt={img.label}
+                onClick={() => { setCardBg("search"); setCardBgUrl(img.url); }}
+                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                className={`w-14 h-14 rounded-2xl flex-shrink-0 object-cover cursor-pointer border-2 transition-all ${
+                  cardBg === "search" && cardBgUrl === img.url
+                    ? "border-[var(--color-forest)]"
+                    : "border-transparent opacity-60 hover:opacity-100"
+                }`}
+              />
+            ))}
+
+            {/* Unsplash 자동 추천 */}
             {bgLoading
-              ? Array.from({ length: 8 }).map((_, i) => (
+              ? Array.from({ length: 6 }).map((_, i) => (
                   <div key={i} className="w-14 h-14 rounded-2xl flex-shrink-0 bg-[var(--color-cream-dark)] animate-pulse" />
                 ))
               : bgImages.map((img, i) => (
