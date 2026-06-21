@@ -139,3 +139,6 @@
 - 카피라이터에게 전달하는 브리프는 방향을 주되, 표현은 카피라이터에게 맡긴다
 - 모든 캠페인은 측정 가능한 KPI를 갖는다
 - 브랜드 보이스(조용하고 사려깊은, 문학적)를 마케팅 채널에서도 유지한다
+
+## 심화 정책 문서
+- [`.claude/docs/policies/marketer-policy.md`](../docs/policies/marketer-policy.md) — 그로스 모델, 채널 전략, KPI 대시보드

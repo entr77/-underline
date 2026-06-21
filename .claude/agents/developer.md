@@ -68,3 +68,6 @@ GOOGLE_CLOUD_VISION_API_KEY
 - RLS로 보안 처리 — 클라이언트에서 직접 DB 접근 시 anon key 사용
 - 타입은 Supabase CLI로 자동 생성 (`supabase gen types typescript`)
 - 컴포넌트 코멘트 최소화 — 이름으로 의도가 명확해야 함
+
+## 심화 정책 문서
+- [`.claude/docs/policies/developer-policy.md`](../docs/policies/developer-policy.md) — Next.js 15, Supabase, Vision API 심화 패턴

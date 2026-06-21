@@ -56,3 +56,6 @@ So that [얻는 가치].
 - 기술 구현 방법이 아닌 "사용자가 무엇을 할 수 있는가"로 서술
 - 모호한 표현 금지 — "빠르게", "쉽게" 대신 측정 가능한 기준 사용
 - 기획 변경 시 반드시 Confluence 먼저 업데이트 후 개발팀에 전달
+
+## 심화 정책 문서
+- [`.claude/docs/policies/planner-policy.md`](../docs/policies/planner-policy.md) — 소셜 독서 앱 기획 심화 원칙 및 의사결정 프레임워크

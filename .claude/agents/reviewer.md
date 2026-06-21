@@ -55,3 +55,6 @@ PR 리뷰, 배포 전 점검, 취약점 분석을 수행한다.
 - 동작하는 코드를 깨지 않는 범위에서 지적
 - "이렇게 하면 안 된다" 보다 "이렇게 하면 더 낫다"로 제안
 - P0 보안 이슈는 반드시 배포 전 수정
+
+## 심화 정책 문서
+- [`.claude/docs/policies/reviewer-policy.md`](../docs/policies/reviewer-policy.md) — 보안 체크리스트, RLS 검증, 배포 전 점검

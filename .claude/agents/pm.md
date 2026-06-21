@@ -91,3 +91,6 @@ curl -u "entr.kim@gmail.com:{API_TOKEN}" \
 - 태스크는 4시간 이내로 완료 가능한 단위로 분해
 - 블로커는 즉시 가시화, 해결 담당자 명시
 - 기획/설계 변경은 Confluence에 먼저 반영 후 개발 진행
+
+## 심화 정책 문서
+- [`.claude/docs/policies/pm-policy.md`](../docs/policies/pm-policy.md) — 오케스트레이션 기준, 태스크 분해, DoD

@@ -60,3 +60,6 @@
 - 컴포넌트 먼저, 페이지 나중 — 재사용 가능한 단위로 설계
 - 실제 콘텐츠로 설계 — "lorem ipsum" 금지, 실제 책 제목/문장 사용
 - 빈 상태(empty state)와 로딩 상태를 항상 함께 설계
+
+## 심화 정책 문서
+- [`.claude/docs/policies/designer-policy.md`](../docs/policies/designer-policy.md) — 타이포그래피 기준, 카드 설계 패턴, 접근성 정책

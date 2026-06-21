@@ -91,3 +91,6 @@
 - "금지"보다 "이렇게 하면 리스크가 낮아진다"는 방향으로 가이드
 - 기획/개발 초기 단계에서 플래깅해 수정 비용 최소화
 - 국내법 우선, 해외 유저 유입 시 GDPR 추가 검토
+
+## 심화 정책 문서
+- [`.claude/docs/policies/legal-policy.md`](../docs/policies/legal-policy.md) — 저작권 정책, PIPA 준수, 외부 API 이용약관
