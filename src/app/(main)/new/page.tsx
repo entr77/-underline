@@ -132,7 +132,7 @@ export default function NewUnderlinePage() {
   const [recentBooks, setRecentBooks] = useState<Book[]>([]);
   const [displayMode, setDisplayMode] = useState<DisplayMode>("full");
   const [showAuthor, setShowAuthor] = useState(false);
-  const [cardBg, setCardBg] = useState<CardBg>("cover");
+  const [cardBg, setCardBg] = useState<CardBg>("none");
   const [cardBgUrl, setCardBgUrl] = useState<string | null>(null);
   const [bgSearchResults, setBgSearchResults] = useState<{ thumb: string; url: string }[]>([]);
   const [bgSearchLoading, setBgSearchLoading] = useState(false);
@@ -543,11 +543,10 @@ export default function NewUnderlinePage() {
           <div className="flex gap-2">
             {(
               [
-                { value: "cover" as CardBg,  label: "책표지" },
-                { value: "photo" as CardBg,  label: "사진", disabled: !imagePreview },
-                { value: "color" as CardBg,  label: "단색" },
-                { value: "search" as CardBg, label: "이미지" },
                 { value: "none" as CardBg,   label: "없음" },
+                { value: "color" as CardBg,  label: "단색" },
+                { value: "photo" as CardBg,  label: "사진", disabled: !imagePreview },
+                { value: "search" as CardBg, label: "이미지" },
               ]
             ).map(({ value, label, disabled }) => (
               <button
@@ -573,7 +572,7 @@ export default function NewUnderlinePage() {
                     }
                   } else if (value === "color") {
                     setCardBg("color");
-                    setCardBgUrl(cardBg === "color" ? cardBgUrl : BG_COLORS[0].hex);
+                    if (cardBg !== "color") setCardBgUrl(BG_COLORS[0].hex);
                   } else {
                     setCardBg(value);
                     setCardBgUrl(null);

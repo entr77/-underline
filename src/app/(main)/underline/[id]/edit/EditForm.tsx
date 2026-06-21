@@ -61,7 +61,7 @@ export default function EditForm({
     : showAuthor ? `${displayMode}-author` : displayMode;
 
   const [cardBg, setCardBg] = useState<CardBg>(
-    ["cover", "photo", "search", "none"].includes(initialCardBg) ? initialCardBg as CardBg : "cover"
+    ["photo", "search", "color", "none"].includes(initialCardBg) ? initialCardBg as CardBg : "none"
   );
   const [cardBgUrl, setCardBgUrl] = useState<string | null>(initialCardBgUrl ?? null);
   const [bgSearchResults, setBgSearchResults] = useState<{ thumb: string; url: string }[]>([]);
@@ -190,11 +190,10 @@ export default function EditForm({
           <p className="text-xs text-[var(--color-ink-faint)] px-1">카드 배경</p>
           <div className="flex gap-2">
             {([
-              { value: "cover" as CardBg,  label: "책표지" },
-              { value: "photo" as CardBg,  label: "사진", disabled: !hasImage },
-              { value: "color" as CardBg,  label: "단색" },
-              { value: "search" as CardBg, label: "이미지" },
               { value: "none" as CardBg,   label: "없음" },
+              { value: "color" as CardBg,  label: "단색" },
+              { value: "photo" as CardBg,  label: "사진", disabled: !hasImage },
+              { value: "search" as CardBg, label: "이미지" },
             ]).map(({ value, label, disabled }) => (
               <button
                 key={value}
@@ -205,7 +204,7 @@ export default function EditForm({
                     openBgModal();
                   } else if (value === "color") {
                     setCardBg("color");
-                    setCardBgUrl(cardBg === "color" ? cardBgUrl : BG_COLORS[0].hex);
+                    if (cardBg !== "color") setCardBgUrl(BG_COLORS[0].hex);
                   } else {
                     setCardBg(value);
                     setCardBgUrl(null);

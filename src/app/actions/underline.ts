@@ -135,7 +135,7 @@ export async function createUnderlinesBulk(data: BulkCreateData) {
     is_public: true,
     card_style: data.cardStyle ?? "text",
     book_display: data.bookDisplay ?? "full",
-    card_bg: data.cardBg ?? "cover",
+    card_bg: data.cardBg ?? "none",
     card_bg_url: data.cardBgUrl ?? null,
   }));
 
