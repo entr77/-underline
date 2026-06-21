@@ -45,11 +45,11 @@ const BG_GRADIENTS = [
 ];
 
 const THEMES: ThemePreset[] = [
-  { id: "book",     label: "북카드",    desc: "책표지 배경",  cardBg: "cover",  cardFont: "serif", cardAlign: "center", displayMode: "full",  showAuthor: false },
-  { id: "dark",     label: "다크",      desc: "어두운 배경",  cardBg: "color",  cardBgUrl: "#1C1917",           cardFont: "serif", cardAlign: "left",   displayMode: "title", showAuthor: false },
-  { id: "gradient", label: "그라디언트", desc: "컬러 배경",   cardBg: "color",  cardBgUrl: BG_GRADIENTS[0].css, cardFont: "serif", cardAlign: "center", displayMode: "title", showAuthor: false },
-  { id: "photo",    label: "포토",      desc: "사진 배경",   cardBg: "photo",  cardFont: "serif", cardAlign: "left",   displayMode: "cover", showAuthor: false },
-  { id: "scene",    label: "풍경",      desc: "감성 배경",   cardBg: "search", cardFont: "serif", cardAlign: "center", displayMode: "title", showAuthor: false },
+  { id: "book",     label: "북카드",    desc: "책표지 배경", cardBg: "cover",  cardFont: "serif", cardAlign: "center", displayMode: "full",  showAuthor: false },
+  { id: "dark",     label: "다크",      desc: "어두운 배경", cardBg: "color",  cardBgUrl: "#1C1917",           cardFont: "serif", cardAlign: "left",   displayMode: "title", showAuthor: true  },
+  { id: "gradient", label: "그라디언트", desc: "컬러 배경",  cardBg: "color",  cardBgUrl: BG_GRADIENTS[0].css, cardFont: "serif", cardAlign: "center", displayMode: "title", showAuthor: false },
+  { id: "photo",    label: "밑줄",      desc: "밑줄 사진",  cardBg: "photo",  cardFont: "serif", cardAlign: "left",   displayMode: "title", showAuthor: false },
+  { id: "scene",    label: "포토",      desc: "배경 사진",  cardBg: "search", cardFont: "serif", cardAlign: "center", displayMode: "title", showAuthor: false },
 ];
 
 const BASE = "https://images.unsplash.com/photo-";
@@ -734,7 +734,7 @@ export default function NewUnderlinePage() {
 
         {selectedTheme === "photo" && !imagePreview && (
           <div className="space-y-2">
-            <Alert variant="warning">포토 테마는 사진이 필요해요</Alert>
+            <Alert variant="warning">밑줄 테마는 사진이 필요해요</Alert>
             <label className="w-full py-3.5 rounded-xl border-2 border-dashed border-[var(--color-border)] flex items-center justify-center gap-2 text-[var(--color-ink-muted)] cursor-pointer hover:border-[var(--color-forest)] hover:text-[var(--color-forest)] transition-colors">
               <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">

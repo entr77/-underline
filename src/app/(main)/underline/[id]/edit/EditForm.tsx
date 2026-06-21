@@ -26,10 +26,10 @@ type ThemePreset = {
 };
 const THEMES: ThemePreset[] = [
   { id: "book",     label: "북카드",    desc: "책표지 배경", cardBg: "cover",  cardFont: "serif", cardAlign: "center", displayMode: "full",  showAuthor: false },
-  { id: "dark",     label: "다크",      desc: "어두운 배경", cardBg: "color",  cardBgUrl: "#1C1917",           cardFont: "serif", cardAlign: "left",   displayMode: "title", showAuthor: false },
+  { id: "dark",     label: "다크",      desc: "어두운 배경", cardBg: "color",  cardBgUrl: "#1C1917",           cardFont: "serif", cardAlign: "left",   displayMode: "title", showAuthor: true  },
   { id: "gradient", label: "그라디언트", desc: "컬러 배경",  cardBg: "color",  cardBgUrl: BG_GRADIENTS[0].css, cardFont: "serif", cardAlign: "center", displayMode: "title", showAuthor: false },
-  { id: "photo",    label: "포토",      desc: "사진 배경",  cardBg: "photo",  cardFont: "serif", cardAlign: "left",   displayMode: "cover", showAuthor: false },
-  { id: "scene",    label: "풍경",      desc: "감성 배경",  cardBg: "search", cardFont: "serif", cardAlign: "center", displayMode: "title", showAuthor: false },
+  { id: "photo",    label: "밑줄",      desc: "밑줄 사진",  cardBg: "photo",  cardFont: "serif", cardAlign: "left",   displayMode: "title", showAuthor: false },
+  { id: "scene",    label: "포토",      desc: "배경 사진",  cardBg: "search", cardFont: "serif", cardAlign: "center", displayMode: "title", showAuthor: false },
 ];
 
 const BASE = "https://images.unsplash.com/photo-";
@@ -260,6 +260,53 @@ export default function EditForm({
           </div>
         </button>
 
+        {/* 포토(scene) 테마 선택 시 이미지 스트립 */}
+        {selectedTheme === "scene" && (
+          <div className="px-5 py-4">
+            <p className="text-xs text-[var(--color-ink-faint)] mb-3">
+              배경 사진 선택
+              {!cardBgUrl && <span className="text-amber-500 ml-1">· 사진을 골라주세요</span>}
+            </p>
+            <div className="overflow-x-auto -mx-5 px-5" style={{ scrollbarWidth: "none" }}>
+              <div className="flex gap-2 pb-1 w-max">
+                {/* 업로드 버튼 */}
+                <button type="button" onClick={() => bgFileInputRef.current?.click()} disabled={bgUploading}
+                  className="w-14 h-14 rounded-xl flex-shrink-0 flex items-center justify-center border-2 border-dashed border-[var(--color-border)] text-[var(--color-ink-faint)] hover:border-[var(--color-forest)] hover:text-[var(--color-forest)] transition-all">
+                  {bgUploading
+                    ? <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                    : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  }
+                </button>
+                <div className="w-px self-stretch my-2 bg-[var(--color-border)] flex-shrink-0" />
+                {PRESET_IMAGES.map((img) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img key={img.url} src={img.thumb} alt={img.label}
+                    onClick={() => { setCardBg("search"); setCardBgUrl(img.url); }}
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                    className={`w-14 h-14 rounded-xl flex-shrink-0 object-cover cursor-pointer border-2 transition-all ${
+                      cardBgUrl === img.url ? "border-[var(--color-forest)]" : "border-transparent opacity-60 hover:opacity-100"
+                    }`}
+                  />
+                ))}
+                {bgLoading
+                  ? Array.from({ length: 4 }).map((_, i) => (
+                      <div key={i} className="w-14 h-14 rounded-xl flex-shrink-0 bg-[var(--color-cream-dark)] animate-pulse" />
+                    ))
+                  : bgImages.map((img, i) => (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img key={i} src={img.thumb} alt=""
+                        onClick={() => { setCardBg("search"); setCardBgUrl(img.url); }}
+                        className={`w-14 h-14 rounded-xl flex-shrink-0 object-cover cursor-pointer border-2 transition-all ${
+                          cardBgUrl === img.url ? "border-[var(--color-forest)]" : "border-transparent opacity-60 hover:opacity-100"
+                        }`}
+                      />
+                    ))
+                }
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 배경 — 테마 미선택 시만 표시 */}
         {!selectedTheme && (
           <button type="button" onClick={() => setEditModal("bg")}
@@ -371,7 +418,7 @@ export default function EditForm({
                     theme.id === "dark"     ? { background: "#1C1917" } :
                     theme.id === "gradient" ? { background: BG_GRADIENTS[0].css } :
                     theme.id === "photo"    ? (imageUrl ? { backgroundImage: `url(${imageUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : { background: "#2a2a2a" }) :
-                                              { background: "linear-gradient(135deg, #1a2a3a 0%, #2d4a3a 100%)" };
+                                              { backgroundImage: `url(${PRESET_IMAGES[0].thumb})`, backgroundSize: "cover", backgroundPosition: "center" };
                   return (
                     <button key={theme.id} type="button" onClick={() => applyTheme(theme.id)}
                       className={`flex flex-col overflow-hidden rounded-xl border-2 transition-all ${isSelected ? "border-[var(--color-forest)]" : "border-[var(--color-border)]"}`}>
