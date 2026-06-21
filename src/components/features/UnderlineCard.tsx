@@ -68,7 +68,7 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
             backgroundImage: `url(${underline.book.cover_url})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
-            filter: "blur(20px) brightness(0.22) saturate(0.6)",
+            filter: "blur(16px) brightness(0.55) saturate(0.75)",
             transform: "scale(1.2)",
           }} />
 
@@ -89,7 +89,7 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
           />
 
           {/* 하단 그라디언트 */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/96 via-black/50 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
 
           {/* 인용문 — 하단 */}
           <Link
