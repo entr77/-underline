@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useState, useRef, useEffect } from "react";
 import LikeButton from "@/components/features/LikeButton";
 import type { Underline, CardFont, CardAlign, CardVAlign } from "@/types";
 
@@ -21,6 +22,21 @@ function quoteTextSize(len: number, compact: boolean): string {
 
 
 export default function UnderlineCard({ underline, compact, preview }: Props) {
+  const [drawn, setDrawn] = useState(!!preview);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (preview) return;
+    const el = cardRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setDrawn(true); obs.disconnect(); } },
+      { threshold: 0.25 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [preview]);
+
   const usePhoto = underline.card_style === "photo" && !!underline.image_url;
   const bookDisplay = underline.book_display ?? "full";
   const cardBg = underline.card_bg ?? "cover";
@@ -44,8 +60,8 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
     const showTitle = ["title", "title-author", "full", "full-author"].includes(bookDisplay);
     const showAuthor = ["title-author", "full-author"].includes(bookDisplay);
     return (
-      <div>
-        <article className="relative aspect-square rounded-2xl overflow-hidden border border-[var(--color-border)]">
+      <div ref={cardRef}>
+        <article className="relative aspect-square rounded-xl overflow-hidden border border-[var(--color-border)]">
           {/* 블러 배경 */}
           <div className="absolute inset-0" style={{
             backgroundImage: `url(${underline.book.cover_url})`,
@@ -63,10 +79,13 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
               bookDisplay !== "none" && va === "bottom" ? "pb-[3.75rem]" : va === "top" ? "pt-5" : ""
             }`}
           >
-            <div className={`w-7 h-[3px] rounded-full bg-[#FDE047]/70 mb-2.5 ${ca === "center" ? "mx-auto" : ca === "right" ? "ml-auto" : ""}`} />
+            <div
+              className={`w-16 h-[3px] rounded-full bg-[#FDE047]/70 mb-2.5 origin-left ${ca === "center" ? "mx-auto" : ca === "right" ? "ml-auto" : ""}`}
+              style={{ animation: drawn ? "underline-draw 0.45s ease-out 0.1s forwards" : "none", transform: drawn ? undefined : "scaleX(0)" }}
+            />
             <blockquote
               className={`${quoteFont} ${textAlign} text-white font-semibold leading-[1.55] tracking-[-0.03em] break-keep ${quoteTextSize(underline.content.length, compact ?? false)}`}
-              style={{ textShadow: "0 1px 8px rgba(0,0,0,0.5)" }}
+              style={{ textShadow: "0 1px 8px rgba(0,0,0,0.5)", animation: drawn ? "fade-up 0.4s ease-out 0.3s both" : "none", opacity: drawn ? undefined : 0 }}
             >
               {underline.content}
             </blockquote>
@@ -119,7 +138,7 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
   if (usePhoto) {
     // 사진 카드 — 풀블리드 사진 + 하단 그라디언트 위에 텍스트
     return (
-      <div>
+      <div ref={cardRef}>
         <article className="relative aspect-square rounded-xl overflow-hidden border border-[var(--color-border)]">
           <Image
             src={underline.image_url!}
@@ -134,9 +153,13 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
             href={`/underline/${underline.id}`}
             className="absolute inset-x-0 bottom-4 px-5 flex flex-col justify-end"
           >
-            <div className="w-7 h-[3px] rounded-full bg-[#FDE047]/70 mb-2.5" />
+            <div
+              className="w-16 h-[3px] rounded-full bg-[#FDE047]/70 mb-2.5 origin-left"
+              style={{ animation: drawn ? "underline-draw 0.45s ease-out 0.1s forwards" : "none", transform: drawn ? undefined : "scaleX(0)" }}
+            />
             <blockquote
               className={`${quoteFont} text-left text-white font-semibold leading-[1.55] tracking-[-0.03em] break-keep ${compact ? "text-[13px] line-clamp-3" : "text-[15px] line-clamp-5"}`}
+              style={{ animation: drawn ? "fade-up 0.4s ease-out 0.3s both" : "none", opacity: drawn ? undefined : 0 }}
             >
               {underline.content}
             </blockquote>
@@ -170,7 +193,7 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
 
   // 텍스트 카드 — 정사각형 다크 무드
   return (
-    <div>
+    <div ref={cardRef}>
     <article className="relative aspect-square bg-[#1C1917] rounded-xl overflow-hidden border border-[var(--color-border)] hover:border-white/20 transition-colors">
       {cardBg === "color" && underline.card_bg_url ? (
         /* 단색 배경 */
@@ -226,10 +249,13 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
           va === "top" ? "pt-5" : va === "center" ? "" : "pb-4"
         } ${quoteAlign} bottom-4`}
       >
-        <div className={`w-7 h-[3px] rounded-full bg-[#FDE047]/70 mb-2.5 ${ca === "center" ? "mx-auto" : ca === "right" ? "ml-auto" : ""}`} />
+        <div
+          className={`w-16 h-[3px] rounded-full bg-[#FDE047]/70 mb-2.5 origin-left ${ca === "center" ? "mx-auto" : ca === "right" ? "ml-auto" : ""}`}
+          style={{ animation: drawn ? "underline-draw 0.45s ease-out 0.1s forwards" : "none", transform: drawn ? undefined : "scaleX(0)" }}
+        />
         <blockquote
           className={`${quoteFont} text-white font-semibold leading-[1.55] tracking-[-0.03em] break-keep ${quoteTextSize(underline.content.length, compact ?? false)}`}
-          style={{ textShadow: "0 1px 8px rgba(0,0,0,0.6)" }}
+          style={{ textShadow: "0 1px 8px rgba(0,0,0,0.6)", animation: drawn ? "fade-up 0.4s ease-out 0.3s both" : "none", opacity: drawn ? undefined : 0 }}
         >
           {underline.content}
         </blockquote>
