@@ -150,7 +150,7 @@ export async function createUnderlinesBulk(data: BulkCreateData) {
     card_font: data.cardFont ?? "serif",
     card_align: data.cardAlign ?? "center",
     card_valign: data.cardVAlign ?? "bottom",
-    tags: tagResults[i] ? [tagResults[i]] : [],
+    tags: tagResults[i] ?? [],
   }));
 
   const { data: inserted, error } = await supabaseAny
@@ -175,7 +175,7 @@ export async function updateUnderline(
   if (authError || !user) return { error: "로그인이 필요합니다." };
 
   const newTags = data.content !== undefined
-    ? await classifyUnderlineTags([data.content]).then(([t]) => t ? [t] : [])
+    ? await classifyUnderlineTags([data.content]).then(([t]) => t ?? [])
     : undefined;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -66,9 +66,9 @@ export default function UnderlineGroupCard({ underlines }: Props) {
                 {user.username[0].toUpperCase()}
               </div>
               <span className="text-white/60 text-[11px]">{user.username}</span>
-              {first.tags?.[0] && (
-                <span className="text-[#6ee7b7] text-[10px] font-medium">#{first.tags[0]}</span>
-              )}
+              {first.tags && first.tags.length > 0 && first.tags.map((tag) => (
+                <span key={tag} className="text-[#6ee7b7] text-[10px] font-medium">#{tag}</span>
+              ))}
             </div>
             <span className="text-white/30 text-[11px]">{timeAgo(first.created_at)}</span>
           </div>
@@ -169,9 +169,9 @@ export default function UnderlineGroupCard({ underlines }: Props) {
               {user.username[0].toUpperCase()}
             </div>
             <span className="text-[var(--color-ink-muted)] text-[11px]">{user.username}</span>
-            {first.tags?.[0] && (
-              <span className="text-[var(--color-forest)] text-[10px] font-medium">#{first.tags[0]}</span>
-            )}
+            {first.tags && first.tags.length > 0 && first.tags.map((tag) => (
+              <span key={tag} className="text-[var(--color-forest)] text-[10px] font-medium">#{tag}</span>
+            ))}
           </div>
           <span className="text-[var(--color-ink-faint)] text-[11px]">{timeAgo(first.created_at)}</span>
         </div>

@@ -168,6 +168,13 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
                 {bookDisplay !== "none" && underline.book.title && (
                   <p className="text-[var(--color-ink-faint)] text-[10px] leading-none mt-[3px] truncate">{underline.book.title}</p>
                 )}
+                {underline.tags && underline.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-[3px]">
+                    {underline.tags.map((tag) => (
+                      <span key={tag} className="text-[var(--color-forest)] text-[10px] leading-none font-medium">#{tag}</span>
+                    ))}
+                  </div>
+                )}
               </div>
             </Link>
             <LikeButton underlineId={underline.id} initialLiked={underline.is_liked ?? false} initialCount={underline.like_count} size="sm" />
@@ -215,6 +222,13 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
                 <p className="text-[var(--color-ink)] text-[12px] font-semibold leading-none truncate">{underline.user.username}</p>
                 {bookDisplay !== "none" && underline.book.title && (
                   <p className="text-[var(--color-ink-faint)] text-[10px] leading-none mt-[3px] truncate">{underline.book.title}</p>
+                )}
+                {underline.tags && underline.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-[3px]">
+                    {underline.tags.map((tag) => (
+                      <span key={tag} className="text-[var(--color-forest)] text-[10px] leading-none font-medium">#{tag}</span>
+                    ))}
+                  </div>
                 )}
               </div>
             </Link>
@@ -330,6 +344,9 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
             <p className="text-[var(--color-ink)] text-[12px] font-semibold leading-none truncate">{underline.user.username}</p>
             {bookDisplay !== "none" && underline.book.title && (
               <p className="text-[var(--color-ink-faint)] text-[10px] leading-none mt-[3px] truncate">{underline.book.title}</p>
+            )}
+            {underline.tags?.[0] && (
+              <span className="text-[var(--color-forest)] text-[10px] leading-none mt-[3px] font-medium block">#{underline.tags[0]}</span>
             )}
           </div>
         </Link>
