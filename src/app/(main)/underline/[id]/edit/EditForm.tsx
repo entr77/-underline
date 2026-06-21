@@ -147,15 +147,15 @@ export default function EditForm({
       </div>
 
       {/* 카드 미리보기 */}
-      <div className="bg-[#1C1917] px-5 pt-4 pb-1">
-        <div className="max-w-[260px] mx-auto pointer-events-none select-none">
+      <div className="bg-[#1C1917] px-3 pt-4 pb-1">
+        <div className="max-w-[310px] mx-auto pointer-events-none select-none">
           <UnderlineCard underline={previewUnderline} />
         </div>
       </div>
 
       {/* 배경 선택 스트립 */}
       <div className="bg-[#1C1917] overflow-x-auto" style={{ scrollbarWidth: "none" }}>
-        <div className="flex gap-1.5 px-4 py-3 w-max">
+        <div className="flex gap-1.5 px-3 py-3 w-max">
 
           {/* 없음 */}
           <button
