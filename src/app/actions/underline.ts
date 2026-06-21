@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { classifyUnderlineTags } from "@/lib/classifyUnderlineTag";
 
 type CreateUnderlineData = {
   bookKakaoId: string;
@@ -133,7 +134,9 @@ export async function createUnderlinesBulk(data: BulkCreateData) {
   const bookId = (bookResult.data as { id: string }).id;
   const supabaseAny: AnyClient = supabase;
 
-  const rows = data.contents.map((content) => ({
+  const tagResults = await classifyUnderlineTags(data.contents);
+
+  const rows = data.contents.map((content, i) => ({
     user_id: user.id,
     book_id: bookId,
     content,
@@ -147,6 +150,7 @@ export async function createUnderlinesBulk(data: BulkCreateData) {
     card_font: data.cardFont ?? "serif",
     card_align: data.cardAlign ?? "center",
     card_valign: data.cardVAlign ?? "bottom",
+    tags: tagResults[i] ? [tagResults[i]] : [],
   }));
 
   const { data: inserted, error } = await supabaseAny

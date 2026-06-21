@@ -72,6 +72,7 @@ const MOCK_FEED: Underline[] = [
 type SupabaseUnderlineRow = {
   id: string;
   content: string;
+  tags: string[];
   page_number: number | null;
   image_url: string | null;
   card_style: string | null;
@@ -115,6 +116,7 @@ function rowToUnderline(row: SupabaseUnderlineRow, likedIds: Set<string>): Under
     card_font: (row.card_font ?? "serif") as import("@/types").CardFont,
     card_align: (row.card_align ?? "center") as import("@/types").CardAlign,
     card_valign: (row.card_valign ?? "bottom") as import("@/types").CardVAlign,
+    tags: row.tags ?? [],
     is_public: row.is_public,
     like_count: row.like_count,
     is_liked: likedIds.has(row.id),
@@ -195,9 +197,9 @@ export default async function FeedPage({ searchParams }: Props) {
     feed = MOCK_FEED;
   }
 
-  // 장르 필터: 책 genre가 선택한 장르와 일치하는 밑줄만 표시
+  // 감정 태그 필터: 밑줄 tags 배열에 선택한 태그가 포함된 경우만 표시
   const filtered = activeTag
-    ? feed.filter((u) => u.book.genre === activeTag)
+    ? feed.filter((u) => u.tags?.includes(activeTag))
     : feed;
 
   return (

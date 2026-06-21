@@ -29,6 +29,7 @@ export type Underline = {
   user: User;
   book: Book;
   content: string;
+  tags?: string[];
   page_number?: number;
   image_url?: string;
   card_style?: CardStyle;
