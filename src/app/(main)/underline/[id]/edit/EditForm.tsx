@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { updateUnderline } from "@/app/actions/underline";
 import Alert from "@/components/ui/Alert";
@@ -64,15 +64,25 @@ export default function EditForm({
     ["photo", "search", "color", "none"].includes(initialCardBg) ? initialCardBg as CardBg : "none"
   );
   const [cardBgUrl, setCardBgUrl] = useState<string | null>(initialCardBgUrl ?? null);
-  const [bgSearchResults, setBgSearchResults] = useState<{ thumb: string; url: string }[]>([]);
-  const [bgSearchLoading, setBgSearchLoading] = useState(false);
-  const [bgModalOpen, setBgModalOpen] = useState(false);
-  const [bgSearchQuery, setBgSearchQuery] = useState("");
-  const [bgExtractedQuery, setBgExtractedQuery] = useState("");
+  const [bgImages, setBgImages] = useState<{ thumb: string; url: string }[]>([]);
+  const [bgLoading, setBgLoading] = useState(false);
   const cardStyle: CardStyle = cardBg === "photo" ? "photo" : "text";
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // 마운트 시 이미지 자동 검색
+  useEffect(() => {
+    const src = initialContent.trim() || bookTitle;
+    if (!src) return;
+    setBgLoading(true);
+    fetch(`/api/images/search?text=${encodeURIComponent(src)}`)
+      .then((r) => r.json())
+      .then((json) => setBgImages(json.images ?? []))
+      .catch(() => {})
+      .finally(() => setBgLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const previewUnderline: Underline = {
     id,
@@ -90,31 +100,6 @@ export default function EditForm({
     user: { id: "", username },
     book: { id: "", kakao_id: "", title: bookTitle, author: bookAuthor, cover_url: bookCoverUrl },
   };
-
-  async function openBgModal() {
-    setBgModalOpen(true);
-    setBgSearchQuery("");
-    if (bgSearchResults.length === 0) {
-      await doSearch(content.trim() || bookTitle, true);
-    }
-  }
-
-  async function doSearch(q: string, useTextExtraction = false) {
-    if (!q.trim()) return;
-    setBgSearchLoading(true);
-    setBgSearchResults([]);
-    try {
-      const param = useTextExtraction
-        ? `text=${encodeURIComponent(q.trim())}`
-        : `q=${encodeURIComponent(q.trim())}`;
-      const res = await fetch(`/api/images/search?${param}`);
-      const json = await res.json();
-      setBgSearchResults(json.images ?? []);
-      if (useTextExtraction && json.query) setBgExtractedQuery(json.query);
-    } finally {
-      setBgSearchLoading(false);
-    }
-  }
 
   async function handleSave() {
     setSaving(true);
@@ -156,29 +141,85 @@ export default function EditForm({
       </div>
 
       {/* 카드 미리보기 */}
-      <div className="bg-[#1C1917] px-8 pt-8 pb-5">
+      <div className="bg-[#1C1917] px-8 pt-8 pb-2">
         <div className="max-w-[280px] mx-auto pointer-events-none select-none">
           <UnderlineCard underline={previewUnderline} />
         </div>
-        {/* 배경 선택 버튼 */}
-        <div className="flex justify-center mt-4">
+      </div>
+
+      {/* 배경 선택 스트립 */}
+      <div
+        className="bg-[#1C1917] overflow-x-auto"
+        style={{ scrollbarWidth: "none" }}
+      >
+        <div className="flex gap-2 px-6 py-4 w-max">
+
+          {/* 없음 */}
           <button
             type="button"
-            onClick={openBgModal}
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white/70 hover:text-white text-xs transition-all border border-white/10"
+            onClick={() => { setCardBg("none"); setCardBgUrl(null); }}
+            className={`w-14 h-14 rounded-2xl flex-shrink-0 flex items-center justify-center transition-all ${
+              cardBg === "none"
+                ? "ring-2 ring-white ring-offset-2 ring-offset-[#1C1917]"
+                : "opacity-50 hover:opacity-80"
+            }`}
+            style={{ background: "#2A2520" }}
           >
-            {cardBg === "color" && cardBgUrl ? (
-              <span className="w-3.5 h-3.5 rounded-full flex-shrink-0" style={{ backgroundColor: cardBgUrl }} />
-            ) : cardBg === "search" && cardBgUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={cardBgUrl} alt="" className="w-4 h-4 rounded object-cover flex-shrink-0" />
-            ) : (
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/>
-              </svg>
-            )}
-            배경 선택
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
           </button>
+
+          {/* 사진 */}
+          {hasImage && imageUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={imageUrl}
+              alt="사진"
+              onClick={() => { setCardBg("photo"); setCardBgUrl(null); }}
+              className={`w-14 h-14 rounded-2xl flex-shrink-0 object-cover cursor-pointer transition-all ${
+                cardBg === "photo"
+                  ? "ring-2 ring-white ring-offset-2 ring-offset-[#1C1917]"
+                  : "opacity-50 hover:opacity-80"
+              }`}
+            />
+          )}
+
+          {/* 단색 */}
+          {BG_COLORS.map(({ hex }) => (
+            <button
+              key={hex}
+              type="button"
+              onClick={() => { setCardBg("color"); setCardBgUrl(hex); }}
+              className={`w-14 h-14 rounded-2xl flex-shrink-0 transition-all ${
+                cardBg === "color" && cardBgUrl === hex
+                  ? "ring-2 ring-white ring-offset-2 ring-offset-[#1C1917]"
+                  : "opacity-50 hover:opacity-80"
+              }`}
+              style={{ background: hex }}
+            />
+          ))}
+
+          {/* Unsplash 이미지 */}
+          {bgLoading
+            ? Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="w-14 h-14 rounded-2xl flex-shrink-0 bg-white/10 animate-pulse" />
+              ))
+            : bgImages.map((img, i) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={i}
+                  src={img.thumb}
+                  alt=""
+                  onClick={() => { setCardBg("search"); setCardBgUrl(img.url); }}
+                  className={`w-14 h-14 rounded-2xl flex-shrink-0 object-cover cursor-pointer transition-all ${
+                    cardBg === "search" && cardBgUrl === img.url
+                      ? "ring-2 ring-white ring-offset-2 ring-offset-[#1C1917]"
+                      : "opacity-50 hover:opacity-80"
+                  }`}
+                />
+              ))
+          }
         </div>
       </div>
 
@@ -260,121 +301,6 @@ export default function EditForm({
 
         {error && <Alert variant="error">{error}</Alert>}
       </div>
-
-      {/* 통합 배경 선택 모달 */}
-      {bgModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-end" onClick={() => setBgModalOpen(false)}>
-          <div className="w-full bg-white rounded-t-3xl max-h-[82vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-
-            {/* 헤더 */}
-            <div className="flex items-center justify-between px-5 pt-5 pb-4 flex-shrink-0">
-              <p className="font-semibold text-[var(--color-ink)]">배경 선택</p>
-              <button type="button" onClick={() => setBgModalOpen(false)} className="text-[var(--color-ink-faint)]">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-              </button>
-            </div>
-
-            <div className="overflow-y-auto flex-1 px-5 pb-6 space-y-5">
-
-              {/* 없음 / 사진 */}
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => { setCardBg("none"); setCardBgUrl(null); setBgModalOpen(false); }}
-                  className={`flex-1 py-3 rounded-2xl border text-sm font-medium transition-all ${cardBg === "none" ? "border-[var(--color-forest)] bg-[var(--color-forest)]/8 text-[var(--color-forest)]" : "border-[var(--color-border)] text-[var(--color-ink-muted)]"}`}
-                >
-                  없음
-                </button>
-                {hasImage && (
-                  <button
-                    type="button"
-                    onClick={() => { setCardBg("photo"); setCardBgUrl(null); setBgModalOpen(false); }}
-                    className={`flex-1 py-3 rounded-2xl border text-sm font-medium transition-all ${cardBg === "photo" ? "border-[var(--color-forest)] bg-[var(--color-forest)]/8 text-[var(--color-forest)]" : "border-[var(--color-border)] text-[var(--color-ink-muted)]"}`}
-                  >
-                    사진
-                  </button>
-                )}
-              </div>
-
-              {/* 단색 */}
-              <div>
-                <p className="text-xs text-[var(--color-ink-faint)] mb-3">단색</p>
-                <div className="flex gap-2.5 flex-wrap">
-                  {BG_COLORS.map(({ hex, label }) => (
-                    <button
-                      key={hex}
-                      type="button"
-                      title={label}
-                      onClick={() => { setCardBg("color"); setCardBgUrl(hex); }}
-                      className="w-10 h-10 rounded-full transition-all"
-                      style={{
-                        backgroundColor: hex,
-                        outline: cardBg === "color" && cardBgUrl === hex ? "2px solid var(--color-forest)" : "2px solid transparent",
-                        outlineOffset: "3px",
-                        boxShadow: "0 1px 4px rgba(0,0,0,0.3)",
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {/* 이미지 검색 */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-xs text-[var(--color-ink-faint)]">이미지 검색</p>
-                  {bgExtractedQuery && !bgSearchLoading && bgSearchResults.length > 0 && (
-                    <span className="text-[10px] text-[var(--color-ink-faint)] bg-[var(--color-cream-dark)] px-2 py-0.5 rounded-full">
-                      AI: {bgExtractedQuery}
-                    </span>
-                  )}
-                </div>
-                <div className="flex gap-2 mb-3">
-                  <input
-                    type="text"
-                    value={bgSearchQuery}
-                    onChange={(e) => setBgSearchQuery(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter") doSearch(bgSearchQuery); }}
-                    placeholder="다른 키워드로 검색..."
-                    className="flex-1 bg-[var(--color-cream)] rounded-xl px-3 py-2 text-sm text-[var(--color-ink)] outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => doSearch(bgSearchQuery)}
-                    disabled={bgSearchLoading || !bgSearchQuery.trim()}
-                    className="px-4 py-2 bg-[var(--color-forest)] text-white text-sm rounded-xl font-medium disabled:opacity-40"
-                  >
-                    검색
-                  </button>
-                </div>
-                {bgSearchLoading ? (
-                  <div className="flex items-center justify-center gap-2 py-8 text-[var(--color-ink-faint)]">
-                    <div className="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin" />
-                    <span className="text-sm">이미지 찾는 중…</span>
-                  </div>
-                ) : bgSearchResults.length > 0 ? (
-                  <div className="grid grid-cols-3 gap-1.5">
-                    {bgSearchResults.map((img, i) => (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        key={i}
-                        src={img.thumb}
-                        alt=""
-                        onClick={() => { setCardBg("search"); setCardBgUrl(img.url); setBgModalOpen(false); }}
-                        className={`w-full aspect-square object-cover rounded-lg cursor-pointer transition-all ${
-                          cardBg === "search" && cardBgUrl === img.url ? "ring-2 ring-[var(--color-forest)] ring-offset-1" : "opacity-90 hover:opacity-100"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                ) : bgSearchQuery ? (
-                  <p className="text-sm text-[var(--color-ink-faint)] text-center py-6">검색 결과가 없어요.</p>
-                ) : null}
-              </div>
-
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
