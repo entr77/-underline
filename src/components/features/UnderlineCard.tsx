@@ -116,6 +116,21 @@ export default function UnderlineCard({ underline, compact }: Props) {
       {cardBg === "color" && underline.card_bg_url ? (
         /* 단색 배경 */
         <div className="absolute inset-0" style={{ background: underline.card_bg_url }} />
+      ) : bgSrc && cardBg === "cover" ? (
+        /* 책표지 배경 — 살짝만 블러, 표지 인식 가능 */
+        <>
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `url(${bgSrc})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              filter: "blur(2px) brightness(0.6) saturate(0.85)",
+              transform: "scale(1.04)",
+            }}
+          />
+          <div className="absolute inset-0 bg-black/25" />
+        </>
       ) : bgSrc && cardBg === "search" ? (
         /* 이미지 선택 배경 — 선명하게 표시 + 오버레이 */
         <>
@@ -126,7 +141,7 @@ export default function UnderlineCard({ underline, compact }: Props) {
           <div className="absolute inset-0 bg-black/60" />
         </>
       ) : bgSrc ? (
-        /* 책표지 배경 — 블러 처리된 분위기 */
+        /* 업로드 사진 배경 — 블러로 분위기 */
         <>
           <div
             className="absolute inset-0"
