@@ -60,8 +60,8 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
         {/* 인용문 — card_valign 따름, card_align 따름 */}
         <Link
           href={`/underline/${underline.id}`}
-          className={`absolute inset-x-0 top-0 px-5 flex flex-col ${justifyV} ${textAlign} ${preview ? "bottom-4" : "bottom-[3.25rem]"} ${
-            bookDisplay !== "none" && va === "bottom" ? "pb-[3.25rem]" : va === "top" ? "pt-5" : ""
+          className={`absolute inset-x-0 top-0 px-5 flex flex-col ${justifyV} ${textAlign} ${preview ? "bottom-4" : "bottom-[60px]"} ${
+            bookDisplay !== "none" && va === "bottom" ? "pb-[3.75rem]" : va === "top" ? "pt-5" : ""
           }`}
         >
           <div className={`w-7 h-[3px] rounded-full bg-[#FDE047]/70 mb-2.5 ${ca === "center" ? "mx-auto" : ca === "right" ? "ml-auto" : ""}`} />
@@ -73,11 +73,11 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
           </blockquote>
         </Link>
 
-        {/* 하단 표지 뱃지 — 항상 좌하단 고정 */}
+        {/* 하단 표지 뱃지 — 항상 좌하단, 바 위 */}
         {bookDisplay !== "none" && (
           <Link
             href={`/underline/${underline.id}`}
-            className={`absolute left-4 flex items-end gap-2 ${preview ? "bottom-3" : "bottom-14"}`}
+            className={`absolute left-4 flex items-end gap-2 ${preview ? "bottom-3" : "bottom-[56px]"}`}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -105,14 +105,16 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
           </Link>
         )}
 
-        {/* 하단 바 */}
+        {/* 하단 바 — 인스타그램 스타일 */}
         {!preview && (
-          <div className="absolute bottom-0 inset-x-0 h-11 bg-[#F7F3EE]/92 px-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-5 h-5 rounded-full bg-[var(--color-forest)]/20 flex items-center justify-center text-[var(--color-ink)] text-[10px] font-medium flex-shrink-0">
+          <div className="absolute bottom-0 inset-x-0 h-[52px] bg-[#F7F3EE]/96 px-3.5 flex items-center justify-between gap-2 border-t border-black/[0.04]">
+            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+              <div className="w-7 h-7 rounded-full bg-[var(--color-forest)] flex items-center justify-center text-white text-[11px] font-semibold flex-shrink-0">
                 {underline.user.username[0].toUpperCase()}
               </div>
-              <span className="text-[var(--color-ink-muted)] text-[11px]">{underline.user.username}</span>
+              <div className="min-w-0">
+                <p className="text-[var(--color-ink)] text-[12px] font-semibold leading-none truncate">{underline.user.username}</p>
+              </div>
             </div>
             <LikeButton underlineId={underline.id} initialLiked={underline.is_liked ?? false} initialCount={underline.like_count} size="sm" />
           </div>
@@ -140,7 +142,7 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
         {/* 하단 인용문 */}
         <Link
           href={`/underline/${underline.id}`}
-          className={`absolute inset-x-0 px-5 flex flex-col justify-end ${preview ? "bottom-4" : "bottom-11"}`}
+          className={`absolute inset-x-0 px-5 flex flex-col justify-end ${preview ? "bottom-4" : "bottom-[52px]"}`}
         >
           <div className="w-7 h-[3px] rounded-full bg-[#FDE047]/70 mb-2.5" />
           <blockquote
@@ -150,20 +152,17 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
           </blockquote>
         </Link>
 
-        {/* 하단 바 — 유저 + 책정보 */}
+        {/* 하단 바 — 인스타그램 스타일 */}
         {!preview && (
-          <div className="absolute bottom-0 inset-x-0 h-11 bg-[#F7F3EE]/92 px-4 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0 flex-1">
-              <div className="w-5 h-5 rounded-full bg-[var(--color-forest)]/20 flex items-center justify-center text-[var(--color-ink)] text-[10px] font-medium flex-shrink-0">
+          <div className="absolute bottom-0 inset-x-0 h-[52px] bg-[#F7F3EE]/96 px-3.5 flex items-center justify-between gap-2 border-t border-black/[0.04]">
+            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+              <div className="w-7 h-7 rounded-full bg-[var(--color-forest)] flex items-center justify-center text-white text-[11px] font-semibold flex-shrink-0">
                 {underline.user.username[0].toUpperCase()}
               </div>
-              <div className="min-w-0 flex items-center gap-1 overflow-hidden">
-                <span className="text-[var(--color-ink-muted)] text-[11px] flex-shrink-0">{underline.user.username}</span>
+              <div className="min-w-0">
+                <p className="text-[var(--color-ink)] text-[12px] font-semibold leading-none truncate">{underline.user.username}</p>
                 {bookDisplay !== "none" && underline.book.title && (
-                  <>
-                    <span className="text-[var(--color-ink-faint)] text-[11px] flex-shrink-0 mx-0.5">·</span>
-                    <span className="text-[var(--color-ink-faint)] text-[11px] truncate">{underline.book.title}</span>
-                  </>
+                  <p className="text-[var(--color-ink-faint)] text-[10px] leading-none mt-[3px] truncate">{underline.book.title}</p>
                 )}
               </div>
             </div>
@@ -234,7 +233,7 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
         href={`/underline/${underline.id}`}
         className={`absolute inset-x-0 top-0 flex flex-col ${justifyV} px-5 ${
           va === "top" ? "pt-5" : va === "center" ? "" : "pb-5"
-        } ${quoteAlign} ${preview ? "bottom-0" : "bottom-11"}`}
+        } ${quoteAlign} ${preview ? "bottom-0" : "bottom-[52px]"}`}
       >
         <div className={`w-7 h-[3px] rounded-full bg-[#FDE047]/70 mb-2.5 ${ca === "center" ? "mx-auto" : ca === "right" ? "ml-auto" : ""}`} />
         <blockquote
@@ -245,20 +244,17 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
         </blockquote>
       </Link>
 
-      {/* 하단 크림 바 — 유저 + 책정보 */}
+      {/* 하단 바 — 인스타그램 스타일 */}
       {!preview && (
-        <div className="absolute bottom-0 inset-x-0 h-11 bg-[#F7F3EE]/92 px-4 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <div className="w-5 h-5 rounded-full bg-[var(--color-forest)]/20 flex items-center justify-center text-[var(--color-ink)] text-[10px] font-medium flex-shrink-0">
+        <div className="absolute bottom-0 inset-x-0 h-[52px] bg-[#F7F3EE]/96 px-3.5 flex items-center justify-between gap-2 border-t border-black/[0.04]">
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+            <div className="w-7 h-7 rounded-full bg-[var(--color-forest)] flex items-center justify-center text-white text-[11px] font-semibold flex-shrink-0">
               {underline.user.username[0].toUpperCase()}
             </div>
-            <div className="min-w-0 flex items-center gap-1 overflow-hidden">
-              <span className="text-[var(--color-ink-muted)] text-[11px] flex-shrink-0">{underline.user.username}</span>
+            <div className="min-w-0">
+              <p className="text-[var(--color-ink)] text-[12px] font-semibold leading-none truncate">{underline.user.username}</p>
               {bookDisplay !== "none" && underline.book.title && (
-                <>
-                  <span className="text-[var(--color-ink-faint)] text-[11px] flex-shrink-0 mx-0.5">·</span>
-                  <span className="text-[var(--color-ink-faint)] text-[11px] truncate">{underline.book.title}</span>
-                </>
+                <p className="text-[var(--color-ink-faint)] text-[10px] leading-none mt-[3px] truncate">{underline.book.title}</p>
               )}
             </div>
           </div>
