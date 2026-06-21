@@ -11,8 +11,8 @@
   --color-border: #E4DDD6;
   --color-highlight: #FDE047;
 
-  --font-serif: 'KoPub Batang', 'Apple Myungjo', serif;
-  --font-sans: 'Pretendard Variable', Pretendard, 'Apple SD Gothic Neo', sans-serif;
+  --font-serif: var(--font-noto-serif-kr);
+  --font-sans: var(--font-noto-sans-kr);
 }
 
 * {
