@@ -134,7 +134,7 @@ export async function createUnderlinesBulk(data: BulkCreateData) {
   const bookId = (bookResult.data as { id: string }).id;
   const supabaseAny: AnyClient = supabase;
 
-  const tagResults = await classifyUnderlineTags(data.contents);
+  const tagResults = await classifyUnderlineTags(data.contents, { title: data.bookTitle, author: data.bookAuthor });
 
   const rows = data.contents.map((content, i) => ({
     user_id: user.id,
@@ -174,9 +174,18 @@ export async function updateUnderline(
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) return { error: "로그인이 필요합니다." };
 
-  const newTags = data.content !== undefined
-    ? await classifyUnderlineTags([data.content]).then(([t]) => t ?? [])
-    : undefined;
+  let newTags: string[] | undefined;
+  if (data.content !== undefined) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: row } = await (supabase as any)
+      .from("underlines")
+      .select("book:books(title, author)")
+      .eq("id", id)
+      .single();
+    const book = row?.book as { title: string; author: string } | null;
+    const [t] = await classifyUnderlineTags([data.content], book ?? undefined);
+    newTags = t ?? [];
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (supabase as any)
