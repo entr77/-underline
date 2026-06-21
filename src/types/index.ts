@@ -23,6 +23,7 @@ export type CardBg = "cover" | "photo" | "search" | "color" | "none";
 export type CardFont = "serif" | "sans";
 export type CardAlign = "left" | "center" | "right";
 export type CardVAlign = "top" | "center" | "bottom";
+export type CardAnimation = "draw" | "svg" | "highlight";
 
 export type Underline = {
   id: string;
@@ -39,6 +40,7 @@ export type Underline = {
   card_font?: CardFont;
   card_align?: CardAlign;
   card_valign?: CardVAlign;
+  card_animation?: CardAnimation;
   is_public: boolean;
   like_count: number;
   is_liked?: boolean;

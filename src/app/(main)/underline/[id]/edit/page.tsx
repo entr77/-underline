@@ -8,7 +8,7 @@ export default async function EditPage({ params }: { params: Promise<{ id: strin
   const { data: { user } } = await supabase.auth.getUser();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [{ data }, { data: profile }] = await Promise.all([
-    (supabase as any).from("underlines").select("id, content, page_number, card_style, book_display, card_bg, card_bg_url, card_font, card_align, card_valign, image_url, user_id, book:books(title, author, cover_url)").eq("id", id).single(),
+    (supabase as any).from("underlines").select("id, content, page_number, card_style, book_display, card_bg, card_bg_url, card_font, card_align, card_valign, card_animation, image_url, user_id, book:books(title, author, cover_url)").eq("id", id).single(),
     (supabase as any).from("users").select("username").eq("id", user?.id ?? "").single(),
   ]);
   if (!user || !data || data.user_id !== user.id) notFound();
@@ -23,6 +23,7 @@ export default async function EditPage({ params }: { params: Promise<{ id: strin
       initialCardFont={data.card_font ?? "serif"}
       initialCardAlign={data.card_align ?? "center"}
       initialCardVAlign={data.card_valign ?? "bottom"}
+      initialCardAnimation={data.card_animation ?? "draw"}
       bookTitle={data.book?.title ?? ""}
       bookAuthor={data.book?.author ?? ""}
       bookCoverUrl={data.book?.cover_url ?? ""}

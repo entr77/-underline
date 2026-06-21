@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { updateUnderline } from "@/app/actions/underline";
 import Alert from "@/components/ui/Alert";
 import UnderlineCard from "@/components/features/UnderlineCard";
-import type { Underline, BookDisplay, CardBg, CardStyle, CardFont, CardAlign, CardVAlign } from "@/types";
+import type { Underline, BookDisplay, CardBg, CardStyle, CardFont, CardAlign, CardVAlign, CardAnimation } from "@/types";
 
 const MAX_CONTENT = 300;
 type DisplayMode = "none" | "cover" | "title" | "full";
@@ -44,6 +44,7 @@ type Props = {
   initialCardFont: string;
   initialCardAlign: string;
   initialCardVAlign: string;
+  initialCardAnimation: string;
   bookTitle: string;
   bookAuthor: string;
   bookCoverUrl: string;
@@ -54,7 +55,7 @@ type Props = {
 
 export default function EditForm({
   id, initialContent, initialPageNumber, initialBookDisplay,
-  initialCardBg, initialCardBgUrl, initialCardFont, initialCardAlign, initialCardVAlign,
+  initialCardBg, initialCardBgUrl, initialCardFont, initialCardAlign, initialCardVAlign, initialCardAnimation,
   bookTitle, bookAuthor, bookCoverUrl, username,
   hasImage, imageUrl,
 }: Props) {
@@ -94,6 +95,11 @@ export default function EditForm({
     (["top", "center", "bottom"] as CardVAlign[]).includes(initialCardVAlign as CardVAlign)
       ? (initialCardVAlign as CardVAlign)
       : "bottom"
+  );
+  const [cardAnimation, setCardAnimation] = useState<CardAnimation>(
+    (["draw", "svg", "highlight"] as CardAnimation[]).includes(initialCardAnimation as CardAnimation)
+      ? (initialCardAnimation as CardAnimation)
+      : "draw"
   );
   const cardStyle: CardStyle = cardBg === "photo" ? "photo" : "text";
 
@@ -142,6 +148,7 @@ export default function EditForm({
     card_font: cardFont,
     card_align: cardAlign,
     card_valign: cardVAlign,
+    card_animation: cardAnimation,
     is_public: true,
     like_count: 0,
     is_liked: false,
@@ -163,6 +170,7 @@ export default function EditForm({
       cardFont,
       cardAlign,
       cardVAlign,
+      cardAnimation,
     });
     setSaving(false);
     if (result.error) { setError(result.error); return; }
@@ -498,6 +506,27 @@ export default function EditForm({
                       }`}>
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">{icon}</svg>
                       <span className="text-[11px] font-medium">{label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {/* 애니메이션 */}
+              <div className="space-y-2">
+                <p className="text-xs text-[var(--color-ink-faint)]">애니메이션</p>
+                <div className="flex gap-2">
+                  {([
+                    { value: "draw"      as CardAnimation, label: "밑줄",   desc: "선 그리기" },
+                    { value: "svg"       as CardAnimation, label: "웨이브", desc: "물결 선"   },
+                    { value: "highlight" as CardAnimation, label: "형광펜", desc: "배경 칠하기" },
+                  ]).map(({ value, label, desc }) => (
+                    <button key={value} type="button" onClick={() => setCardAnimation(value)}
+                      className={`flex-1 py-3 rounded-2xl border flex flex-col items-center justify-center gap-0.5 transition-all ${
+                        cardAnimation === value
+                          ? "border-[var(--color-forest)] bg-[var(--color-forest)]/6 text-[var(--color-forest)]"
+                          : "border-[var(--color-border)] text-[var(--color-ink-faint)]"
+                      }`}>
+                      <span className="text-sm font-medium">{label}</span>
+                      <span className="text-[10px] opacity-60">{desc}</span>
                     </button>
                   ))}
                 </div>

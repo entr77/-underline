@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
 import LikeButton from "@/components/features/LikeButton";
-import type { Underline, CardFont, CardAlign, CardVAlign } from "@/types";
+import type { Underline, CardFont, CardAlign, CardVAlign, CardAnimation } from "@/types";
 
 type Props = {
   underline: Underline;
@@ -55,6 +55,47 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
     cardBg === "search" ? (underline.card_bg_url ?? null) :
     null;
 
+  const cardAnimation = (underline.card_animation ?? "draw") as CardAnimation;
+  const barAlignClass = ca === "center" ? "mx-auto" : ca === "right" ? "ml-auto" : "";
+
+  const mkBar = (cls = barAlignClass) => {
+    if (cardAnimation === "highlight") return null;
+    if (cardAnimation === "svg") {
+      return (
+        <svg viewBox="0 0 120 8" className={`overflow-visible mb-2.5 ${cls}`} style={{ width: "6rem", height: "8px" }}>
+          <path
+            d="M2 5 Q20 2 38 5 Q56 8 74 5 Q92 2 108 5"
+            fill="none" stroke="#FDE047" strokeOpacity={0.7} strokeWidth={2.5} strokeLinecap="round"
+            pathLength={1}
+            style={{ strokeDasharray: 1, strokeDashoffset: drawn ? 0 : 1, transition: drawn ? "stroke-dashoffset 0.7s ease-out 0.1s" : "none" }}
+          />
+        </svg>
+      );
+    }
+    return (
+      <div
+        className={`w-16 h-[3px] rounded-full bg-[#FDE047]/70 mb-2.5 origin-left ${cls}`}
+        style={{ animation: drawn ? "underline-draw 0.45s ease-out 0.1s forwards" : "none", transform: drawn ? undefined : "scaleX(0)" }}
+      />
+    );
+  };
+
+  const mkBqStyle = (shadow?: string) => cardAnimation === "highlight"
+    ? {
+        ...(shadow ? { textShadow: shadow } : {}),
+        backgroundImage: "linear-gradient(transparent 58%, rgba(253,224,71,0.4) 58%)",
+        backgroundRepeat: "no-repeat" as const,
+        backgroundSize: drawn ? "100% 100%" : "0% 100%",
+        backgroundPosition: "left 58%",
+        opacity: drawn ? 1 : 0,
+        transition: "background-size 0.8s ease-out 0.2s, opacity 0.3s ease-out",
+      }
+    : {
+        ...(shadow ? { textShadow: shadow } : {}),
+        animation: drawn ? "fade-up 0.4s ease-out 0.3s both" : "none",
+        opacity: drawn ? undefined : 0,
+      };
+
   // 책표지 전용 레이아웃 — 세로 판형(3:4), ref-03~05 스타일
   if (!usePhoto && cardBg === "cover" && underline.book.cover_url) {
     const showTitle = ["title", "title-author", "full", "full-author"].includes(bookDisplay);
@@ -104,13 +145,10 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
 
             {/* 인용문 — 남은 공간, 하단 정렬 */}
             <div className={`flex-1 flex flex-col justify-end ${textAlign} ${itemsAlign}`}>
-              <div
-                className={`w-16 h-[3px] rounded-full bg-[#FDE047]/70 mb-2.5 origin-left ${ca === "center" ? "mx-auto" : ca === "right" ? "ml-auto" : ""}`}
-                style={{ animation: drawn ? "underline-draw 0.45s ease-out 0.1s forwards" : "none", transform: drawn ? undefined : "scaleX(0)" }}
-              />
+              {mkBar()}
               <blockquote
                 className={`${quoteFont} ${textAlign} text-white font-semibold leading-[1.55] tracking-[-0.03em] break-keep line-clamp-5 ${quoteTextSize(underline.content.length, compact ?? false)}`}
-                style={{ textShadow: "0 1px 8px rgba(0,0,0,0.5)", animation: drawn ? "fade-up 0.4s ease-out 0.3s both" : "none", opacity: drawn ? undefined : 0 }}
+                style={mkBqStyle("0 1px 8px rgba(0,0,0,0.5)")}
               >
                 {underline.content}
               </blockquote>
@@ -157,13 +195,10 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
             href={`/underline/${underline.id}`}
             className="absolute inset-x-0 bottom-4 px-5 flex flex-col justify-end"
           >
-            <div
-              className="w-16 h-[3px] rounded-full bg-[#FDE047]/70 mb-2.5 origin-left"
-              style={{ animation: drawn ? "underline-draw 0.45s ease-out 0.1s forwards" : "none", transform: drawn ? undefined : "scaleX(0)" }}
-            />
+            {mkBar("")}
             <blockquote
               className={`${quoteFont} text-left text-white font-semibold leading-[1.55] tracking-[-0.03em] break-keep ${compact ? "text-[13px] line-clamp-3" : "text-[15px] line-clamp-5"}`}
-              style={{ animation: drawn ? "fade-up 0.4s ease-out 0.3s both" : "none", opacity: drawn ? undefined : 0 }}
+              style={mkBqStyle()}
             >
               {underline.content}
             </blockquote>
@@ -253,13 +288,10 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
           va === "top" ? "pt-5" : va === "center" ? "" : bookDisplay !== "none" ? "pb-[3.75rem]" : "pb-4"
         } ${quoteAlign} bottom-4`}
       >
-        <div
-          className={`w-16 h-[3px] rounded-full bg-[#FDE047]/70 mb-2.5 origin-left ${ca === "center" ? "mx-auto" : ca === "right" ? "ml-auto" : ""}`}
-          style={{ animation: drawn ? "underline-draw 0.45s ease-out 0.1s forwards" : "none", transform: drawn ? undefined : "scaleX(0)" }}
-        />
+        {mkBar()}
         <blockquote
           className={`${quoteFont} text-white font-semibold leading-[1.55] tracking-[-0.03em] break-keep ${quoteTextSize(underline.content.length, compact ?? false)}`}
-          style={{ textShadow: "0 1px 8px rgba(0,0,0,0.6)", animation: drawn ? "fade-up 0.4s ease-out 0.3s both" : "none", opacity: drawn ? undefined : 0 }}
+          style={mkBqStyle("0 1px 8px rgba(0,0,0,0.6)")}
         >
           {underline.content}
         </blockquote>
