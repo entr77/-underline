@@ -43,20 +43,25 @@ HEADERS = {
     "Content-Type": "application/json",
 }
 
-EMOTION_TAGS = ["위로", "사랑", "성장", "철학", "사회", "유머"]
+EMOTION_TAGS = ["위로", "사랑", "인생", "성장", "비즈니스", "재테크", "테크/AI", "사회", "육아", "종교", "유머"]
 BATCH = 20
 
 
 def classify(contents: list[str]) -> list[str]:
     lines = "\n".join(f"{i+1}. {c}" for i, c in enumerate(contents))
     prompt = f"""다음 밑줄 문장들을 각각 아래 태그 중 하나로 분류하세요.
-태그: 위로, 사랑, 성장, 철학, 사회, 유머
+태그: 위로, 사랑, 인생, 성장, 비즈니스, 재테크, 테크/AI, 사회, 육아, 종교, 유머
 
 위로: 공감·위안·혼자가 아님을 느끼게 하는 문장
-사랑: 관계·연애·사람과 사람 사이
-성장: 노력·변화·더 나아지기
-철학: 존재·의미·삶의 본질에 대한 생각
-사회: 돈·일·세상·구조에 대한 시각
+사랑: 연애·이별·사람 사이 감정
+인생: 존재·삶의 의미·철학적 통찰
+성장: 노력·변화·자기계발·더 나아지기
+비즈니스: 창업·경영·마케팅·직장·리더십
+재테크: 투자·부동산·돈·경제적 자유
+테크/AI: 기술·AI·디지털 트렌드·미래
+사회: 정치·역사·사회구조·세상 읽기
+육아: 아이·부모·가족·양육
+종교: 신앙·영성·명상·마음 수련
 유머: 재치·웃음·가벼운 통찰
 
 {lines}
@@ -90,17 +95,14 @@ JSON 배열만 반환. 순서 유지. 예: ["위로", "성장", "철학"]"""
         return [""] * len(contents)
 
 
-def fetch_untagged() -> list[dict]:
-    # tags 컬럼이 빈 배열인 밑줄만 가져옴
-    # PostgREST: 빈 배열은 eq.{} 대신 직접 SQL 필터 사용
+def fetch_all() -> list[dict]:
     r = requests.get(
         f"{SUPABASE_URL}/rest/v1/underlines",
-        headers={**HEADERS, "Prefer": ""},
+        headers=HEADERS,
         params={"select": "id,content", "limit": "1000"},
     )
     r.raise_for_status()
-    # Python에서 빈 tags 필터링
-    return [row for row in r.json() if not row.get("tags")]
+    return r.json()
 
 
 def update_tags(underline_id: str, tags: list[str]):
@@ -115,8 +117,8 @@ def update_tags(underline_id: str, tags: list[str]):
 
 
 def main():
-    rows = fetch_untagged()
-    print(f"태그 없는 밑줄 {len(rows)}개 발견\n")
+    rows = fetch_all()
+    print(f"밑줄 {len(rows)}개 재분류\n")
 
     for i in range(0, len(rows), BATCH):
         batch = rows[i:i + BATCH]
