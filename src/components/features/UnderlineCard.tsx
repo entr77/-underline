@@ -8,6 +8,7 @@ import type { Underline } from "@/types";
 type Props = {
   underline: Underline;
   compact?: boolean;
+  preview?: boolean;
 };
 
 function quoteTextSize(len: number, compact: boolean): string {
@@ -30,7 +31,7 @@ function timeAgo(dateStr: string) {
   return new Date(dateStr).toLocaleDateString("ko-KR");
 }
 
-export default function UnderlineCard({ underline, compact }: Props) {
+export default function UnderlineCard({ underline, compact, preview }: Props) {
   const usePhoto = underline.card_style === "photo" && !!underline.image_url;
   const bookDisplay = underline.book_display ?? "full";
   const cardBg = underline.card_bg ?? "cover";
@@ -91,20 +92,22 @@ export default function UnderlineCard({ underline, compact }: Props) {
           </Link>
 
           {/* 하단 바 */}
-          <div className="h-11 flex items-center justify-between flex-shrink-0">
-            <div className="flex items-center gap-1.5">
-              <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-white/80 text-[10px] font-medium flex-shrink-0">
-                {underline.user.username[0].toUpperCase()}
+          {!preview && (
+            <div className="h-11 flex items-center justify-between flex-shrink-0">
+              <div className="flex items-center gap-1.5">
+                <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center text-white/80 text-[10px] font-medium flex-shrink-0">
+                  {underline.user.username[0].toUpperCase()}
+                </div>
+                <span className="text-white/60 text-[11px]">{underline.user.username}</span>
               </div>
-              <span className="text-white/60 text-[11px]">{underline.user.username}</span>
+              <LikeButton
+                underlineId={underline.id}
+                initialLiked={underline.is_liked ?? false}
+                initialCount={underline.like_count}
+                size="sm"
+              />
             </div>
-            <LikeButton
-              underlineId={underline.id}
-              initialLiked={underline.is_liked ?? false}
-              initialCount={underline.like_count}
-              size="sm"
-            />
-          </div>
+          )}
         </div>
       </article>
     );
@@ -200,23 +203,25 @@ export default function UnderlineCard({ underline, compact }: Props) {
       </Link>
 
       {/* 하단 크림 바 */}
-      <div className="absolute bottom-0 inset-x-0 h-11 bg-[#F7F3EE]/92 px-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded-full bg-[var(--color-forest)]/20 flex items-center justify-center text-[var(--color-ink)] text-[10px] font-medium flex-shrink-0">
-            {underline.user.username[0].toUpperCase()}
+      {!preview && (
+        <div className="absolute bottom-0 inset-x-0 h-11 bg-[#F7F3EE]/92 px-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-5 h-5 rounded-full bg-[var(--color-forest)]/20 flex items-center justify-center text-[var(--color-ink)] text-[10px] font-medium flex-shrink-0">
+              {underline.user.username[0].toUpperCase()}
+            </div>
+            <span className="text-[var(--color-ink-muted)] text-[11px]">{underline.user.username}</span>
           </div>
-          <span className="text-[var(--color-ink-muted)] text-[11px]">{underline.user.username}</span>
+          <div className="flex items-center gap-2 text-[11px] text-[var(--color-ink-faint)]">
+            <span>{timeAgo(underline.created_at)}</span>
+            <LikeButton
+              underlineId={underline.id}
+              initialLiked={underline.is_liked ?? false}
+              initialCount={underline.like_count}
+              size="sm"
+            />
+          </div>
         </div>
-        <div className="flex items-center gap-2 text-[11px] text-[var(--color-ink-faint)]">
-          <span>{timeAgo(underline.created_at)}</span>
-          <LikeButton
-            underlineId={underline.id}
-            initialLiked={underline.is_liked ?? false}
-            initialCount={underline.like_count}
-            size="sm"
-          />
-        </div>
-      </div>
+      )}
     </article>
   );
 }

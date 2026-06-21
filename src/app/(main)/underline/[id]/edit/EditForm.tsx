@@ -13,8 +13,8 @@ type EditModal = "content" | "page" | "book" | null;
 const BG_GRADIENTS = [
   { css: "linear-gradient(160deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)", label: "달빛" },
   { css: "linear-gradient(160deg, #2d0845 0%, #5c1e91 50%, #c2185b 100%)", label: "새벽" },
-  { css: "linear-gradient(160deg, #0b2027 0%, #203a3a 50%, #2c5364 100%)", label: "안개숲" },
-  { css: "linear-gradient(160deg, #1a0505 0%, #7c1515 50%, #8b4513 100%)", label: "가을" },
+  { css: "linear-gradient(160deg, #0a0a2e 0%, #003973 50%, #005c97 100%)", label: "심해" },
+  { css: "linear-gradient(160deg, #4b134f 0%, #c94b4b 100%)",             label: "장미" },
 ];
 
 const BASE = "https://images.unsplash.com/photo-";
@@ -170,7 +170,7 @@ export default function EditForm({
       {/* 카드 미리보기 */}
       <div className="bg-[var(--color-cream-dark)] px-4 pt-5 pb-4">
         <div className="max-w-[380px] mx-auto pointer-events-none select-none">
-          <UnderlineCard underline={previewUnderline} />
+          <UnderlineCard underline={previewUnderline} preview />
         </div>
       </div>
 
