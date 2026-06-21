@@ -30,6 +30,7 @@ type SupabaseUnderlineRow = {
   card_bg_url: string | null;
   card_font: string | null;
   card_align: string | null;
+  card_valign: string | null;
   is_public: boolean;
   like_count: number;
   created_at: string;
@@ -131,7 +132,7 @@ export default async function ProfilePage({ params }: Props) {
       const { data: ulData } = await supabase
         .from("underlines")
         .select(
-          "id, content, page_number, image_url, card_style, book_display, card_bg, card_bg_url, card_font, card_align, is_public, like_count, created_at, book:books(id, kakao_id, title, author, publisher, cover_url)"
+          "id, content, page_number, image_url, card_style, book_display, card_bg, card_bg_url, card_font, card_align, card_valign, is_public, like_count, created_at, book:books(id, kakao_id, title, author, publisher, cover_url)"
         )
         .eq("user_id", userData.id)
         .eq("is_public", true)
@@ -150,6 +151,7 @@ export default async function ProfilePage({ params }: Props) {
           card_bg_url: row.card_bg_url ?? undefined,
           card_font: (row.card_font ?? "serif") as import("@/types").CardFont,
           card_align: (row.card_align ?? "center") as import("@/types").CardAlign,
+          card_valign: (row.card_valign ?? "bottom") as import("@/types").CardVAlign,
           is_public: row.is_public,
           like_count: row.like_count,
           created_at: row.created_at,

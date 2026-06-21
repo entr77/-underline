@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { updateUnderline } from "@/app/actions/underline";
 import Alert from "@/components/ui/Alert";
 import UnderlineCard from "@/components/features/UnderlineCard";
-import type { Underline, BookDisplay, CardBg, CardStyle, CardFont, CardAlign } from "@/types";
+import type { Underline, BookDisplay, CardBg, CardStyle, CardFont, CardAlign, CardVAlign } from "@/types";
 
 const MAX_CONTENT = 300;
 type DisplayMode = "none" | "cover" | "title" | "full";
@@ -43,6 +43,7 @@ type Props = {
   initialCardBgUrl?: string;
   initialCardFont: string;
   initialCardAlign: string;
+  initialCardVAlign: string;
   bookTitle: string;
   bookAuthor: string;
   bookCoverUrl: string;
@@ -53,7 +54,7 @@ type Props = {
 
 export default function EditForm({
   id, initialContent, initialPageNumber, initialBookDisplay,
-  initialCardBg, initialCardBgUrl, initialCardFont, initialCardAlign,
+  initialCardBg, initialCardBgUrl, initialCardFont, initialCardAlign, initialCardVAlign,
   bookTitle, bookAuthor, bookCoverUrl, username,
   hasImage, imageUrl,
 }: Props) {
@@ -88,6 +89,11 @@ export default function EditForm({
     (["left", "center", "right"] as CardAlign[]).includes(initialCardAlign as CardAlign)
       ? (initialCardAlign as CardAlign)
       : "center"
+  );
+  const [cardVAlign, setCardVAlign] = useState<CardVAlign>(
+    (["top", "center", "bottom"] as CardVAlign[]).includes(initialCardVAlign as CardVAlign)
+      ? (initialCardVAlign as CardVAlign)
+      : "bottom"
   );
   const cardStyle: CardStyle = cardBg === "photo" ? "photo" : "text";
 
@@ -135,6 +141,7 @@ export default function EditForm({
     card_bg_url: cardBgUrl ?? undefined,
     card_font: cardFont,
     card_align: cardAlign,
+    card_valign: cardVAlign,
     is_public: true,
     like_count: 0,
     is_liked: false,
@@ -155,6 +162,7 @@ export default function EditForm({
       cardBgUrl,
       cardFont,
       cardAlign,
+      cardVAlign,
     });
     setSaving(false);
     if (result.error) { setError(result.error); return; }
@@ -260,6 +268,10 @@ export default function EditForm({
             <span className="text-xs text-[var(--color-ink-faint)]">·</span>
             <span className="text-sm font-medium text-[var(--color-ink)]">
               {cardAlign === "left" ? "좌" : cardAlign === "right" ? "우" : "가운데"}
+            </span>
+            <span className="text-xs text-[var(--color-ink-faint)]">·</span>
+            <span className="text-sm font-medium text-[var(--color-ink)]">
+              {cardVAlign === "top" ? "상" : cardVAlign === "center" ? "중" : "하"}
             </span>
             <svg className="text-[var(--color-ink-faint)]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
           </div>
@@ -465,6 +477,27 @@ export default function EditForm({
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                         <path d={icon}/>
                       </svg>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {/* 위치 (상/중/하) */}
+              <div className="space-y-2">
+                <p className="text-xs text-[var(--color-ink-faint)]">위치</p>
+                <div className="flex gap-2">
+                  {([
+                    { value: "top"    as CardVAlign, label: "상", icon: <><line x1="4" y1="4" x2="20" y2="4"/><rect x="7" y="8" width="10" height="3" rx="1"/><line x1="7" y1="14" x2="17" y2="14"/></> },
+                    { value: "center" as CardVAlign, label: "중", icon: <><line x1="7" y1="4" x2="17" y2="4"/><rect x="7" y="10.5" width="10" height="3" rx="1"/><line x1="7" y1="20" x2="17" y2="20"/></> },
+                    { value: "bottom" as CardVAlign, label: "하", icon: <><line x1="7" y1="10" x2="17" y2="10"/><rect x="7" y="13" width="10" height="3" rx="1"/><line x1="4" y1="20" x2="20" y2="20"/></> },
+                  ]).map(({ value, label, icon }) => (
+                    <button key={value} type="button" onClick={() => setCardVAlign(value)}
+                      className={`flex-1 py-3 rounded-2xl border flex flex-col items-center justify-center gap-1 transition-all ${
+                        cardVAlign === value
+                          ? "border-[var(--color-forest)] bg-[var(--color-forest)]/6 text-[var(--color-forest)]"
+                          : "border-[var(--color-border)] text-[var(--color-ink-faint)]"
+                      }`}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">{icon}</svg>
+                      <span className="text-[11px] font-medium">{label}</span>
                     </button>
                   ))}
                 </div>

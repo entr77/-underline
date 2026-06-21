@@ -374,12 +374,12 @@ export default function NewUnderlinePage() {
   // ─── Upload step ────────────────────────────────────────────────────────────
   if (step === "upload") {
     return (
-      <div className="flex flex-col h-full space-y-5">
+      <div className="flex flex-col h-full space-y-4">
         <h1 className="font-serif text-xl text-[var(--color-ink)]">밑줄 남기기</h1>
 
         {error && <Alert variant="error">{error}</Alert>}
 
-        <label className="flex-1 min-h-[300px] border-2 border-dashed border-[var(--color-border)] rounded-2xl flex flex-col items-center justify-center gap-4 bg-white cursor-pointer hover:border-[var(--color-forest)] transition-colors">
+        <label className="flex-1 min-h-[220px] border-2 border-dashed border-[var(--color-border)] rounded-2xl flex flex-col items-center justify-center gap-4 bg-white cursor-pointer hover:border-[var(--color-forest)] transition-colors">
           <input
             type="file"
             accept="image/*"
@@ -394,12 +394,30 @@ export default function NewUnderlinePage() {
           </div>
           <div className="text-center">
             <p className="font-medium text-[var(--color-ink)]">책 페이지 사진 찍기</p>
-            <p className="text-sm text-[var(--color-ink-faint)] mt-1">또는 갤러리에서 선택</p>
+            <p className="text-sm text-[var(--color-ink-faint)] mt-1">밑줄을 자동으로 인식해요</p>
           </div>
         </label>
-        <p className="text-xs text-center text-[var(--color-ink-faint)]">
-          밑줄이 잘 보이게 책을 평평하게 펼쳐서 찍어주세요
-        </p>
+
+        <div className="flex items-center gap-3">
+          <div className="flex-1 h-px bg-[var(--color-border)]" />
+          <span className="text-xs text-[var(--color-ink-faint)]">또는</span>
+          <div className="flex-1 h-px bg-[var(--color-border)]" />
+        </div>
+
+        <button
+          onClick={() => {
+            setSelectedTexts([""]);
+            setCardBg("cover");
+            setStep("book");
+          }}
+          className="w-full py-4 rounded-2xl border border-[var(--color-border)] bg-white flex items-center justify-center gap-3 text-[var(--color-ink-muted)] hover:border-[var(--color-forest)] hover:text-[var(--color-forest)] transition-colors"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+          </svg>
+          <span className="font-medium">기억나는 문장 직접 입력</span>
+        </button>
       </div>
     );
   }

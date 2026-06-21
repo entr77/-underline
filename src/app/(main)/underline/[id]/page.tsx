@@ -24,6 +24,7 @@ type SupabaseUnderlineRow = {
   card_bg_url: string | null;
   card_font: string | null;
   card_align: string | null;
+  card_valign: string | null;
   is_public: boolean;
   like_count: number;
   created_at: string;
@@ -108,6 +109,7 @@ export default async function UnderlineDetailPage({ params }: Props) {
     card_bg_url: row.card_bg_url ?? undefined,
     card_font: (row.card_font ?? "serif") as import("@/types").CardFont,
     card_align: (row.card_align ?? "center") as import("@/types").CardAlign,
+    card_valign: (row.card_valign ?? "bottom") as import("@/types").CardVAlign,
     is_public: row.is_public,
     like_count: row.like_count,
     is_liked: isLiked,

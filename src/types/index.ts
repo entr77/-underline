@@ -22,6 +22,7 @@ export type BookDisplay = "none" | "cover" | "title" | "title-author" | "full" |
 export type CardBg = "cover" | "photo" | "search" | "color" | "none";
 export type CardFont = "serif" | "sans";
 export type CardAlign = "left" | "center" | "right";
+export type CardVAlign = "top" | "center" | "bottom";
 
 export type Underline = {
   id: string;
@@ -36,6 +37,7 @@ export type Underline = {
   card_bg_url?: string;
   card_font?: CardFont;
   card_align?: CardAlign;
+  card_valign?: CardVAlign;
   is_public: boolean;
   like_count: number;
   is_liked?: boolean;
