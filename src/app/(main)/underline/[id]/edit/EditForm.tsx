@@ -147,41 +147,49 @@ export default function EditForm({
       </div>
 
       {/* 카드 미리보기 */}
-      <div className="bg-[#1C1917] px-8 pt-8 pb-2">
-        <div className="max-w-[280px] mx-auto pointer-events-none select-none">
+      <div className="bg-[#1C1917] px-5 pt-4 pb-1">
+        <div className="max-w-[260px] mx-auto pointer-events-none select-none">
           <UnderlineCard underline={previewUnderline} />
         </div>
       </div>
 
       {/* 배경 선택 스트립 */}
       <div className="bg-[#1C1917] overflow-x-auto" style={{ scrollbarWidth: "none" }}>
-        <div className="flex gap-2 px-6 py-4 w-max">
+        <div className="flex gap-1.5 px-4 py-3 w-max">
+
+          {/* 없음 */}
           <button
             type="button"
             onClick={() => { setCardBg("none"); setCardBgUrl(null); }}
-            className={`w-14 h-14 rounded-2xl flex-shrink-0 flex items-center justify-center transition-all ${cardBg === "none" ? "ring-2 ring-white ring-offset-2 ring-offset-[#1C1917]" : "opacity-50 hover:opacity-80"}`}
+            className={`w-11 h-11 rounded-xl flex-shrink-0 flex flex-col items-center justify-center gap-0.5 transition-all ${cardBg === "none" ? "ring-2 ring-white ring-offset-1 ring-offset-[#1C1917]" : "opacity-50 hover:opacity-80"}`}
             style={{ background: "#2A2520" }}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            <span className="text-[9px] text-white/70 font-medium leading-none">없음</span>
           </button>
+
+          {/* 사진 */}
           {hasImage && imageUrl && (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={imageUrl} alt="사진" onClick={() => { setCardBg("photo"); setCardBgUrl(null); }}
-              className={`w-14 h-14 rounded-2xl flex-shrink-0 object-cover cursor-pointer transition-all ${cardBg === "photo" ? "ring-2 ring-white ring-offset-2 ring-offset-[#1C1917]" : "opacity-50 hover:opacity-80"}`}
+              className={`w-11 h-11 rounded-xl flex-shrink-0 object-cover cursor-pointer transition-all ${cardBg === "photo" ? "ring-2 ring-white ring-offset-1 ring-offset-[#1C1917]" : "opacity-50 hover:opacity-80"}`}
             />
           )}
+
+          {/* 단색 */}
           {BG_COLORS.map(({ hex }) => (
             <button key={hex} type="button" onClick={() => { setCardBg("color"); setCardBgUrl(hex); }}
-              className={`w-14 h-14 rounded-2xl flex-shrink-0 transition-all ${cardBg === "color" && cardBgUrl === hex ? "ring-2 ring-white ring-offset-2 ring-offset-[#1C1917]" : "opacity-50 hover:opacity-80"}`}
+              className={`w-11 h-11 rounded-xl flex-shrink-0 transition-all ${cardBg === "color" && cardBgUrl === hex ? "ring-2 ring-white ring-offset-1 ring-offset-[#1C1917]" : "opacity-50 hover:opacity-80"}`}
               style={{ background: hex }}
             />
           ))}
+
+          {/* Unsplash 이미지 */}
           {bgLoading
-            ? Array.from({ length: 8 }).map((_, i) => <div key={i} className="w-14 h-14 rounded-2xl flex-shrink-0 bg-white/10 animate-pulse" />)
+            ? Array.from({ length: 8 }).map((_, i) => <div key={i} className="w-11 h-11 rounded-xl flex-shrink-0 bg-white/10 animate-pulse" />)
             : bgImages.map((img, i) => (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img key={i} src={img.thumb} alt="" onClick={() => { setCardBg("search"); setCardBgUrl(img.url); }}
-                  className={`w-14 h-14 rounded-2xl flex-shrink-0 object-cover cursor-pointer transition-all ${cardBg === "search" && cardBgUrl === img.url ? "ring-2 ring-white ring-offset-2 ring-offset-[#1C1917]" : "opacity-50 hover:opacity-80"}`}
+                  className={`w-11 h-11 rounded-xl flex-shrink-0 object-cover cursor-pointer transition-all ${cardBg === "search" && cardBgUrl === img.url ? "ring-2 ring-white ring-offset-1 ring-offset-[#1C1917]" : "opacity-50 hover:opacity-80"}`}
                 />
               ))
           }
