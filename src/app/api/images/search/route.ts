@@ -8,11 +8,13 @@ async function extractKeywords(text: string): Promise<string> {
     max_tokens: 60,
     messages: [{
       role: "user",
-      content: `Extract 3-5 English keywords from this text for image search. Output ONLY the keywords separated by spaces, no explanation.\n\nText: ${text}`,
+      content: `You are choosing a background photo for a book quote card. Extract 2-3 English keywords that capture the MOOD and THEME of this passage — words that would find beautiful, atmospheric stock photos (nature, objects, abstract, scenes). Avoid generic words. Output ONLY the keywords separated by spaces.
+
+Passage: ${text}`,
     }],
   });
   const raw = msg.content[0].type === "text" ? msg.content[0].text.trim() : "";
-  return raw || text.slice(0, 50);
+  return raw || "book reading atmosphere";
 }
 
 export async function GET(request: NextRequest) {
@@ -39,7 +41,7 @@ export async function GET(request: NextRequest) {
 
     const url = new URL("https://api.unsplash.com/search/photos");
     url.searchParams.set("query", query);
-    url.searchParams.set("per_page", "12");
+    url.searchParams.set("per_page", "24");
     url.searchParams.set("orientation", "squarish");
 
     const res = await fetch(url.toString(), {
