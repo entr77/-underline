@@ -82,6 +82,7 @@ type SupabaseUnderlineRow = {
   card_font: string | null;
   card_align: string | null;
   card_valign: string | null;
+  card_animation: string | null;
   is_public: boolean;
   like_count: number;
   created_at: string;
@@ -116,6 +117,7 @@ function rowToUnderline(row: SupabaseUnderlineRow, likedIds: Set<string>): Under
     card_font: (row.card_font ?? "serif") as import("@/types").CardFont,
     card_align: (row.card_align ?? "center") as import("@/types").CardAlign,
     card_valign: (row.card_valign ?? "bottom") as import("@/types").CardVAlign,
+    card_animation: (row.card_animation ?? "draw") as import("@/types").CardAnimation,
     tags: row.tags ?? [],
     is_public: row.is_public,
     like_count: row.like_count,
