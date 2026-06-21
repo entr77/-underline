@@ -18,6 +18,8 @@ type SupabaseUnderlineRow = {
   book_display: string | null;
   card_bg: string | null;
   card_bg_url: string | null;
+  card_font: string | null;
+  card_align: string | null;
   is_public: boolean;
   like_count: number;
   created_at: string;
@@ -56,7 +58,7 @@ export default async function BookDetailPage({ params }: Props) {
 
   const { data: ulData } = await supabase
     .from("underlines")
-    .select("id, content, page_number, image_url, card_style, book_display, is_public, like_count, created_at, user:users!underlines_user_id_fkey(id, username, bio, avatar_url, tags)")
+    .select("id, content, page_number, image_url, card_style, book_display, card_bg, card_bg_url, card_font, card_align, is_public, like_count, created_at, user:users!underlines_user_id_fkey(id, username, bio, avatar_url, tags)")
     .eq("book_id", id)
     .eq("is_public", true)
     .order("created_at", { ascending: false });
@@ -73,6 +75,8 @@ export default async function BookDetailPage({ params }: Props) {
         book_display: (r.book_display ?? "full") as import("@/types").BookDisplay,
         card_bg: (r.card_bg ?? "cover") as import("@/types").CardBg,
         card_bg_url: r.card_bg_url ?? undefined,
+        card_font: (r.card_font ?? "serif") as import("@/types").CardFont,
+        card_align: (r.card_align ?? "center") as import("@/types").CardAlign,
         is_public: r.is_public,
         like_count: r.like_count,
         created_at: r.created_at,
