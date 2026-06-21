@@ -19,13 +19,7 @@ type BookDisplay = "none" | "cover" | "title" | "title-author" | "full" | "full-
 type DisplayMode = "none" | "cover" | "title" | "full";
 type CardBg = "cover" | "photo" | "search" | "color" | "none";
 
-const BG_COLORS = [
-  { hex: "#1C1917", label: "잉크" },
-  { hex: "#1E3A2F", label: "숲" },
-  { hex: "#1A2744", label: "네이비" },
-  { hex: "#2C1A0E", label: "세피아" },
-  { hex: "#3B1218", label: "버건디" },
-];
+
 
 const BG_GRADIENTS = [
   { css: "linear-gradient(160deg, #0a1628 0%, #1e3a5f 100%)",              label: "밤바다" },
@@ -626,21 +620,6 @@ export default function NewUnderlinePage() {
 
             {/* 구분선 */}
             <div className="w-px self-stretch my-2 bg-[var(--color-border)] flex-shrink-0" />
-
-            {/* 단색 */}
-            {BG_COLORS.map(({ hex }) => (
-              <button
-                key={hex}
-                type="button"
-                onClick={() => { setCardBg("color"); setCardBgUrl(hex); }}
-                className={`w-14 h-14 rounded-2xl flex-shrink-0 border-2 transition-all ${
-                  cardBg === "color" && cardBgUrl === hex
-                    ? "border-[var(--color-forest)]"
-                    : "border-transparent opacity-60 hover:opacity-100"
-                }`}
-                style={{ background: hex }}
-              />
-            ))}
 
             {/* 그라디언트 */}
             {BG_GRADIENTS.map(({ css }) => (
