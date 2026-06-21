@@ -20,6 +20,7 @@ type DisplayMode = "none" | "cover" | "title" | "full";
 type CardBg = "cover" | "photo" | "search" | "color" | "none";
 type CardFont = "serif" | "sans";
 type CardAlign = "left" | "center" | "right";
+type CardVAlign = "top" | "center" | "bottom";
 
 const MAX_CONTENT = 300;
 
@@ -33,6 +34,7 @@ type ThemePreset = {
   cardBgUrl?: string;
   cardFont: CardFont;
   cardAlign: CardAlign;
+  cardVAlign: CardVAlign;
   displayMode: DisplayMode;
   showAuthor: boolean;
 };
@@ -45,11 +47,11 @@ const BG_GRADIENTS = [
 ];
 
 const THEMES: ThemePreset[] = [
-  { id: "book",     label: "북카드",    desc: "책표지 배경", cardBg: "cover",  cardFont: "serif", cardAlign: "center", displayMode: "full",  showAuthor: false },
-  { id: "dark",     label: "다크",      desc: "어두운 배경", cardBg: "color",  cardBgUrl: "#1C1917",           cardFont: "serif", cardAlign: "left",   displayMode: "title", showAuthor: true  },
-  { id: "gradient", label: "그라디언트", desc: "컬러 배경",  cardBg: "color",  cardBgUrl: BG_GRADIENTS[0].css, cardFont: "serif", cardAlign: "center", displayMode: "title", showAuthor: false },
-  { id: "photo",    label: "밑줄",      desc: "밑줄 사진",  cardBg: "photo",  cardFont: "serif", cardAlign: "left",   displayMode: "title", showAuthor: false },
-  { id: "scene",    label: "포토",      desc: "배경 사진",  cardBg: "search", cardFont: "serif", cardAlign: "center", displayMode: "title", showAuthor: false },
+  { id: "book",     label: "북카드",    desc: "책표지 배경", cardBg: "cover",  cardFont: "serif", cardAlign: "center", cardVAlign: "bottom", displayMode: "full",  showAuthor: false },
+  { id: "dark",     label: "다크",      desc: "어두운 배경", cardBg: "color",  cardBgUrl: "#1C1917",           cardFont: "serif", cardAlign: "left",   cardVAlign: "center", displayMode: "title", showAuthor: true  },
+  { id: "gradient", label: "그라디언트", desc: "컬러 배경",  cardBg: "color",  cardBgUrl: BG_GRADIENTS[0].css, cardFont: "serif", cardAlign: "center", cardVAlign: "center", displayMode: "title", showAuthor: false },
+  { id: "photo",    label: "밑줄",      desc: "밑줄 사진",  cardBg: "photo",  cardFont: "serif", cardAlign: "left",   cardVAlign: "bottom", displayMode: "title", showAuthor: false },
+  { id: "scene",    label: "포토",      desc: "배경 사진",  cardBg: "search", cardFont: "serif", cardAlign: "center", cardVAlign: "bottom", displayMode: "title", showAuthor: false },
 ];
 
 const BASE = "https://images.unsplash.com/photo-";
@@ -178,6 +180,7 @@ export default function NewUnderlinePage() {
   const bgFileInputRef = useRef<HTMLInputElement>(null);
   const [cardFont, setCardFont] = useState<CardFont>("serif");
   const [cardAlign, setCardAlign] = useState<CardAlign>("center");
+  const [cardVAlign, setCardVAlign] = useState<CardVAlign>("bottom");
   const [selectedTheme, setSelectedTheme] = useState<ThemeId>("book");
 
   function applyTheme(themeId: ThemeId) {
@@ -188,6 +191,7 @@ export default function NewUnderlinePage() {
     setCardBgUrl(theme.cardBgUrl ?? null);
     setCardFont(theme.cardFont);
     setCardAlign(theme.cardAlign);
+    setCardVAlign(theme.cardVAlign);
     setDisplayMode(theme.displayMode);
     setShowAuthor(theme.showAuthor);
   }
@@ -390,6 +394,7 @@ export default function NewUnderlinePage() {
         cardBgUrl: cardBgUrl ?? undefined,
         cardFont,
         cardAlign,
+        cardVAlign,
       });
 
       if (result && "error" in result) {

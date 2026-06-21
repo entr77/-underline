@@ -21,15 +21,15 @@ const BG_GRADIENTS = [
 type ThemeId = "book" | "dark" | "gradient" | "photo" | "scene";
 type ThemePreset = {
   id: ThemeId; label: string; desc: string;
-  cardBg: CardBg; cardBgUrl?: string; cardFont: CardFont; cardAlign: CardAlign;
+  cardBg: CardBg; cardBgUrl?: string; cardFont: CardFont; cardAlign: CardAlign; cardVAlign: CardVAlign;
   displayMode: DisplayMode; showAuthor: boolean;
 };
 const THEMES: ThemePreset[] = [
-  { id: "book",     label: "북카드",    desc: "책표지 배경", cardBg: "cover",  cardFont: "serif", cardAlign: "center", displayMode: "full",  showAuthor: false },
-  { id: "dark",     label: "다크",      desc: "어두운 배경", cardBg: "color",  cardBgUrl: "#1C1917",           cardFont: "serif", cardAlign: "left",   displayMode: "title", showAuthor: true  },
-  { id: "gradient", label: "그라디언트", desc: "컬러 배경",  cardBg: "color",  cardBgUrl: BG_GRADIENTS[0].css, cardFont: "serif", cardAlign: "center", displayMode: "title", showAuthor: false },
-  { id: "photo",    label: "밑줄",      desc: "밑줄 사진",  cardBg: "photo",  cardFont: "serif", cardAlign: "left",   displayMode: "title", showAuthor: false },
-  { id: "scene",    label: "포토",      desc: "배경 사진",  cardBg: "search", cardFont: "serif", cardAlign: "center", displayMode: "title", showAuthor: false },
+  { id: "book",     label: "북카드",    desc: "책표지 배경", cardBg: "cover",  cardFont: "serif", cardAlign: "center", cardVAlign: "bottom", displayMode: "full",  showAuthor: false },
+  { id: "dark",     label: "다크",      desc: "어두운 배경", cardBg: "color",  cardBgUrl: "#1C1917",           cardFont: "serif", cardAlign: "left",   cardVAlign: "center", displayMode: "title", showAuthor: true  },
+  { id: "gradient", label: "그라디언트", desc: "컬러 배경",  cardBg: "color",  cardBgUrl: BG_GRADIENTS[0].css, cardFont: "serif", cardAlign: "center", cardVAlign: "center", displayMode: "title", showAuthor: false },
+  { id: "photo",    label: "밑줄",      desc: "밑줄 사진",  cardBg: "photo",  cardFont: "serif", cardAlign: "left",   cardVAlign: "bottom", displayMode: "title", showAuthor: false },
+  { id: "scene",    label: "포토",      desc: "배경 사진",  cardBg: "search", cardFont: "serif", cardAlign: "center", cardVAlign: "bottom", displayMode: "title", showAuthor: false },
 ];
 
 const BASE = "https://images.unsplash.com/photo-";
@@ -121,8 +121,9 @@ export default function EditForm({
     const bg = (["cover", "photo", "search", "color", "none"] as string[]).includes(initialCardBg) ? initialCardBg as CardBg : "cover";
     const font: CardFont = initialCardFont === "sans" ? "sans" : "serif";
     const align: CardAlign = (["left", "center", "right"] as string[]).includes(initialCardAlign) ? initialCardAlign as CardAlign : "center";
+    const vAlign: CardVAlign = (["top", "center", "bottom"] as string[]).includes(initialCardVAlign) ? initialCardVAlign as CardVAlign : "bottom";
     for (const t of THEMES) {
-      if (t.cardBg === bg && t.cardFont === font && t.cardAlign === align && t.displayMode === initMode) return t.id;
+      if (t.cardBg === bg && t.cardFont === font && t.cardAlign === align && t.cardVAlign === vAlign && t.displayMode === initMode) return t.id;
     }
     return null;
   });
@@ -135,6 +136,7 @@ export default function EditForm({
     setCardBgUrl(theme.cardBgUrl ?? null);
     setCardFont(theme.cardFont);
     setCardAlign(theme.cardAlign);
+    setCardVAlign(theme.cardVAlign);
     setDisplayMode(theme.displayMode);
     setShowAuthor(theme.showAuthor);
     setEditModal(null);
