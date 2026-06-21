@@ -34,6 +34,7 @@ export type BookResult = {
   publisher: string;
   thumbnail: string;
   isbn: string;
+  genre?: string;
   strategy: "header" | "footer" | "first-line" | "last-line" | "claude-text" | "claude-multi" | "gpt-multi" | "gemini-multi" | "google-books" | "claude-image";
 } | null;
 

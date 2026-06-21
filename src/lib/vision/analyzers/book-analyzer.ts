@@ -1,5 +1,6 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import type { ImageInput, OcrContext, BookResult } from "../types";
+import { kakaoToGenre } from "@/lib/kakaoToGenre";
 
 type BookStrategy = "header" | "footer" | "claude-multi" | "gpt-multi" | "gemini-multi" | "google-books" | "claude-image";
 
@@ -9,6 +10,7 @@ type KakaoDoc = {
   publisher: string;
   thumbnail: string;
   isbn: string;
+  category_name?: string;
 };
 
 const PAGE_NUMBER_RE = /^\d{1,4}$/;
@@ -410,6 +412,7 @@ JSON만 반환: {"title": "책 제목", "author": "저자명"}`,
         publisher: doc.publisher ?? "",
         thumbnail: doc.thumbnail ?? "",
         isbn: doc.isbn ?? "",
+        genre: kakaoToGenre(doc.category_name),
         strategy,
       };
     } catch {

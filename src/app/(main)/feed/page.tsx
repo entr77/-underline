@@ -95,6 +95,7 @@ type SupabaseUnderlineRow = {
     author: string;
     publisher: string | null;
     cover_url: string | null;
+    genre: string | null;
   } | null;
 };
 
@@ -129,6 +130,7 @@ function rowToUnderline(row: SupabaseUnderlineRow, likedIds: Set<string>): Under
           author: row.book.author,
           publisher: row.book.publisher ?? undefined,
           cover_url: row.book.cover_url ?? undefined,
+          genre: row.book.genre ?? undefined,
         }
       : { id: "unknown", kakao_id: "", title: "알 수 없는 책", author: "" },
   };
@@ -187,9 +189,9 @@ export default async function FeedPage({ searchParams }: Props) {
     feed = MOCK_FEED;
   }
 
-  // 태그 필터: 유저 tags 배열에 선택한 태그가 포함된 밑줄만 표시
+  // 장르 필터: 책 genre가 선택한 장르와 일치하는 밑줄만 표시
   const filtered = activeTag
-    ? feed.filter((u) => u.user.tags?.includes(activeTag))
+    ? feed.filter((u) => u.book.genre === activeTag)
     : feed;
 
   return (

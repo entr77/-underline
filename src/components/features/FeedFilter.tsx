@@ -2,7 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 
-const FILTER_TAGS = ["전체", "소설", "철학", "에세이", "고전", "심리학"];
+const FILTER_TAGS = ["전체", "소설", "에세이", "인문", "자기계발", "경제/경영", "심리", "역사", "과학"];
 
 export default function FeedFilter() {
   const router = useRouter();

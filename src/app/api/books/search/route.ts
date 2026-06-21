@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { kakaoToGenre } from "@/lib/kakaoToGenre";
 
 export type KakaoBook = {
   kakao_id: string;
@@ -7,6 +8,7 @@ export type KakaoBook = {
   publisher: string;
   cover_url: string;
   isbn: string;
+  genre: string;
 };
 
 type KakaoDocument = {
@@ -15,6 +17,7 @@ type KakaoDocument = {
   publisher: string;
   thumbnail: string;
   isbn: string;
+  category_name?: string;
 };
 
 type KakaoResponse = {
@@ -67,6 +70,7 @@ export async function GET(request: NextRequest) {
         publisher: doc.publisher ?? "",
         cover_url: doc.thumbnail ?? "",
         isbn,
+        genre: kakaoToGenre(doc.category_name),
       };
     });
 

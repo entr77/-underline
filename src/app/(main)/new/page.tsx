@@ -39,6 +39,7 @@ type BookCandidate = {
     publisher: string;
     thumbnail: string;
     isbn: string;
+    genre?: string;
     strategy: string;
   } | null;
   model: "gpt" | "claude" | "gemini";
@@ -55,6 +56,7 @@ type AnalyzeResult = {
     publisher: string;
     thumbnail: string;
     isbn: string;
+    genre?: string;
   } | null;
   bookCandidates?: BookCandidate[];
 };
@@ -261,6 +263,7 @@ export default function NewUnderlinePage() {
             author: data.book.author,
             publisher: data.book.publisher ?? "",
             cover_url: data.book.thumbnail ?? "",
+            genre: data.book.genre,
           });
         }
       }
@@ -308,6 +311,7 @@ export default function NewUnderlinePage() {
         bookAuthor: book.author,
         bookPublisher: book.publisher,
         bookCoverUrl: book.cover_url,
+        bookGenre: book.genre,
         contents: validTexts,
         pageNumber: pageNumber ? parseInt(pageNumber) : undefined,
         imageUrl,
@@ -502,6 +506,7 @@ export default function NewUnderlinePage() {
                             author: c.result!.author,
                             publisher: c.result!.publisher ?? "",
                             cover_url: c.result!.thumbnail ?? "",
+                            genre: c.result!.genre,
                           });
                           setSelectedModel(c.model);
                         }}
@@ -525,6 +530,7 @@ export default function NewUnderlinePage() {
                   author: b.author,
                   publisher: b.publisher,
                   cover_url: b.cover_url,
+                  genre: b.genre,
                 })} />
               </div>
             </>

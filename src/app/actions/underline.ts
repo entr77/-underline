@@ -10,6 +10,7 @@ type CreateUnderlineData = {
   bookAuthor: string;
   bookPublisher?: string;
   bookCoverUrl?: string;
+  bookGenre?: string;
   content: string;
   pageNumber?: number;
   imageUrl?: string;
@@ -43,6 +44,7 @@ export async function createUnderline(data: CreateUnderlineData) {
         author: data.bookAuthor,
         publisher: data.bookPublisher ?? null,
         cover_url: data.bookCoverUrl ?? null,
+        ...(data.bookGenre ? { genre: data.bookGenre } : {}),
       },
       { onConflict: "kakao_id", ignoreDuplicates: false }
     )
@@ -88,6 +90,7 @@ type BulkCreateData = {
   bookAuthor: string;
   bookPublisher?: string;
   bookCoverUrl?: string;
+  bookGenre?: string;
   contents: string[];
   pageNumber?: number;
   imageUrl?: string;
@@ -113,6 +116,7 @@ export async function createUnderlinesBulk(data: BulkCreateData) {
         author: data.bookAuthor,
         publisher: data.bookPublisher ?? null,
         cover_url: data.bookCoverUrl ?? null,
+        ...(data.bookGenre ? { genre: data.bookGenre } : {}),
       },
       { onConflict: "kakao_id", ignoreDuplicates: false }
     )

@@ -14,6 +14,7 @@ export type Book = {
   author: string;
   publisher?: string;
   cover_url?: string;
+  genre?: string;
 };
 
 export type CardStyle = "photo" | "text";
