@@ -113,19 +113,37 @@ export default function UnderlineCard({ underline, compact }: Props) {
   // 텍스트 카드 — 정사각형 다크 무드
   return (
     <article className="relative aspect-square bg-[#1C1917] rounded-2xl overflow-hidden border border-[var(--color-border)] hover:border-white/20 transition-colors">
-      {bgSrc && (
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `url(${bgSrc})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            filter: "blur(14px) saturate(0.4) brightness(0.3)",
-            transform: "scale(1.15)",
-          }}
-        />
+      {bgSrc && cardBg === "search" ? (
+        /* 이미지 선택 배경 — 선명하게 표시 + 그라데이션 오버레이 */
+        <>
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `url(${bgSrc})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/55 to-black/75" />
+        </>
+      ) : bgSrc ? (
+        /* 책표지 배경 — 블러 처리된 분위기 */
+        <>
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `url(${bgSrc})`,
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              filter: "blur(12px) saturate(0.5) brightness(0.4)",
+              transform: "scale(1.15)",
+            }}
+          />
+          <div className="absolute inset-0 bg-[#1C1917]/50" />
+        </>
+      ) : (
+        <div className="absolute inset-0 bg-[#1C1917]" />
       )}
-      <div className="absolute inset-0 bg-[#1C1917]/60" />
 
       {/* 인용문 */}
       <Link
