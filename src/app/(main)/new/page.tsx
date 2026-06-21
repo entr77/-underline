@@ -8,11 +8,12 @@ import Image from "next/image";
 import BookSearchInput, { type KakaoBook } from "@/components/features/BookSearchInput";
 import ImageCropRotate from "@/components/features/ImageCropRotate";
 import { imageFileToBase64, uploadImage } from "@/lib/storage";
-import { createUnderlinesBulk } from "@/app/actions/underline";
+import { createUnderlinesBulk, suggestTags } from "@/app/actions/underline";
+import { EMOTION_TAGS } from "@/lib/classifyUnderlineTag";
 import { createClient } from "@/lib/supabase/client";
 import type { Book } from "@/types";
 
-type Step = "upload" | "crop" | "processing" | "book" | "select" | "done";
+type Step = "upload" | "crop" | "processing" | "book" | "select" | "tags" | "done";
 
 type CardStyle = "photo" | "text";
 type BookDisplay = "none" | "cover" | "title" | "title-author" | "full" | "full-author";
@@ -51,7 +52,7 @@ const THEMES: ThemePreset[] = [
   { id: "dark",     label: "다크",      desc: "어두운 배경", cardBg: "color",  cardBgUrl: "#1C1917",           cardFont: "serif", cardAlign: "left",   cardVAlign: "center", displayMode: "title", showAuthor: true  },
   { id: "gradient", label: "그라디언트", desc: "컬러 배경",  cardBg: "color",  cardBgUrl: BG_GRADIENTS[0].css, cardFont: "serif", cardAlign: "center", cardVAlign: "center", displayMode: "title", showAuthor: false },
   { id: "photo",    label: "밑줄",      desc: "밑줄 사진",  cardBg: "photo",  cardFont: "serif", cardAlign: "left",   cardVAlign: "bottom", displayMode: "title", showAuthor: false },
-  { id: "scene",    label: "포토",      desc: "배경 사진",  cardBg: "search", cardFont: "serif", cardAlign: "center", cardVAlign: "bottom", displayMode: "title", showAuthor: false },
+  { id: "scene",    label: "포토",      desc: "배경 사진",  cardBg: "search", cardFont: "serif", cardAlign: "center", cardVAlign: "center", displayMode: "title", showAuthor: false },
 ];
 
 const BASE = "https://images.unsplash.com/photo-";
@@ -214,6 +215,8 @@ export default function NewUnderlinePage() {
     ? displayMode
     : showAuthor ? `${displayMode}-author` as BookDisplay : displayMode as BookDisplay;
   const cardStyle: CardStyle = cardBg === "photo" ? "photo" : "text";
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [isSuggestingTags, setIsSuggestingTags] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadWarning, setUploadWarning] = useState<string | null>(null);
@@ -228,6 +231,7 @@ export default function NewUnderlinePage() {
     setSelectedModel(null);
     setPageNumber("");
     setSelectedTexts([""]);
+    setSelectedTags([]);
     setDisplayMode("full");
     setShowAuthor(false);
     setCardBg("cover");

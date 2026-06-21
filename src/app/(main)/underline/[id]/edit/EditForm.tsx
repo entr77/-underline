@@ -29,7 +29,7 @@ const THEMES: ThemePreset[] = [
   { id: "dark",     label: "다크",      desc: "어두운 배경", cardBg: "color",  cardBgUrl: "#1C1917",           cardFont: "serif", cardAlign: "left",   cardVAlign: "center", displayMode: "title", showAuthor: true  },
   { id: "gradient", label: "그라디언트", desc: "컬러 배경",  cardBg: "color",  cardBgUrl: BG_GRADIENTS[0].css, cardFont: "serif", cardAlign: "center", cardVAlign: "center", displayMode: "title", showAuthor: false },
   { id: "photo",    label: "밑줄",      desc: "밑줄 사진",  cardBg: "photo",  cardFont: "serif", cardAlign: "left",   cardVAlign: "bottom", displayMode: "title", showAuthor: false },
-  { id: "scene",    label: "포토",      desc: "배경 사진",  cardBg: "search", cardFont: "serif", cardAlign: "center", cardVAlign: "bottom", displayMode: "title", showAuthor: false },
+  { id: "scene",    label: "포토",      desc: "배경 사진",  cardBg: "search", cardFont: "serif", cardAlign: "center", cardVAlign: "center", displayMode: "title", showAuthor: false },
 ];
 
 const BASE = "https://images.unsplash.com/photo-";
