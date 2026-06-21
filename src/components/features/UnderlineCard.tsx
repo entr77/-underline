@@ -79,23 +79,25 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
 
           {/* 하단 표지 뱃지 + 책 정보 */}
           {bookDisplay !== "none" && (
-            <div className={`flex items-center gap-2 ${justifyAlign}`}>
+            <div className={`flex items-end gap-2.5 ${justifyAlign}`}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={underline.book.cover_url}
                 alt=""
-                className="h-7 w-auto rounded-[3px] flex-shrink-0 opacity-90"
-                style={{ filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.6))" }}
+                className="h-8 w-auto flex-shrink-0 rounded-[2px]"
+                style={{
+                  boxShadow: "0 2px 8px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(255,255,255,0.12)",
+                }}
               />
               {(showTitle || showAuthor) && (
-                <div className={`flex flex-col min-w-0 ${itemsAlign}`}>
+                <div className={`flex flex-col min-w-0 pb-[1px] ${itemsAlign}`}>
                   {showTitle && (
-                    <p className="text-white/55 text-[10px] line-clamp-1" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>
+                    <p className="text-white/60 text-[10px] leading-tight line-clamp-1" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>
                       {underline.book.title}{underline.page_number ? ` · p.${underline.page_number}` : ""}
                     </p>
                   )}
                   {showAuthor && (
-                    <p className="text-white/35 text-[10px]" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>
+                    <p className="text-white/35 text-[9px] leading-tight mt-0.5" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>
                       {underline.book.author}
                     </p>
                   )}
