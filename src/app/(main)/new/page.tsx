@@ -53,6 +53,7 @@ const THEMES: ThemePreset[] = [
   { id: "gradient", label: "그라디언트", desc: "컬러 배경",  cardBg: "color",  cardBgUrl: BG_GRADIENTS[0].css, cardFont: "serif", cardAlign: "center", cardVAlign: "center", displayMode: "title", showAuthor: false },
   { id: "photo",    label: "밑줄",      desc: "밑줄 사진",  cardBg: "photo",  cardFont: "serif", cardAlign: "left",   cardVAlign: "bottom", displayMode: "title", showAuthor: false },
   { id: "scene",    label: "포토",      desc: "배경 사진",  cardBg: "search", cardFont: "serif", cardAlign: "center", cardVAlign: "center", displayMode: "title", showAuthor: false },
+  { id: "paper",    label: "페이퍼",    desc: "밝은 크림 배경", cardBg: "color", cardBgUrl: "#F7F3EE", cardFont: "serif", cardAlign: "left", cardVAlign: "center", displayMode: "title", showAuthor: false },
 ];
 
 const BASE = "https://images.unsplash.com/photo-";
@@ -804,6 +805,8 @@ export default function NewUnderlinePage() {
                     bgStyle = imagePreview
                       ? { backgroundImage: `url(${imagePreview})`, backgroundSize: "cover", backgroundPosition: "center" }
                       : { background: "#2a2a2a" };
+                  } else if (theme.id === "paper") {
+                    bgStyle = { background: "#F7F3EE" };
                   } else {
                     bgStyle = bgImages[0]
                       ? { backgroundImage: `url(${bgImages[0].thumb})`, backgroundSize: "cover", backgroundPosition: "center" }
@@ -819,9 +822,9 @@ export default function NewUnderlinePage() {
                     >
                       <div className="relative w-full" style={{ aspectRatio: "3/4", ...bgStyle }}>
                         <div className="absolute inset-0 flex flex-col justify-end p-1.5 gap-[2px]">
-                          <div className="w-3.5 h-[1.5px] rounded-full bg-yellow-300/70 mb-[2px]" />
-                          <div className="w-full h-[1.5px] rounded-full bg-white/50" />
-                          <div className="w-3/4 h-[1.5px] rounded-full bg-white/30" />
+                          <div className={`w-3.5 h-[1.5px] rounded-full mb-[2px] ${theme.id === "paper" ? "bg-amber-400/80" : "bg-yellow-300/70"}`} />
+                          <div className={`w-full h-[1.5px] rounded-full ${theme.id === "paper" ? "bg-[#1C1917]/50" : "bg-white/50"}`} />
+                          <div className={`w-3/4 h-[1.5px] rounded-full ${theme.id === "paper" ? "bg-[#1C1917]/30" : "bg-white/30"}`} />
                         </div>
                       </div>
                       <div className="py-1.5 bg-white text-center">

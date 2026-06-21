@@ -83,6 +83,88 @@ BottomNav 4탭: **홈(/) · 피드(/feed) · 책(/books) · 내 프로필**
 | ImageCropRotate | components/features/ImageCropRotate.tsx | 사진 업로드 후 영역 크롭 + 90도 회전 편집 |
 | TextHighlighter | (미구현) | 밑줄 선택 UI |
 
+## 카드 테마 시스템
+
+공유 카드의 비주얼을 결정하는 테마 프리셋. 각 테마는 배경·레이아웃·타이포그래피를 한 번에 설정한다.
+
+### 테마 목록
+
+| id | 라벨 | 목적 | 비율 | 배경 |
+|----|------|------|------|------|
+| `book` | 북카드 | 책 자체를 주인공으로 — 책 소개/추천 맥락 | 3:4 | 책 표지 블러 다크 오버레이 |
+| `dark` | 다크 | 텍스트 임팩트 극대화 — 에디토리얼 스타일 | 1:1 | 잉크 블랙 #1C1917 단색 |
+| `gradient` | 그라디언트 | 빠르게 예쁜 카드 — 장르 무관 범용 고급감 | 1:1 | 네이비 딥블루 CSS 그라디언트 |
+| `photo` | 밑줄 | 진정성 최우선 — 실물 책 페이지 사진 배경 | 1:1 | 유저 업로드 사진 풀블리드 |
+| `scene` | 포토 | 문장 감정/장면 시각 확장 — 잡지/포토에세이 | 1:1 | Unsplash 검색 사진 풀블리드 |
+| `paper` | 페이퍼 | 밝고 클린한 라이트 카드 — 앱 브랜드 컬러 그대로 | 1:1 | 크림 #F7F3EE 단색 |
+
+### 테마별 스펙
+
+#### book (북카드)
+- **목적**: 책을 추천하고 싶어서 SNS에 공유하는 독자. "이 책 읽어봐요" 메시지
+- **비주얼**: 세로 3:4 판형. 책 표지 블러 다크 배경(brightness 0.58, saturate 0.3) 위에 표지 이미지, guillemet 제목, 하단 인용문 순서
+- **사용처**: 인스타 스토리/피드, 책 완독 후 기록, 북클럽 추천 포스팅
+- **cardBg**: `cover` | **cardFont**: `serif` | **cardAlign**: `center` | **cardVAlign**: `bottom` | **displayMode**: `full`
+
+#### dark (다크)
+- **목적**: 문장 자체의 임팩트를 전달하고 싶은 독자. 짧고 강렬한 문장 공유
+- **비주얼**: 정사각형 1:1. 잉크 블랙 #1C1917 단색 배경. 흰 세리프 텍스트 좌측 정렬. 노란 밑줄 바. 하단 좌측 책 표지 썸네일 + 제목. 신문 편집 기사 느낌
+- **사용처**: X(트위터) 인용 공유, 인스타 정사각형 피드, 독서 감상 릴스 썸네일
+- **cardBg**: `color` (#1C1917) | **cardFont**: `serif` | **cardAlign**: `left` | **cardVAlign**: `center` | **displayMode**: `title` | **showAuthor**: `true`
+
+#### gradient (그라디언트)
+- **목적**: 빠르게 예쁜 카드를 뽑고 싶은 독자. 배경 선택이 귀찮을 때
+- **비주얼**: 정사각형 1:1. 네이비 딥블루 그라디언트(#1a1a2e → #16213e → #0f3460). 흰 세리프 텍스트 중앙 정렬. 우주/심야 무드
+- **사용처**: 인스타 피드 범용 공유, 카카오 채팅 공유, 문학/SF 장르 독자
+- **cardBg**: `color` (CSS linear-gradient) | **cardFont**: `serif` | **cardAlign**: `center` | **cardVAlign**: `center` | **displayMode**: `title`
+
+#### photo (밑줄)
+- **목적**: 아날로그 독서 감성 SNS 공유. "직접 읽고 있음"을 보여주고 싶을 때
+- **비주얼**: 정사각형 1:1. 업로드한 책 페이지 사진 풀블리드 + 하단 강한 다크 그라디언트 오버레이. 노란 밑줄 바. 하단 좌측 텍스트. Bookstagram 손밑줄 감성 디지털화
+- **사용처**: 인스타 피드 진정성 포스팅, 밀드라이너 형광펜 독서 인증, 손밑줄 공유
+- **cardBg**: `photo` | **cardFont**: `serif` | **cardAlign**: `left` | **cardVAlign**: `bottom` | **displayMode**: `title`
+
+#### scene (포토)
+- **목적**: 문장의 감정/장면을 시각적으로 확장. 감성 사진과 문장을 함께 연출
+- **비주얼**: 정사각형 1:1. Unsplash 검색 사진 풀블리드 + 검은 반투명 오버레이 + 하단 그라디언트. 흰 세리프 텍스트 중앙. 잡지/포토에세이 레이아웃
+- **사용처**: 인스타 라이프스타일 피드, 책 분위기와 맞는 장면 연출, 자연/여행 에세이 독자
+- **cardBg**: `search` | **cardFont**: `serif` | **cardAlign**: `center` | **cardVAlign**: `center` | **displayMode**: `title`
+
+#### paper (페이퍼) — P0
+- **목적**: 밝고 클린한 라이트 카드. 앱 브랜드 컬러(크림+잉크)를 그대로 카드에 적용. Apple Books 스타일. 인스타 화이트 피드 독자, 낮에 밝은 환경 공유
+- **비주얼**: 정사각형 1:1. `var(--color-cream)` #F7F3EE 단색 배경. `var(--color-ink)` #1C1917 텍스트. 좌측 세로선(border-left: 3px solid #1E3A2F) 또는 노란 하이라이트 띠. 여백 충분히. `cardAnimation: 'highlight'`와 조합 시 Apple Books 감성
+- **사용처**: 인스타 화이트 피드 공유, 밝은 환경 스크린샷, Apple Books/Kindle 유저 취향
+- **cardBg**: `color` (#F7F3EE) | **cardFont**: `serif` | **cardAlign**: `left` | **cardVAlign**: `center` | **displayMode**: `title`
+
+### ThemePreset 타입
+
+```ts
+type ThemePreset = {
+  id: ThemeId;
+  label: string;
+  desc: string;
+  cardBg: CardBg;          // "cover" | "photo" | "search" | "color" | "none"
+  cardBgUrl?: string;      // CSS color/gradient (cardBg === "color" 일 때)
+  cardFont: CardFont;      // "serif" | "sans"
+  cardAlign: CardAlign;    // "left" | "center" | "right"
+  cardVAlign: CardVAlign;  // "top" | "center" | "bottom"
+  displayMode: DisplayMode; // "none" | "cover" | "title" | "full"
+  showAuthor: boolean;
+};
+```
+
+### 테마 미니 카드 bgStyle 로직
+
+테마 선택 모달의 미니 카드 배경 스타일:
+- `book`: 책 표지 이미지 → fallback `#1a1a1a`
+- `dark`: `#1C1917` 단색
+- `gradient`: `BG_GRADIENTS[0].css` (달빛 그라디언트)
+- `photo`: 업로드한 사진 → fallback `#2a2a2a`
+- `scene`: Unsplash 썸네일 → fallback `linear-gradient(135deg, #1a2a3a 0%, #2d4a3a 100%)`
+- `paper`: `#F7F3EE` 단색 (텍스트 라인을 어두운 색으로 표시해 가독성 확보)
+
+---
+
 ## Alert 컴포넌트 규칙
 
 > **경고창·안내창·오류·성공 메시지는 반드시 `<Alert>`를 사용한다. 인라인 div로 직접 스타일링 금지.**
