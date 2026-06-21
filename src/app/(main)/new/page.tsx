@@ -25,7 +25,7 @@ type CardVAlign = "top" | "center" | "bottom";
 
 const MAX_CONTENT = 300;
 
-type ThemeId = "book" | "dark" | "gradient" | "photo" | "scene";
+type ThemeId = "book" | "dark" | "gradient" | "photo" | "scene" | "paper";
 
 type ThemePreset = {
   id: ThemeId;
@@ -215,6 +215,7 @@ export default function NewUnderlinePage() {
     ? displayMode
     : showAuthor ? `${displayMode}-author` as BookDisplay : displayMode as BookDisplay;
   const cardStyle: CardStyle = cardBg === "photo" ? "photo" : "text";
+  const [isPublic, setIsPublic] = useState(true);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isSuggestingTags, setIsSuggestingTags] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -232,6 +233,7 @@ export default function NewUnderlinePage() {
     setSelectedModel(null);
     setPageNumber("");
     setSelectedTexts([""]);
+    setIsPublic(true);
     setSelectedTags([]);
     setDisplayMode("full");
     setShowAuthor(false);
@@ -401,6 +403,7 @@ export default function NewUnderlinePage() {
         cardAlign,
         cardVAlign,
         tags: selectedTags,
+        isPublic,
       });
 
       if (result && "error" in result) {
@@ -957,6 +960,20 @@ export default function NewUnderlinePage() {
               </button>
             );
           })}
+        </div>
+
+        <div className="flex items-center justify-between py-3 px-4 bg-white rounded-2xl border border-[var(--color-border)]">
+          <div>
+            <p className="text-sm font-medium text-[var(--color-ink)]">{isPublic ? "피드에 공개" : "나만 보기"}</p>
+            <p className="text-xs text-[var(--color-ink-faint)] mt-0.5">{isPublic ? "다른 독자들도 이 밑줄을 볼 수 있어요" : "내 프로필에만 저장돼요"}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsPublic((v) => !v)}
+            className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 ${isPublic ? "bg-[var(--color-forest)]" : "bg-[var(--color-border)]"}`}
+          >
+            <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${isPublic ? "translate-x-5" : "translate-x-0.5"}`} />
+          </button>
         </div>
 
         {uploadWarning && <Alert variant="warning">{uploadWarning}</Alert>}

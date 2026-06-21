@@ -112,7 +112,8 @@ type BulkCreateData = {
   cardFont?: string;
   cardAlign?: string;
   cardVAlign?: string;
-  tags?: string[]; // 사용자가 직접 선택한 경우 AI 분류 건너뜀
+  tags?: string[];
+  isPublic?: boolean;
 };
 
 export async function createUnderlinesBulk(data: BulkCreateData) {
@@ -156,7 +157,7 @@ export async function createUnderlinesBulk(data: BulkCreateData) {
     content,
     page_number: data.pageNumber ?? null,
     image_url: data.imageUrl ?? null,
-    is_public: true,
+    is_public: data.isPublic ?? true,
     card_style: data.cardStyle ?? "text",
     book_display: data.bookDisplay ?? "full",
     card_bg: data.cardBg ?? "none",
