@@ -44,118 +44,61 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
     const showTitle = ["title", "title-author", "full", "full-author"].includes(bookDisplay);
     const showAuthor = ["title-author", "full-author"].includes(bookDisplay);
     return (
-      <article className="relative aspect-square rounded-2xl overflow-hidden border border-[var(--color-border)]">
-        {/* 블러 배경 — 옅게, 표지가 느껴지게 */}
-        <div className="absolute inset-0" style={{
-          backgroundImage: `url(${underline.book.cover_url})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          filter: "blur(3px) brightness(0.42) saturate(0.9)",
-          transform: "scale(1.05)",
-        }} />
-        {/* 하단에서 올라오는 그라디언트 — 텍스트 영역 대비 확보 */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/30 to-black/10" />
-        {/* 밑줄 심벌 — 인용문 바로 위 */}
+      <div>
+        <article className="relative aspect-square rounded-2xl overflow-hidden border border-[var(--color-border)]">
+          {/* 블러 배경 */}
+          <div className="absolute inset-0" style={{
+            backgroundImage: `url(${underline.book.cover_url})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            filter: "blur(3px) brightness(0.42) saturate(0.9)",
+            transform: "scale(1.05)",
+          }} />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/30 to-black/10" />
 
-        {/* 인용문 — card_valign 따름, card_align 따름 */}
-        <Link
-          href={`/underline/${underline.id}`}
-          className={`absolute inset-x-0 top-0 px-5 flex flex-col ${justifyV} ${textAlign} ${preview ? "bottom-4" : "bottom-[60px]"} ${
-            bookDisplay !== "none" && va === "bottom" ? "pb-[3.75rem]" : va === "top" ? "pt-5" : ""
-          }`}
-        >
-          <div className={`w-7 h-[3px] rounded-full bg-[#FDE047]/70 mb-2.5 ${ca === "center" ? "mx-auto" : ca === "right" ? "ml-auto" : ""}`} />
-          <blockquote
-            className={`${quoteFont} ${textAlign} text-white font-semibold leading-[1.55] tracking-[-0.03em] break-keep ${quoteTextSize(underline.content.length, compact ?? false)}`}
-            style={{ textShadow: "0 1px 8px rgba(0,0,0,0.5)" }}
-          >
-            {underline.content}
-          </blockquote>
-        </Link>
-
-        {/* 하단 표지 뱃지 — 항상 좌하단, 바 위 */}
-        {bookDisplay !== "none" && (
+          {/* 인용문 */}
           <Link
             href={`/underline/${underline.id}`}
-            className={`absolute left-4 flex items-end gap-2 ${preview ? "bottom-3" : "bottom-[56px]"}`}
+            className={`absolute inset-x-0 top-0 px-5 flex flex-col ${justifyV} ${textAlign} bottom-4 ${
+              bookDisplay !== "none" && va === "bottom" ? "pb-[3.75rem]" : va === "top" ? "pt-5" : ""
+            }`}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={underline.book.cover_url}
-              alt=""
-              className="h-8 w-auto flex-shrink-0"
-              style={{
-                boxShadow: "0 2px 8px rgba(0,0,0,0.7), inset 0 0 0 1px rgba(255,255,255,0.12)",
-              }}
-            />
-            {(showTitle || showAuthor) && (
-              <div className="flex flex-col min-w-0 pb-[1px] items-start">
-                {showTitle && (
-                  <p className="text-white/60 text-[10px] leading-tight tracking-[0.025em] line-clamp-1 text-left" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>
-                    {underline.book.title}{underline.page_number ? ` · p.${underline.page_number}` : ""}
-                  </p>
-                )}
-                {showAuthor && (
-                  <p className="text-white/35 text-[9px] leading-tight tracking-[0.025em] mt-0.5 text-left" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>
-                    {underline.book.author}
-                  </p>
-                )}
-              </div>
-            )}
+            <div className={`w-7 h-[3px] rounded-full bg-[#FDE047]/70 mb-2.5 ${ca === "center" ? "mx-auto" : ca === "right" ? "ml-auto" : ""}`} />
+            <blockquote
+              className={`${quoteFont} ${textAlign} text-white font-semibold leading-[1.55] tracking-[-0.03em] break-keep ${quoteTextSize(underline.content.length, compact ?? false)}`}
+              style={{ textShadow: "0 1px 8px rgba(0,0,0,0.5)" }}
+            >
+              {underline.content}
+            </blockquote>
           </Link>
-        )}
 
-        {/* 하단 바 — 인스타그램 스타일 */}
+          {/* 하단 표지 뱃지 */}
+          {bookDisplay !== "none" && (
+            <Link href={`/underline/${underline.id}`} className="absolute left-4 bottom-4 flex items-end gap-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={underline.book.cover_url} alt="" className="h-8 w-auto flex-shrink-0" style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.7)" }} />
+              {(showTitle || showAuthor) && (
+                <div className="flex flex-col min-w-0 pb-[1px] items-start">
+                  {showTitle && (
+                    <p className="text-white/60 text-[10px] leading-tight line-clamp-1 text-left" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>
+                      {underline.book.title}{underline.page_number ? ` · p.${underline.page_number}` : ""}
+                    </p>
+                  )}
+                  {showAuthor && (
+                    <p className="text-white/35 text-[9px] leading-tight mt-0.5 text-left" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>
+                      {underline.book.author}
+                    </p>
+                  )}
+                </div>
+              )}
+            </Link>
+          )}
+        </article>
+
+        {/* 카드 하단 작성자 정보 */}
         {!preview && (
-          <div className="absolute bottom-0 inset-x-0 h-[52px] bg-[#F7F3EE]/96 px-3.5 flex items-center justify-between gap-2 border-t border-black/[0.04]">
-            <div className="flex items-center gap-2.5 min-w-0 flex-1">
-              <div className="w-7 h-7 rounded-full bg-[var(--color-forest)] flex items-center justify-center text-white text-[11px] font-semibold flex-shrink-0">
-                {underline.user.username[0].toUpperCase()}
-              </div>
-              <div className="min-w-0">
-                <p className="text-[var(--color-ink)] text-[12px] font-semibold leading-none truncate">{underline.user.username}</p>
-              </div>
-            </div>
-            <LikeButton underlineId={underline.id} initialLiked={underline.is_liked ?? false} initialCount={underline.like_count} size="sm" />
-          </div>
-        )}
-      </article>
-    );
-  }
-
-  if (usePhoto) {
-    // 사진 카드 — 풀블리드 사진 + 하단 그라디언트 위에 텍스트
-    return (
-      <article className="relative aspect-square rounded-2xl overflow-hidden border border-[var(--color-border)]">
-        {/* 풀블리드 배경 사진 */}
-        <Image
-          src={underline.image_url!}
-          alt="밑줄 친 페이지"
-          fill
-          className="object-cover"
-          sizes="(max-width: 430px) 100vw, 430px"
-        />
-        {/* 하단 60% 집중 그라디언트 — 텍스트 영역 확실한 대비 */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/92 via-black/60 to-black/10" />
-        {/* 밑줄 심벌 — 인용문 바로 위 */}
-
-        {/* 하단 인용문 */}
-        <Link
-          href={`/underline/${underline.id}`}
-          className={`absolute inset-x-0 px-5 flex flex-col justify-end ${preview ? "bottom-4" : "bottom-[52px]"}`}
-        >
-          <div className="w-7 h-[3px] rounded-full bg-[#FDE047]/70 mb-2.5" />
-          <blockquote
-            className={`${quoteFont} text-left text-white font-semibold leading-[1.55] tracking-[-0.03em] break-keep ${compact ? "text-[13px] line-clamp-3" : "text-[15px] line-clamp-5"}`}
-          >
-            {underline.content}
-          </blockquote>
-        </Link>
-
-        {/* 하단 바 — 인스타그램 스타일 */}
-        {!preview && (
-          <div className="absolute bottom-0 inset-x-0 h-[52px] bg-[#F7F3EE]/96 px-3.5 flex items-center justify-between gap-2 border-t border-black/[0.04]">
-            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          <div className="px-1 pt-2.5 flex items-center justify-between gap-2">
+            <Link href={`/profile/${underline.user.username}`} className="flex items-center gap-2.5 min-w-0 flex-1">
               <div className="w-7 h-7 rounded-full bg-[var(--color-forest)] flex items-center justify-center text-white text-[11px] font-semibold flex-shrink-0">
                 {underline.user.username[0].toUpperCase()}
               </div>
@@ -165,7 +108,54 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
                   <p className="text-[var(--color-ink-faint)] text-[10px] leading-none mt-[3px] truncate">{underline.book.title}</p>
                 )}
               </div>
-            </div>
+            </Link>
+            <LikeButton underlineId={underline.id} initialLiked={underline.is_liked ?? false} initialCount={underline.like_count} size="sm" />
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (usePhoto) {
+    // 사진 카드 — 풀블리드 사진 + 하단 그라디언트 위에 텍스트
+    return (
+      <div>
+        <article className="relative aspect-square rounded-xl overflow-hidden border border-[var(--color-border)]">
+          <Image
+            src={underline.image_url!}
+            alt="밑줄 친 페이지"
+            fill
+            className="object-cover"
+            sizes="(max-width: 430px) 100vw, 430px"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/92 via-black/60 to-black/10" />
+
+          <Link
+            href={`/underline/${underline.id}`}
+            className="absolute inset-x-0 bottom-4 px-5 flex flex-col justify-end"
+          >
+            <div className="w-7 h-[3px] rounded-full bg-[#FDE047]/70 mb-2.5" />
+            <blockquote
+              className={`${quoteFont} text-left text-white font-semibold leading-[1.55] tracking-[-0.03em] break-keep ${compact ? "text-[13px] line-clamp-3" : "text-[15px] line-clamp-5"}`}
+            >
+              {underline.content}
+            </blockquote>
+          </Link>
+        </article>
+
+        {!preview && (
+          <div className="px-1 pt-2.5 flex items-center justify-between gap-2">
+            <Link href={`/profile/${underline.user.username}`} className="flex items-center gap-2.5 min-w-0 flex-1">
+              <div className="w-7 h-7 rounded-full bg-[var(--color-forest)] flex items-center justify-center text-white text-[11px] font-semibold flex-shrink-0">
+                {underline.user.username[0].toUpperCase()}
+              </div>
+              <div className="min-w-0">
+                <p className="text-[var(--color-ink)] text-[12px] font-semibold leading-none truncate">{underline.user.username}</p>
+                {bookDisplay !== "none" && underline.book.title && (
+                  <p className="text-[var(--color-ink-faint)] text-[10px] leading-none mt-[3px] truncate">{underline.book.title}</p>
+                )}
+              </div>
+            </Link>
             <LikeButton
               underlineId={underline.id}
               initialLiked={underline.is_liked ?? false}
@@ -174,13 +164,14 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
             />
           </div>
         )}
-      </article>
+      </div>
     );
   }
 
   // 텍스트 카드 — 정사각형 다크 무드
   return (
-    <article className="relative aspect-square bg-[#1C1917] rounded-2xl overflow-hidden border border-[var(--color-border)] hover:border-white/20 transition-colors">
+    <div>
+    <article className="relative aspect-square bg-[#1C1917] rounded-xl overflow-hidden border border-[var(--color-border)] hover:border-white/20 transition-colors">
       {cardBg === "color" && underline.card_bg_url ? (
         /* 단색 배경 */
         <div className="absolute inset-0" style={{ background: underline.card_bg_url }} />
@@ -232,8 +223,8 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
       <Link
         href={`/underline/${underline.id}`}
         className={`absolute inset-x-0 top-0 flex flex-col ${justifyV} px-5 ${
-          va === "top" ? "pt-5" : va === "center" ? "" : "pb-5"
-        } ${quoteAlign} ${preview ? "bottom-0" : "bottom-[52px]"}`}
+          va === "top" ? "pt-5" : va === "center" ? "" : "pb-4"
+        } ${quoteAlign} bottom-4`}
       >
         <div className={`w-7 h-[3px] rounded-full bg-[#FDE047]/70 mb-2.5 ${ca === "center" ? "mx-auto" : ca === "right" ? "ml-auto" : ""}`} />
         <blockquote
@@ -243,29 +234,29 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
           {underline.content}
         </blockquote>
       </Link>
-
-      {/* 하단 바 — 인스타그램 스타일 */}
-      {!preview && (
-        <div className="absolute bottom-0 inset-x-0 h-[52px] bg-[#F7F3EE]/96 px-3.5 flex items-center justify-between gap-2 border-t border-black/[0.04]">
-          <div className="flex items-center gap-2.5 min-w-0 flex-1">
-            <div className="w-7 h-7 rounded-full bg-[var(--color-forest)] flex items-center justify-center text-white text-[11px] font-semibold flex-shrink-0">
-              {underline.user.username[0].toUpperCase()}
-            </div>
-            <div className="min-w-0">
-              <p className="text-[var(--color-ink)] text-[12px] font-semibold leading-none truncate">{underline.user.username}</p>
-              {bookDisplay !== "none" && underline.book.title && (
-                <p className="text-[var(--color-ink-faint)] text-[10px] leading-none mt-[3px] truncate">{underline.book.title}</p>
-              )}
-            </div>
-          </div>
-          <LikeButton
-            underlineId={underline.id}
-            initialLiked={underline.is_liked ?? false}
-            initialCount={underline.like_count}
-            size="sm"
-          />
-        </div>
-      )}
     </article>
+
+    {!preview && (
+      <div className="px-1 pt-2.5 flex items-center justify-between gap-2">
+        <Link href={`/profile/${underline.user.username}`} className="flex items-center gap-2.5 min-w-0 flex-1">
+          <div className="w-7 h-7 rounded-full bg-[var(--color-forest)] flex items-center justify-center text-white text-[11px] font-semibold flex-shrink-0">
+            {underline.user.username[0].toUpperCase()}
+          </div>
+          <div className="min-w-0">
+            <p className="text-[var(--color-ink)] text-[12px] font-semibold leading-none truncate">{underline.user.username}</p>
+            {bookDisplay !== "none" && underline.book.title && (
+              <p className="text-[var(--color-ink-faint)] text-[10px] leading-none mt-[3px] truncate">{underline.book.title}</p>
+            )}
+          </div>
+        </Link>
+        <LikeButton
+          underlineId={underline.id}
+          initialLiked={underline.is_liked ?? false}
+          initialCount={underline.like_count}
+          size="sm"
+        />
+      </div>
+    )}
+    </div>
   );
 }
