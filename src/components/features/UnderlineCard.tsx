@@ -55,67 +55,68 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
     cardBg === "search" ? (underline.card_bg_url ?? null) :
     null;
 
-  // 책표지 전용 레이아웃 — 블러 배경 + 인용문 주인공 + 하단 표지 뱃지
+  // 책표지 전용 레이아웃 — 세로 판형(3:4), ref-03~05 스타일
   if (!usePhoto && cardBg === "cover" && underline.book.cover_url) {
     const showTitle = ["title", "title-author", "full", "full-author"].includes(bookDisplay);
     const showAuthor = ["title-author", "full-author"].includes(bookDisplay);
     return (
       <div ref={cardRef}>
-        <article className="relative aspect-square rounded-xl overflow-hidden border border-[var(--color-border)]">
-          {/* 배경 — 책표지 풀사이즈(크롭 없이), 약하게 블러 */}
-          <div className="absolute inset-0 bg-[#1a1a1a]" />
+        <article className="relative aspect-[3/4] rounded-xl overflow-hidden border border-[var(--color-border)]">
+          {/* 배경 — 책표지 블러 다크 */}
+          <div className="absolute inset-0 bg-[#0d0d0d]" />
           <div className="absolute inset-0" style={{
             backgroundImage: `url(${underline.book.cover_url})`,
-            backgroundSize: "contain",
-            backgroundRepeat: "no-repeat",
-            backgroundPosition: "center 30%",
-            filter: "blur(0px) brightness(0.7) saturate(0.85)",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            filter: "blur(18px) brightness(0.3) saturate(0.65)",
+            transform: "scale(1.2)",
           }} />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/10 to-black/65" />
 
-          {/* 책표지 — 상단에 세로 비율 유지하며 크게 표시 */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={underline.book.cover_url}
-            alt=""
-            className="absolute left-1/2 -translate-x-1/2"
-            style={{
-              top: "10%",
-              height: "46%",
-              width: "auto",
-              maxWidth: "72%",
-              objectFit: "contain",
-              boxShadow: "0 8px 32px rgba(0,0,0,0.85)",
-            }}
-          />
-
-          {/* 하단 그라디언트 */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
-
-          {/* 인용문 — 하단 */}
-          <Link
-            href={`/underline/${underline.id}`}
-            className={`absolute inset-x-0 bottom-4 px-5 flex flex-col ${textAlign} ${bookDisplay !== "none" && showTitle ? "pb-7" : ""}`}
-          >
-            <div
-              className={`w-16 h-[3px] rounded-full bg-[#FDE047]/70 mb-2.5 origin-left ${ca === "center" ? "mx-auto" : ca === "right" ? "ml-auto" : ""}`}
-              style={{ animation: drawn ? "underline-draw 0.45s ease-out 0.1s forwards" : "none", transform: drawn ? undefined : "scaleX(0)" }}
-            />
-            <blockquote
-              className={`${quoteFont} ${textAlign} text-white font-semibold leading-[1.55] tracking-[-0.03em] break-keep line-clamp-4 ${quoteTextSize(underline.content.length, compact ?? false)}`}
-              style={{ textShadow: "0 1px 8px rgba(0,0,0,0.5)", animation: drawn ? "fade-up 0.4s ease-out 0.3s both" : "none", opacity: drawn ? undefined : 0 }}
-            >
-              {underline.content}
-            </blockquote>
-          </Link>
-
-          {/* 책제목 — 맨 하단 */}
-          {bookDisplay !== "none" && showTitle && (
-            <div className="absolute left-4 bottom-4 right-4">
-              <p className="text-white/45 text-[10px] leading-tight line-clamp-1 text-left" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>
-                {underline.book.title}{showAuthor ? ` — ${underline.book.author}` : ""}{underline.page_number ? ` · p.${underline.page_number}` : ""}
-              </p>
+          {/* 컨텐츠 — flex column */}
+          <Link href={`/underline/${underline.id}`} className="absolute inset-0 flex flex-col py-6 px-5">
+            {/* 책 표지 이미지 */}
+            <div className="flex justify-center items-end flex-shrink-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={underline.book.cover_url}
+                alt=""
+                style={{
+                  maxHeight: "190px",
+                  width: "auto",
+                  maxWidth: "65%",
+                  objectFit: "contain",
+                  boxShadow: "0 12px 40px rgba(0,0,0,0.9)",
+                }}
+              />
             </div>
-          )}
+
+            {/* 책 제목 — guillemet */}
+            {showTitle && underline.book.title && (
+              <div className="text-center mt-4 flex-shrink-0">
+                <p className="text-white font-bold font-serif text-[1rem] leading-snug line-clamp-2">
+                  {`『${underline.book.title}』`}
+                </p>
+                {showAuthor && underline.book.author && (
+                  <p className="text-white/50 text-[10px] mt-1">{underline.book.author}</p>
+                )}
+              </div>
+            )}
+
+            {/* 인용문 — 남은 공간, 하단 정렬 */}
+            <div className={`flex-1 flex flex-col justify-end ${textAlign} ${itemsAlign}`}>
+              <div
+                className={`w-16 h-[3px] rounded-full bg-[#FDE047]/70 mb-2.5 origin-left ${ca === "center" ? "mx-auto" : ca === "right" ? "ml-auto" : ""}`}
+                style={{ animation: drawn ? "underline-draw 0.45s ease-out 0.1s forwards" : "none", transform: drawn ? undefined : "scaleX(0)" }}
+              />
+              <blockquote
+                className={`${quoteFont} ${textAlign} text-white font-semibold leading-[1.55] tracking-[-0.03em] break-keep line-clamp-5 ${quoteTextSize(underline.content.length, compact ?? false)}`}
+                style={{ textShadow: "0 1px 8px rgba(0,0,0,0.5)", animation: drawn ? "fade-up 0.4s ease-out 0.3s both" : "none", opacity: drawn ? undefined : 0 }}
+              >
+                {underline.content}
+              </blockquote>
+            </div>
+          </Link>
         </article>
 
         {/* 카드 하단 작성자 정보 */}
