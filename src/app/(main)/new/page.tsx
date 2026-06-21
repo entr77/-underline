@@ -221,6 +221,7 @@ export default function NewUnderlinePage() {
   const [error, setError] = useState<string | null>(null);
   const [uploadWarning, setUploadWarning] = useState<string | null>(null);
   const [isImageZoomed, setIsImageZoomed] = useState(false);
+  const [showCardStyle, setShowCardStyle] = useState(false);
 
   const resetToUpload = useCallback(() => {
     setImageFile(null);
@@ -650,171 +651,6 @@ export default function NewUnderlinePage() {
           />
         </div>
 
-        {/* 카드 테마 */}
-        <div className="space-y-3">
-          <p className="text-xs text-[var(--color-ink-faint)]">카드 테마</p>
-          <div className="grid grid-cols-5 gap-2">
-            {THEMES.map((theme) => {
-              const isSelected = selectedTheme === theme.id;
-              let bgStyle: React.CSSProperties;
-              if (theme.id === "book") {
-                bgStyle = book?.cover_url
-                  ? { backgroundImage: `url(${book.cover_url})`, backgroundSize: "cover", backgroundPosition: "center" }
-                  : { background: "#1a1a1a" };
-              } else if (theme.id === "dark") {
-                bgStyle = { background: "#1C1917" };
-              } else if (theme.id === "gradient") {
-                bgStyle = { background: isSelected ? (cardBgUrl ?? BG_GRADIENTS[0].css) : BG_GRADIENTS[0].css };
-              } else if (theme.id === "photo") {
-                bgStyle = imagePreview
-                  ? { backgroundImage: `url(${imagePreview})`, backgroundSize: "cover", backgroundPosition: "center" }
-                  : { background: "#2a2a2a" };
-              } else {
-                bgStyle = bgImages[0]
-                  ? { backgroundImage: `url(${bgImages[0].thumb})`, backgroundSize: "cover", backgroundPosition: "center" }
-                  : { background: "linear-gradient(135deg, #1a2a3a 0%, #2d4a3a 100%)" };
-              }
-              return (
-                <button
-                  key={theme.id}
-                  onClick={() => applyTheme(theme.id)}
-                  className={`flex flex-col overflow-hidden rounded-xl border-2 transition-all ${
-                    isSelected ? "border-[var(--color-forest)]" : "border-[var(--color-border)]"
-                  }`}
-                >
-                  <div className="relative w-full" style={{ aspectRatio: "3/4", ...bgStyle }}>
-                    <div className="absolute inset-0 flex flex-col justify-end p-1.5 gap-[2px]">
-                      <div className="w-3.5 h-[1.5px] rounded-full bg-yellow-300/70 mb-[2px]" />
-                      <div className="w-full h-[1.5px] rounded-full bg-white/50" />
-                      <div className="w-3/4 h-[1.5px] rounded-full bg-white/30" />
-                    </div>
-                  </div>
-                  <div className="py-1.5 bg-white text-center">
-                    <p className="text-[9px] font-semibold text-[var(--color-ink)]">{theme.label}</p>
-                    <p className="text-[8px] text-[var(--color-ink-faint)] mt-[1px]">{theme.desc}</p>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* 저자 표기 (테마에 책제목이 포함될 때) */}
-        {(displayMode === "title" || displayMode === "full") && (
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-[var(--color-ink-faint)]">저자 표기</p>
-            <div className="flex gap-1.5">
-              <button
-                onClick={() => setShowAuthor(true)}
-                className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
-                  showAuthor ? "border-[var(--color-forest)] bg-[var(--color-forest)]/8 text-[var(--color-forest)]" : "border-[var(--color-border)] bg-white text-[var(--color-ink-muted)]"
-                }`}
-              >표기</button>
-              <button
-                onClick={() => setShowAuthor(false)}
-                className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${
-                  !showAuthor ? "border-[var(--color-forest)] bg-[var(--color-forest)]/8 text-[var(--color-forest)]" : "border-[var(--color-border)] bg-white text-[var(--color-ink-muted)]"
-                }`}
-              >안함</button>
-            </div>
-          </div>
-        )}
-
-        {/* 테마별 추가 설정 */}
-        {selectedTheme === "gradient" && (
-          <div className="space-y-2">
-            <p className="text-xs text-[var(--color-ink-faint)]">색상 선택</p>
-            <div className="flex gap-2">
-              {BG_GRADIENTS.map(({ css, label }) => (
-                <button
-                  key={css}
-                  type="button"
-                  onClick={() => setCardBgUrl(css)}
-                  className={`flex-1 h-12 rounded-xl border-2 flex items-end pb-1.5 pl-2 transition-all ${
-                    cardBgUrl === css ? "border-[var(--color-forest)]" : "border-transparent opacity-70 hover:opacity-100"
-                  }`}
-                  style={{ background: css }}
-                >
-                  <span className="text-[9px] text-white/80 font-medium">{label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {selectedTheme === "photo" && !imagePreview && (
-          <div className="space-y-2">
-            <Alert variant="warning">밑줄 테마는 사진이 필요해요</Alert>
-            <label className="w-full py-3.5 rounded-xl border-2 border-dashed border-[var(--color-border)] flex items-center justify-center gap-2 text-[var(--color-ink-muted)] cursor-pointer hover:border-[var(--color-forest)] hover:text-[var(--color-forest)] transition-colors">
-              <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                <circle cx="12" cy="13" r="4"/>
-              </svg>
-              <span className="text-sm font-medium">사진 업로드하기</span>
-            </label>
-          </div>
-        )}
-
-        {selectedTheme === "scene" && (
-          <div className="space-y-2">
-            <p className="text-xs text-[var(--color-ink-faint)]">
-              배경 사진 선택
-              {!cardBgUrl && <span className="text-amber-500 ml-1">· 사진을 골라주세요</span>}
-            </p>
-            <div className="overflow-x-auto -mx-5 px-5" style={{ scrollbarWidth: "none" }}>
-              <div className="flex gap-2 pb-1 w-max">
-                <button
-                  type="button"
-                  onClick={() => bgFileInputRef.current?.click()}
-                  disabled={bgUploading}
-                  className="w-14 h-14 rounded-xl flex-shrink-0 flex items-center justify-center border-2 border-dashed border-[var(--color-border)] text-[var(--color-ink-faint)] hover:border-[var(--color-forest)] hover:text-[var(--color-forest)] transition-all"
-                >
-                  {bgUploading
-                    ? <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-                    : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                  }
-                </button>
-                <input ref={bgFileInputRef} type="file" accept="image/*" className="hidden" onChange={handleBgFileChange} />
-
-                <div className="w-px self-stretch my-2 bg-[var(--color-border)] flex-shrink-0" />
-
-                {PRESET_IMAGES.map((img) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    key={img.url}
-                    src={img.thumb}
-                    alt={img.label}
-                    onClick={() => { setCardBg("search"); setCardBgUrl(img.url); }}
-                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
-                    className={`w-14 h-14 rounded-xl flex-shrink-0 object-cover cursor-pointer border-2 transition-all ${
-                      cardBgUrl === img.url ? "border-[var(--color-forest)]" : "border-transparent opacity-60 hover:opacity-100"
-                    }`}
-                  />
-                ))}
-
-                {bgLoading
-                  ? Array.from({ length: 4 }).map((_, i) => (
-                      <div key={i} className="w-14 h-14 rounded-xl flex-shrink-0 bg-[var(--color-cream-dark)] animate-pulse" />
-                    ))
-                  : bgImages.map((img, i) => (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        key={i}
-                        src={img.thumb}
-                        alt=""
-                        onClick={() => { setCardBg("search"); setCardBgUrl(img.url); }}
-                        className={`w-14 h-14 rounded-xl flex-shrink-0 object-cover cursor-pointer border-2 transition-all ${
-                          cardBgUrl === img.url ? "border-[var(--color-forest)]" : "border-transparent opacity-60 hover:opacity-100"
-                        }`}
-                      />
-                    ))
-                }
-              </div>
-            </div>
-          </div>
-        )}
-
         <button
           onClick={() => {
             if (selectedModel) {
@@ -927,6 +763,136 @@ export default function NewUnderlinePage() {
           >
             + 밑줄 추가
           </button>
+        </div>
+
+        {/* 카드 스타일 — 접히는 섹션 */}
+        <div className="border border-[var(--color-border)] rounded-2xl overflow-hidden">
+          <button
+            onClick={() => setShowCardStyle((v) => !v)}
+            className="w-full flex items-center justify-between px-4 py-3 bg-white text-left"
+          >
+            <span className="text-sm text-[var(--color-ink-muted)]">
+              카드 스타일
+              <span className="ml-2 text-xs text-[var(--color-ink-faint)]">{THEMES.find((t) => t.id === selectedTheme)?.label ?? "북카드"}</span>
+            </span>
+            <svg
+              width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+              className={`text-[var(--color-ink-faint)] transition-transform ${showCardStyle ? "rotate-180" : ""}`}
+            >
+              <path d="M6 9l6 6 6-6"/>
+            </svg>
+          </button>
+
+          {showCardStyle && (
+            <div className="px-4 pb-4 space-y-4 bg-white border-t border-[var(--color-border)]">
+              <div className="grid grid-cols-5 gap-2 pt-3">
+                {THEMES.map((theme) => {
+                  const isSelected = selectedTheme === theme.id;
+                  let bgStyle: React.CSSProperties;
+                  if (theme.id === "book") {
+                    bgStyle = book?.cover_url
+                      ? { backgroundImage: `url(${book.cover_url})`, backgroundSize: "cover", backgroundPosition: "center" }
+                      : { background: "#1a1a1a" };
+                  } else if (theme.id === "dark") {
+                    bgStyle = { background: "#1C1917" };
+                  } else if (theme.id === "gradient") {
+                    bgStyle = { background: isSelected ? (cardBgUrl ?? BG_GRADIENTS[0].css) : BG_GRADIENTS[0].css };
+                  } else if (theme.id === "photo") {
+                    bgStyle = imagePreview
+                      ? { backgroundImage: `url(${imagePreview})`, backgroundSize: "cover", backgroundPosition: "center" }
+                      : { background: "#2a2a2a" };
+                  } else {
+                    bgStyle = bgImages[0]
+                      ? { backgroundImage: `url(${bgImages[0].thumb})`, backgroundSize: "cover", backgroundPosition: "center" }
+                      : { background: "linear-gradient(135deg, #1a2a3a 0%, #2d4a3a 100%)" };
+                  }
+                  return (
+                    <button
+                      key={theme.id}
+                      onClick={() => applyTheme(theme.id)}
+                      className={`flex flex-col overflow-hidden rounded-xl border-2 transition-all ${
+                        isSelected ? "border-[var(--color-forest)]" : "border-[var(--color-border)]"
+                      }`}
+                    >
+                      <div className="relative w-full" style={{ aspectRatio: "3/4", ...bgStyle }}>
+                        <div className="absolute inset-0 flex flex-col justify-end p-1.5 gap-[2px]">
+                          <div className="w-3.5 h-[1.5px] rounded-full bg-yellow-300/70 mb-[2px]" />
+                          <div className="w-full h-[1.5px] rounded-full bg-white/50" />
+                          <div className="w-3/4 h-[1.5px] rounded-full bg-white/30" />
+                        </div>
+                      </div>
+                      <div className="py-1.5 bg-white text-center">
+                        <p className="text-[9px] font-semibold text-[var(--color-ink)]">{theme.label}</p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {(displayMode === "title" || displayMode === "full") && (
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-[var(--color-ink-faint)]">저자 표기</p>
+                  <div className="flex gap-1.5">
+                    <button onClick={() => setShowAuthor(true)} className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${showAuthor ? "border-[var(--color-forest)] bg-[var(--color-forest)]/8 text-[var(--color-forest)]" : "border-[var(--color-border)] bg-white text-[var(--color-ink-muted)]"}`}>표기</button>
+                    <button onClick={() => setShowAuthor(false)} className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-all ${!showAuthor ? "border-[var(--color-forest)] bg-[var(--color-forest)]/8 text-[var(--color-forest)]" : "border-[var(--color-border)] bg-white text-[var(--color-ink-muted)]"}`}>안함</button>
+                  </div>
+                </div>
+              )}
+
+              {selectedTheme === "gradient" && (
+                <div className="space-y-2">
+                  <p className="text-xs text-[var(--color-ink-faint)]">색상</p>
+                  <div className="flex gap-2">
+                    {BG_GRADIENTS.map(({ css, label }) => (
+                      <button key={css} type="button" onClick={() => setCardBgUrl(css)}
+                        className={`flex-1 h-10 rounded-xl border-2 flex items-end pb-1 pl-2 transition-all ${cardBgUrl === css ? "border-[var(--color-forest)]" : "border-transparent opacity-70"}`}
+                        style={{ background: css }}>
+                        <span className="text-[9px] text-white/80 font-medium">{label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {selectedTheme === "photo" && !imagePreview && (
+                <Alert variant="warning">밑줄 테마는 사진이 필요해요</Alert>
+              )}
+
+              {selectedTheme === "scene" && (
+                <div className="space-y-2">
+                  <p className="text-xs text-[var(--color-ink-faint)]">배경 사진{!cardBgUrl && <span className="text-amber-500 ml-1">· 선택해주세요</span>}</p>
+                  <div className="overflow-x-auto -mx-4 px-4" style={{ scrollbarWidth: "none" }}>
+                    <div className="flex gap-2 pb-1 w-max">
+                      <button type="button" onClick={() => bgFileInputRef.current?.click()} disabled={bgUploading}
+                        className="w-12 h-12 rounded-xl flex-shrink-0 flex items-center justify-center border-2 border-dashed border-[var(--color-border)] text-[var(--color-ink-faint)]">
+                        {bgUploading ? <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>}
+                      </button>
+                      <input ref={bgFileInputRef} type="file" accept="image/*" className="hidden" onChange={handleBgFileChange} />
+                      <div className="w-px self-stretch my-2 bg-[var(--color-border)] flex-shrink-0" />
+                      {PRESET_IMAGES.map((img) => (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img key={img.url} src={img.thumb} alt={img.label}
+                          onClick={() => { setCardBg("search"); setCardBgUrl(img.url); }}
+                          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                          className={`w-12 h-12 rounded-xl flex-shrink-0 object-cover cursor-pointer border-2 transition-all ${cardBgUrl === img.url ? "border-[var(--color-forest)]" : "border-transparent opacity-60 hover:opacity-100"}`}
+                        />
+                      ))}
+                      {bgLoading
+                        ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="w-12 h-12 rounded-xl flex-shrink-0 bg-[var(--color-cream-dark)] animate-pulse" />)
+                        : bgImages.map((img, i) => (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img key={i} src={img.thumb} alt=""
+                              onClick={() => { setCardBg("search"); setCardBgUrl(img.url); }}
+                              className={`w-12 h-12 rounded-xl flex-shrink-0 object-cover cursor-pointer border-2 transition-all ${cardBgUrl === img.url ? "border-[var(--color-forest)]" : "border-transparent opacity-60 hover:opacity-100"}`}
+                            />
+                          ))
+                      }
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {uploadWarning && <Alert variant="warning">{uploadWarning}</Alert>}
