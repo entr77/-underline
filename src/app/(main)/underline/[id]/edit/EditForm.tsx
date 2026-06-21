@@ -223,80 +223,77 @@ export default function EditForm({
         </div>
       </div>
 
-      {/* 편집 옵션 */}
-      <div className="flex-1 px-4 py-5 space-y-4 pb-10">
+      {/* 편집 옵션 — 다크 섹션 연장 */}
+      <div className="bg-[#1C1917] px-6 pb-6 space-y-5 flex-1">
+
+        {/* 구분선 */}
+        <div className="border-t border-white/10" />
 
         {/* 밑줄 문장 */}
-        <div className="bg-white rounded-2xl p-4 border border-[var(--color-border)]">
-          <label className="text-xs text-[var(--color-ink-faint)] block mb-2">밑줄 문장</label>
+        <div>
+          <label className="text-[10px] text-white/40 uppercase tracking-widest block mb-2">밑줄 문장</label>
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-            className="w-full text-sm text-[var(--color-ink)] bg-transparent outline-none resize-none leading-relaxed max-h-28 overflow-y-auto"
+            className="w-full text-sm text-white/90 bg-white/8 rounded-xl px-3 py-3 outline-none resize-none leading-relaxed max-h-28 overflow-y-auto placeholder:text-white/30 border border-white/10 focus:border-white/25 transition-colors"
           />
         </div>
 
-        {/* 페이지 번호 */}
-        <div className="bg-white rounded-2xl p-4 border border-[var(--color-border)]">
-          <label className="text-xs text-[var(--color-ink-faint)] block mb-2">페이지 번호</label>
-          <input
-            type="number"
-            value={pageNumber}
-            onChange={(e) => setPageNumber(e.target.value)}
-            placeholder="예: 112"
-            className="w-full text-lg font-medium text-[var(--color-ink)] bg-transparent outline-none placeholder:text-[var(--color-ink-faint)]"
-          />
-        </div>
-
-        {/* 책 표기 방식 */}
-        <div className="space-y-2.5">
-          <p className="text-xs text-[var(--color-ink-faint)] px-1">책 표기 방식</p>
-          <div className="flex gap-2">
-            {([
-              { value: "full" as DisplayMode,  label: "표지+이름" },
-              { value: "cover" as DisplayMode, label: "표지만"   },
-              { value: "title" as DisplayMode, label: "이름만"   },
-              { value: "none" as DisplayMode,  label: "표기 안함" },
-            ]).map(({ value, label }) => (
-              <button
-                key={value}
-                onClick={() => setDisplayMode(value)}
-                className={`flex-1 py-2 rounded-xl border text-xs font-medium transition-all ${
-                  displayMode === value
-                    ? "border-[var(--color-forest)] bg-[var(--color-forest)]/8 text-[var(--color-forest)]"
-                    : "border-[var(--color-border)] bg-white text-[var(--color-ink-muted)]"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
+        {/* 페이지 번호 + 책 표기 방식 한 줄 */}
+        <div className="flex items-start gap-4">
+          <div className="flex-shrink-0">
+            <label className="text-[10px] text-white/40 uppercase tracking-widest block mb-2">페이지</label>
+            <input
+              type="number"
+              value={pageNumber}
+              onChange={(e) => setPageNumber(e.target.value)}
+              placeholder="—"
+              className="w-16 text-base font-medium text-white/90 bg-white/8 rounded-xl px-3 py-2 outline-none placeholder:text-white/30 border border-white/10 focus:border-white/25 transition-colors text-center"
+            />
           </div>
-          {(displayMode === "title" || displayMode === "full") && (
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setShowAuthor(true)}
-                className={`flex-1 py-2 rounded-xl border text-xs font-medium transition-all ${
-                  showAuthor
-                    ? "border-[var(--color-forest)] bg-[var(--color-forest)]/8 text-[var(--color-forest)]"
-                    : "border-[var(--color-border)] bg-white text-[var(--color-ink-muted)]"
-                }`}
-              >
-                저자 표기
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowAuthor(false)}
-                className={`flex-1 py-2 rounded-xl border text-xs font-medium transition-all ${
-                  !showAuthor
-                    ? "border-[var(--color-forest)] bg-[var(--color-forest)]/8 text-[var(--color-forest)]"
-                    : "border-[var(--color-border)] bg-white text-[var(--color-ink-muted)]"
-                }`}
-              >
-                안함
-              </button>
+          <div className="flex-1 min-w-0">
+            <label className="text-[10px] text-white/40 uppercase tracking-widest block mb-2">책 표기</label>
+            <div className="flex gap-1.5 flex-wrap">
+              {([
+                { value: "full" as DisplayMode,  label: "표지+이름" },
+                { value: "cover" as DisplayMode, label: "표지만"   },
+                { value: "title" as DisplayMode, label: "이름만"   },
+                { value: "none" as DisplayMode,  label: "없음"     },
+              ]).map(({ value, label }) => (
+                <button
+                  key={value}
+                  onClick={() => setDisplayMode(value)}
+                  className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    displayMode === value
+                      ? "bg-white/20 text-white"
+                      : "bg-white/6 text-white/45 hover:text-white/70"
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
-          )}
+            {(displayMode === "title" || displayMode === "full") && (
+              <div className="flex gap-1.5 mt-1.5">
+                {([
+                  { val: true,  label: "저자 표기" },
+                  { val: false, label: "안함" },
+                ]).map(({ val, label }) => (
+                  <button
+                    key={String(val)}
+                    onClick={() => setShowAuthor(val)}
+                    className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                      showAuthor === val
+                        ? "bg-white/20 text-white"
+                        : "bg-white/6 text-white/45 hover:text-white/70"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {error && <Alert variant="error">{error}</Alert>}
