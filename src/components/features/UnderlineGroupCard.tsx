@@ -20,6 +20,7 @@ export default function UnderlineGroupCard({ underlines }: Props) {
     startXRef.current = e.clientX;
     draggingRef.current = true;
     setDragX(0);
+    e.currentTarget.setPointerCapture(e.pointerId);
   };
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -43,7 +44,7 @@ export default function UnderlineGroupCard({ underlines }: Props) {
   return (
     <div>
       <div
-        className="relative cursor-grab active:cursor-grabbing"
+        className="relative cursor-grab active:cursor-grabbing select-none"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
@@ -55,9 +56,9 @@ export default function UnderlineGroupCard({ underlines }: Props) {
           }
         }}
         style={{
+          touchAction: "pan-y",
           transform: `translateX(${dragX * 0.08}px)`,
           transition: draggingRef.current ? "none" : "transform 0.2s ease-out",
-          userSelect: "none",
         }}
       >
         <UnderlineCard key={underlines[idx].id} underline={underlines[idx]} />
