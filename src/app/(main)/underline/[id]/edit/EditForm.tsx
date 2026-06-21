@@ -147,8 +147,8 @@ export default function EditForm({
       </div>
 
       {/* 카드 미리보기 */}
-      <div className="bg-[#1C1917] px-3 pt-4 pb-1">
-        <div className="max-w-[310px] mx-auto pointer-events-none select-none">
+      <div className="bg-[#1C1917] px-1 pt-4 pb-1">
+        <div className="max-w-[380px] mx-auto pointer-events-none select-none">
           <UnderlineCard underline={previewUnderline} />
         </div>
       </div>
