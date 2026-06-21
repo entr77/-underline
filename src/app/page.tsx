@@ -65,7 +65,7 @@ export default async function LandingPage() {
           ))}
         </section>
 
-        <div className="space-y-3 pb-12">
+        <div className="space-y-3 pb-6">
           {user ? (
             <Link
               href="/feed"
@@ -89,6 +89,15 @@ export default async function LandingPage() {
               </Link>
             </>
           )}
+        </div>
+
+        <div className="pb-10 text-center">
+          <p className="text-xs text-[var(--color-ink-faint)]">
+            <Link href="/terms" className="hover:text-[var(--color-forest)] transition-colors">이용약관</Link>
+            {" · "}
+            <Link href="/privacy" className="hover:text-[var(--color-forest)] transition-colors">개인정보처리방침</Link>
+          </p>
+          <p className="text-xs text-[var(--color-ink-faint)] mt-1">(주)얼리커뮤니케이션</p>
         </div>
       </main>
       <BottomNav />

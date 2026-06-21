@@ -108,6 +108,13 @@ export default function SignupPage() {
           </div>
 
           <div className="space-y-3">
+            <p className="text-xs text-[var(--color-ink-faint)] text-center leading-relaxed">
+              가입 시{" "}
+              <Link href="/terms" target="_blank" className="text-[var(--color-forest)] hover:underline">이용약관</Link>
+              {" "}및{" "}
+              <Link href="/privacy" target="_blank" className="text-[var(--color-forest)] hover:underline">개인정보처리방침</Link>
+              에 동의하게 됩니다.
+            </p>
             <button
               type="submit"
               disabled={isPending}
