@@ -8,7 +8,7 @@ import type { Underline, BookDisplay, CardBg, CardStyle, CardFont, CardAlign, Ca
 
 const MAX_CONTENT = 300;
 type DisplayMode = "none" | "cover" | "title" | "full";
-type EditModal = "content" | "page" | "book" | "font" | "bg" | null;
+type EditModal = "content" | "page" | "book" | "font" | "bg" | "theme" | null;
 
 
 const BG_GRADIENTS = [
@@ -16,6 +16,20 @@ const BG_GRADIENTS = [
   { css: "linear-gradient(160deg, #2d0845 0%, #5c1e91 50%, #c2185b 100%)", label: "새벽" },
   { css: "linear-gradient(160deg, #0a0a2e 0%, #003973 50%, #005c97 100%)", label: "심해" },
   { css: "linear-gradient(160deg, #4b134f 0%, #c94b4b 100%)",             label: "장미" },
+];
+
+type ThemeId = "book" | "dark" | "gradient" | "photo" | "scene";
+type ThemePreset = {
+  id: ThemeId; label: string; desc: string;
+  cardBg: CardBg; cardBgUrl?: string; cardFont: CardFont; cardAlign: CardAlign;
+  displayMode: DisplayMode; showAuthor: boolean;
+};
+const THEMES: ThemePreset[] = [
+  { id: "book",     label: "북카드",    desc: "책표지 배경", cardBg: "cover",  cardFont: "serif", cardAlign: "center", displayMode: "full",  showAuthor: false },
+  { id: "dark",     label: "다크",      desc: "어두운 배경", cardBg: "color",  cardBgUrl: "#1C1917",           cardFont: "serif", cardAlign: "left",   displayMode: "title", showAuthor: false },
+  { id: "gradient", label: "그라디언트", desc: "컬러 배경",  cardBg: "color",  cardBgUrl: BG_GRADIENTS[0].css, cardFont: "serif", cardAlign: "center", displayMode: "title", showAuthor: false },
+  { id: "photo",    label: "포토",      desc: "사진 배경",  cardBg: "photo",  cardFont: "serif", cardAlign: "left",   displayMode: "cover", showAuthor: false },
+  { id: "scene",    label: "풍경",      desc: "감성 배경",  cardBg: "search", cardFont: "serif", cardAlign: "center", displayMode: "title", showAuthor: false },
 ];
 
 const BASE = "https://images.unsplash.com/photo-";
@@ -78,7 +92,7 @@ export default function EditForm({
     : showAuthor ? `${displayMode}-author` : displayMode;
 
   const [cardBg, setCardBg] = useState<CardBg>(
-    ["photo", "search", "color", "none"].includes(initialCardBg) ? initialCardBg as CardBg : "none"
+    (["cover", "photo", "search", "color", "none"] as string[]).includes(initialCardBg) ? initialCardBg as CardBg : "cover"
   );
   const [cardBgUrl, setCardBgUrl] = useState<string | null>(initialCardBgUrl ?? null);
   const [bgImages, setBgImages] = useState<{ thumb: string; url: string }[]>([]);
@@ -102,6 +116,29 @@ export default function EditForm({
       : "draw"
   );
   const cardStyle: CardStyle = cardBg === "photo" ? "photo" : "text";
+
+  const [selectedTheme, setSelectedTheme] = useState<ThemeId | null>(() => {
+    const bg = (["cover", "photo", "search", "color", "none"] as string[]).includes(initialCardBg) ? initialCardBg as CardBg : "cover";
+    const font: CardFont = initialCardFont === "sans" ? "sans" : "serif";
+    const align: CardAlign = (["left", "center", "right"] as string[]).includes(initialCardAlign) ? initialCardAlign as CardAlign : "center";
+    for (const t of THEMES) {
+      if (t.cardBg === bg && t.cardFont === font && t.cardAlign === align && t.displayMode === initMode) return t.id;
+    }
+    return null;
+  });
+
+  function applyTheme(themeId: ThemeId) {
+    const theme = THEMES.find((t) => t.id === themeId);
+    if (!theme) return;
+    setSelectedTheme(theme.id);
+    setCardBg(theme.cardBg);
+    setCardBgUrl(theme.cardBgUrl ?? null);
+    setCardFont(theme.cardFont);
+    setCardAlign(theme.cardAlign);
+    setDisplayMode(theme.displayMode);
+    setShowAuthor(theme.showAuthor);
+    setEditModal(null);
+  }
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -211,6 +248,18 @@ export default function EditForm({
       {/* 항목 버튼 목록 */}
       <div className="flex-1 divide-y divide-[var(--color-border)] border-t border-[var(--color-border)] pb-28">
 
+        {/* 테마 */}
+        <button type="button" onClick={() => setEditModal("theme")}
+          className="w-full flex items-center justify-between gap-4 px-5 py-4 hover:bg-[var(--color-cream)] transition-colors">
+          <p className="text-sm text-[var(--color-ink-muted)]">테마</p>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-[var(--color-ink)]">
+              {selectedTheme ? THEMES.find((t) => t.id === selectedTheme)?.label ?? "—" : "—"}
+            </span>
+            <svg className="text-[var(--color-ink-faint)]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
+        </button>
+
         {/* 배경 */}
         <button type="button" onClick={() => setEditModal("bg")}
           className="w-full flex items-center justify-between gap-4 px-5 py-4 hover:bg-[var(--color-cream)] transition-colors">
@@ -298,6 +347,48 @@ export default function EditForm({
           {saving ? "저장 중…" : "완료"}
         </button>
       </div>
+
+      {/* ── 모달: 테마 ── */}
+      {editModal === "theme" && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-end" onClick={() => setEditModal(null)}>
+          <div className="w-full bg-white rounded-t-3xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 pt-5 pb-4">
+              <p className="font-semibold text-[var(--color-ink)]">카드 테마</p>
+              <button type="button" onClick={() => setEditModal(null)} className="text-[var(--color-forest)] font-semibold text-sm">완료</button>
+            </div>
+            <div className="px-5 pb-8 space-y-4">
+              <div className="grid grid-cols-5 gap-2">
+                {THEMES.map((theme) => {
+                  const isSelected = selectedTheme === theme.id;
+                  const bgStyle: React.CSSProperties =
+                    theme.id === "book"     ? (bookCoverUrl ? { backgroundImage: `url(${bookCoverUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : { background: "#1a1a1a" }) :
+                    theme.id === "dark"     ? { background: "#1C1917" } :
+                    theme.id === "gradient" ? { background: BG_GRADIENTS[0].css } :
+                    theme.id === "photo"    ? (imageUrl ? { backgroundImage: `url(${imageUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : { background: "#2a2a2a" }) :
+                                              { background: "linear-gradient(135deg, #1a2a3a 0%, #2d4a3a 100%)" };
+                  return (
+                    <button key={theme.id} type="button" onClick={() => applyTheme(theme.id)}
+                      className={`flex flex-col overflow-hidden rounded-xl border-2 transition-all ${isSelected ? "border-[var(--color-forest)]" : "border-[var(--color-border)]"}`}>
+                      <div className="relative w-full" style={{ aspectRatio: "3/4", ...bgStyle }}>
+                        <div className="absolute inset-0 flex flex-col justify-end p-1.5 gap-[2px]">
+                          <div className="w-3.5 h-[1.5px] rounded-full bg-yellow-300/70 mb-[2px]" />
+                          <div className="w-full h-[1.5px] rounded-full bg-white/50" />
+                          <div className="w-3/4 h-[1.5px] rounded-full bg-white/30" />
+                        </div>
+                      </div>
+                      <div className="py-1.5 bg-white text-center">
+                        <p className="text-[9px] font-semibold text-[var(--color-ink)]">{theme.label}</p>
+                        <p className="text-[8px] text-[var(--color-ink-faint)] mt-[1px]">{theme.desc}</p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-[var(--color-ink-faint)]">테마 선택 후 배경·텍스트 등을 개별로 수정할 수 있어요</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── 모달: 밑줄 문장 ── */}
       {editModal === "content" && (
