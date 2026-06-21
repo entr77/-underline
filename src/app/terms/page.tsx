@@ -92,7 +92,7 @@ export default function TermsPage() {
 
           <Section title="제7조 (저작권 침해 신고)">
             <p>저작권 침해를 발견하신 경우 아래 채널로 신고해 주세요. 회사는 영업일 3일 이내에 검토 후 조치합니다.</p>
-            <p className="mt-2">신고 이메일: <a href="mailto:entr.kim@gmail.com" className="text-[var(--color-forest)]">entr.kim@gmail.com</a></p>
+            <p className="mt-2">신고 이메일: <a href="mailto:yj.kim@earlyc.co.kr" className="text-[var(--color-forest)]">yj.kim@earlyc.co.kr</a></p>
             <p className="mt-1 text-[var(--color-ink-faint)]">신고 시 포함 사항: 침해 게시물 URL, 원저작물 정보, 신고자 연락처</p>
           </Section>
 
@@ -123,8 +123,9 @@ export default function TermsPage() {
             <table>
               <tbody>
                 <Row label="상호" value="(주)얼리커뮤니케이션" />
+                <Row label="사업자등록번호" value="220-87-27297" />
                 <Row label="대표자" value="김용준" />
-                <Row label="이메일" value="entr.kim@gmail.com" />
+                <Row label="이메일" value="yj.kim@earlyc.co.kr" />
               </tbody>
             </table>
           </Section>

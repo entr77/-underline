@@ -26,8 +26,9 @@ export default function PrivacyPage() {
             <table>
               <tbody>
                 <Row label="상호" value="(주)얼리커뮤니케이션" />
+                <Row label="사업자등록번호" value="220-87-27297" />
                 <Row label="대표자" value="김용준" />
-                <Row label="이메일" value="entr.kim@gmail.com" />
+                <Row label="이메일" value="yj.kim@earlyc.co.kr" />
               </tbody>
             </table>
           </Section>
@@ -146,7 +147,7 @@ export default function PrivacyPage() {
               <li><strong>처리 정지권</strong>: 개인정보 처리 정지 요청</li>
               <li><strong>탈퇴권</strong>: 서비스 탈퇴를 통한 개인정보 삭제</li>
             </ul>
-            <p className="mt-3">권리 행사: <a href="mailto:entr.kim@gmail.com" className="text-[var(--color-forest)]">entr.kim@gmail.com</a></p>
+            <p className="mt-3">권리 행사: <a href="mailto:yj.kim@earlyc.co.kr" className="text-[var(--color-forest)]">yj.kim@earlyc.co.kr</a></p>
           </Section>
 
           <Section title="7. 개인정보 보호책임자">
@@ -154,7 +155,7 @@ export default function PrivacyPage() {
               <tbody>
                 <Row label="성명" value="김용준" />
                 <Row label="직책" value="대표" />
-                <Row label="이메일" value="entr.kim@gmail.com" />
+                <Row label="이메일" value="yj.kim@earlyc.co.kr" />
               </tbody>
             </table>
           </Section>
