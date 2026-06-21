@@ -37,8 +37,11 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
   const cardBg = underline.card_bg ?? "cover";
   const fontClass: Record<CardFont, string> = { serif: "font-serif", sans: "font-sans" };
   const quoteFont = fontClass[underline.card_font ?? "serif"];
-  const alignClass: Record<CardAlign, string> = { left: "text-left items-start", center: "text-center items-center", right: "text-right items-end" };
-  const quoteAlign = alignClass[underline.card_align ?? "center"];
+  const ca = underline.card_align ?? "center";
+  const textAlign  = ca === "left" ? "text-left"  : ca === "right" ? "text-right"  : "text-center";
+  const itemsAlign = ca === "left" ? "items-start" : ca === "right" ? "items-end"   : "items-center";
+  const justifyAlign = ca === "left" ? "justify-start" : ca === "right" ? "justify-end" : "justify-center";
+  const quoteAlign = `${textAlign} ${itemsAlign}`;
   const bgSrc =
     cardBg === "cover"  ? (underline.book.cover_url ?? null) :
     cardBg === "photo"  ? (underline.image_url ?? null) :
@@ -133,14 +136,14 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
 
         {/* 하단 텍스트 영역 */}
         <div className="flex-1 flex flex-col justify-between px-4 pt-3 pb-0 min-h-0">
-          <Link href={`/underline/${underline.id}`} className="flex-1 min-h-0">
+          <Link href={`/underline/${underline.id}`} className={`flex-1 min-h-0 flex flex-col ${itemsAlign}`}>
             <blockquote
-              className={`${quoteFont} text-white/90 leading-[1.7] ${compact ? "text-[11px] line-clamp-3" : "text-[13px] line-clamp-4"}`}
+              className={`${quoteFont} ${textAlign} text-white/90 leading-[1.7] ${compact ? "text-[11px] line-clamp-3" : "text-[13px] line-clamp-4"}`}
             >
               &ldquo;{underline.content}&rdquo;
             </blockquote>
             {bookDisplay !== "none" && (
-              <div className="flex items-center gap-2 mt-2">
+              <div className={`flex items-center gap-2 mt-2 ${justifyAlign}`}>
                 {showCoverP && underline.book.cover_url && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={underline.book.cover_url} alt="" className="h-5 w-auto rounded-sm opacity-70" />
@@ -250,7 +253,7 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
           const showTitle = bookDisplay === "title" || bookDisplay === "title-author" || bookDisplay === "full" || bookDisplay === "full-author";
           const showAuthor = bookDisplay === "title-author" || bookDisplay === "full-author";
           return (
-            <div className={`flex items-center gap-2 mt-4 ${(underline.card_align ?? "center") === "left" ? "justify-start" : (underline.card_align ?? "center") === "right" ? "justify-end" : "justify-center"}`}>
+            <div className={`flex items-center gap-2 mt-4 ${justifyAlign}`}>
               {showCover && underline.book.cover_url && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={underline.book.cover_url} alt="" className="h-8 w-auto rounded-sm opacity-80" />
