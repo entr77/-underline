@@ -62,14 +62,14 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
     return (
       <div ref={cardRef}>
         <article className="relative aspect-square rounded-xl overflow-hidden border border-[var(--color-border)]">
-          {/* 블러 배경 — 어둡게 */}
-          <div className="absolute inset-0 bg-[#0e0e0e]" />
+          {/* 배경 — 책표지 풀사이즈(크롭 없이), 약하게 블러 */}
+          <div className="absolute inset-0 bg-[#1a1a1a]" />
           <div className="absolute inset-0" style={{
             backgroundImage: `url(${underline.book.cover_url})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            filter: "blur(16px) brightness(0.55) saturate(0.75)",
-            transform: "scale(1.2)",
+            backgroundSize: "contain",
+            backgroundRepeat: "no-repeat",
+            backgroundPosition: "center 30%",
+            filter: "blur(0px) brightness(0.7) saturate(0.85)",
           }} />
 
           {/* 책표지 — 상단에 세로 비율 유지하며 크게 표시 */}
