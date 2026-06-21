@@ -11,8 +11,8 @@
   --color-border: #E4DDD6;
   --color-highlight: #FDE047;
 
-  --font-serif: var(--font-noto-serif-kr);
-  --font-sans: var(--font-noto-sans-kr);
+  --font-serif: 'KoPub Batang', 'Apple Myungjo', serif;
+  --font-sans: 'Pretendard Variable', Pretendard, 'Apple SD Gothic Neo', sans-serif;
 }
 
 * {
@@ -26,10 +26,10 @@ html {
 body {
   background: var(--color-cream);
   color: var(--color-ink);
-  font-family: var(--font-sans), 'Apple SD Gothic Neo', sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 
 .font-serif {
-  font-family: var(--font-serif), 'Apple Myungjo', 'Batang', Georgia, serif;
+  font-family: var(--font-serif);
 }
