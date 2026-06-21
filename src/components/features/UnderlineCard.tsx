@@ -62,55 +62,59 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
     return (
       <div ref={cardRef}>
         <article className="relative aspect-square rounded-xl overflow-hidden border border-[var(--color-border)]">
-          {/* 블러 배경 */}
+          {/* 블러 배경 — 어둡게 */}
+          <div className="absolute inset-0 bg-[#0e0e0e]" />
           <div className="absolute inset-0" style={{
             backgroundImage: `url(${underline.book.cover_url})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
-            filter: "blur(3px) brightness(0.42) saturate(0.9)",
-            transform: "scale(1.05)",
+            filter: "blur(20px) brightness(0.22) saturate(0.6)",
+            transform: "scale(1.2)",
           }} />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/88 via-black/30 to-black/10" />
 
-          {/* 인용문 */}
+          {/* 책표지 — 상단에 세로 비율 유지하며 크게 표시 */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={underline.book.cover_url}
+            alt=""
+            className="absolute left-1/2 -translate-x-1/2"
+            style={{
+              top: "10%",
+              height: "46%",
+              width: "auto",
+              maxWidth: "72%",
+              objectFit: "contain",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.85)",
+            }}
+          />
+
+          {/* 하단 그라디언트 */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/96 via-black/50 to-transparent" />
+
+          {/* 인용문 — 하단 */}
           <Link
             href={`/underline/${underline.id}`}
-            className={`absolute inset-x-0 top-0 px-5 flex flex-col ${justifyV} ${textAlign} bottom-4 ${
-              bookDisplay !== "none" && va === "bottom" ? "pb-[3.75rem]" : va === "top" ? "pt-5" : ""
-            }`}
+            className={`absolute inset-x-0 bottom-4 px-5 flex flex-col ${textAlign} ${bookDisplay !== "none" && showTitle ? "pb-7" : ""}`}
           >
             <div
               className={`w-16 h-[3px] rounded-full bg-[#FDE047]/70 mb-2.5 origin-left ${ca === "center" ? "mx-auto" : ca === "right" ? "ml-auto" : ""}`}
               style={{ animation: drawn ? "underline-draw 0.45s ease-out 0.1s forwards" : "none", transform: drawn ? undefined : "scaleX(0)" }}
             />
             <blockquote
-              className={`${quoteFont} ${textAlign} text-white font-semibold leading-[1.55] tracking-[-0.03em] break-keep ${quoteTextSize(underline.content.length, compact ?? false)}`}
+              className={`${quoteFont} ${textAlign} text-white font-semibold leading-[1.55] tracking-[-0.03em] break-keep line-clamp-4 ${quoteTextSize(underline.content.length, compact ?? false)}`}
               style={{ textShadow: "0 1px 8px rgba(0,0,0,0.5)", animation: drawn ? "fade-up 0.4s ease-out 0.3s both" : "none", opacity: drawn ? undefined : 0 }}
             >
               {underline.content}
             </blockquote>
           </Link>
 
-          {/* 하단 표지 뱃지 */}
-          {bookDisplay !== "none" && (
-            <Link href={`/underline/${underline.id}`} className="absolute left-4 bottom-4 flex items-end gap-2">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={underline.book.cover_url} alt="" className="h-8 w-auto flex-shrink-0" style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.7)" }} />
-              {(showTitle || showAuthor) && (
-                <div className="flex flex-col min-w-0 pb-[1px] items-start">
-                  {showTitle && (
-                    <p className="text-white/60 text-[10px] leading-tight line-clamp-1 text-left" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>
-                      {underline.book.title}{underline.page_number ? ` · p.${underline.page_number}` : ""}
-                    </p>
-                  )}
-                  {showAuthor && (
-                    <p className="text-white/35 text-[9px] leading-tight mt-0.5 text-left" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>
-                      {underline.book.author}
-                    </p>
-                  )}
-                </div>
-              )}
-            </Link>
+          {/* 책제목 — 맨 하단 */}
+          {bookDisplay !== "none" && showTitle && (
+            <div className="absolute left-4 bottom-4 right-4">
+              <p className="text-white/45 text-[10px] leading-tight line-clamp-1 text-left" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>
+                {underline.book.title}{showAuthor ? ` — ${underline.book.author}` : ""}{underline.page_number ? ` · p.${underline.page_number}` : ""}
+              </p>
+            </div>
           )}
         </article>
 
