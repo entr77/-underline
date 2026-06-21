@@ -18,7 +18,7 @@ export type Book = {
 
 export type CardStyle = "photo" | "text";
 export type BookDisplay = "none" | "cover" | "title" | "title-author" | "full" | "full-author";
-export type CardBg = "cover" | "photo" | "search" | "none";
+export type CardBg = "cover" | "photo" | "search" | "color" | "none";
 
 export type Underline = {
   id: string;

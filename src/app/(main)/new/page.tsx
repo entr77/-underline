@@ -17,7 +17,20 @@ type Step = "upload" | "crop" | "processing" | "book" | "select" | "done";
 type CardStyle = "photo" | "text";
 type BookDisplay = "none" | "cover" | "title" | "title-author" | "full" | "full-author";
 type DisplayMode = "none" | "cover" | "title" | "full";
-type CardBg = "cover" | "photo" | "search" | "none";
+type CardBg = "cover" | "photo" | "search" | "color" | "none";
+
+const BG_COLORS = [
+  { hex: "#1C1917", label: "블랙" },
+  { hex: "#1E3A2F", label: "포레스트" },
+  { hex: "#1A2744", label: "네이비" },
+  { hex: "#2C1A0E", label: "브라운" },
+  { hex: "#3B1218", label: "버건디" },
+  { hex: "#1E1A3B", label: "인디고" },
+  { hex: "#0F2E2E", label: "틸" },
+  { hex: "#2D2010", label: "앰버" },
+  { hex: "#2A2A2A", label: "차콜" },
+  { hex: "#3D2B1F", label: "커피" },
+];
 
 type BookCandidate = {
   result: {
@@ -532,7 +545,8 @@ export default function NewUnderlinePage() {
               [
                 { value: "cover" as CardBg,  label: "책표지" },
                 { value: "photo" as CardBg,  label: "사진", disabled: !imagePreview },
-                { value: "search" as CardBg, label: "이미지 선택" },
+                { value: "color" as CardBg,  label: "단색" },
+                { value: "search" as CardBg, label: "이미지" },
                 { value: "none" as CardBg,   label: "없음" },
               ]
             ).map(({ value, label, disabled }) => (
@@ -557,6 +571,9 @@ export default function NewUnderlinePage() {
                         setBgSearchLoading(false);
                       }
                     }
+                  } else if (value === "color") {
+                    setCardBg("color");
+                    setCardBgUrl(cardBg === "color" ? cardBgUrl : BG_COLORS[0].hex);
                   } else {
                     setCardBg(value);
                     setCardBgUrl(null);
@@ -574,6 +591,26 @@ export default function NewUnderlinePage() {
               </button>
             ))}
           </div>
+          {/* 단색 컬러 피커 */}
+          {cardBg === "color" && (
+            <div className="flex gap-2 flex-wrap pt-1">
+              {BG_COLORS.map(({ hex, label }) => (
+                <button
+                  key={hex}
+                  type="button"
+                  title={label}
+                  onClick={() => setCardBgUrl(hex)}
+                  className="w-9 h-9 rounded-full transition-all"
+                  style={{
+                    backgroundColor: hex,
+                    outline: cardBgUrl === hex ? "2px solid var(--color-forest)" : "2px solid transparent",
+                    outlineOffset: "2px",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.3)",
+                  }}
+                />
+              ))}
+            </div>
+          )}
           {cardBg === "search" && cardBgUrl && (
             <div className="flex items-center gap-3 mt-2">
               {/* eslint-disable-next-line @next/next/no-img-element */}
