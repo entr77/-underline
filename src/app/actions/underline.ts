@@ -223,6 +223,44 @@ export async function updateUnderline(
 
   if (error) return { error: "수정에 실패했습니다." };
 
+  // 테마 관련 필드가 바뀌었으면 같은 image_url의 다른 밑줄에도 동일하게 적용
+  const themeChanged =
+    data.cardStyle !== undefined ||
+    data.cardBg !== undefined ||
+    data.cardBgUrl !== undefined ||
+    data.cardFont !== undefined ||
+    data.cardAlign !== undefined ||
+    data.cardVAlign !== undefined ||
+    data.cardAnimation !== undefined ||
+    data.bookDisplay !== undefined;
+
+  if (themeChanged) {
+    const { data: self } = await (supabase as any)
+      .from("underlines")
+      .select("image_url")
+      .eq("id", id)
+      .single();
+
+    if (self?.image_url) {
+      const siblingUpdate: Record<string, unknown> = {};
+      if (data.cardStyle !== undefined) siblingUpdate.card_style = data.cardStyle;
+      if (data.cardBg !== undefined) siblingUpdate.card_bg = data.cardBg;
+      if (data.cardBgUrl !== undefined) siblingUpdate.card_bg_url = data.cardBgUrl;
+      if (data.cardFont !== undefined) siblingUpdate.card_font = data.cardFont;
+      if (data.cardAlign !== undefined) siblingUpdate.card_align = data.cardAlign;
+      if (data.cardVAlign !== undefined) siblingUpdate.card_valign = data.cardVAlign;
+      if (data.cardAnimation !== undefined) siblingUpdate.card_animation = data.cardAnimation;
+      if (data.bookDisplay !== undefined) siblingUpdate.book_display = data.bookDisplay;
+
+      await (supabase as any)
+        .from("underlines")
+        .update(siblingUpdate)
+        .eq("image_url", self.image_url)
+        .eq("user_id", user.id)
+        .neq("id", id);
+    }
+  }
+
   revalidatePath(`/underline/${id}`);
   revalidatePath("/feed");
   return { success: true };
