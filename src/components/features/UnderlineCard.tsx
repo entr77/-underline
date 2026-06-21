@@ -68,8 +68,8 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
             backgroundImage: `url(${underline.book.cover_url})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
-            filter: "blur(18px) brightness(0.3) saturate(0.65)",
-            transform: "scale(1.2)",
+            filter: "blur(10px) brightness(0.52) saturate(0.75)",
+            transform: "scale(1.05)",
           }} />
           <div className="absolute inset-0 bg-gradient-to-b from-black/10 to-black/65" />
 
