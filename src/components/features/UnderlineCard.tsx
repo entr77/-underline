@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import LikeButton from "@/components/features/LikeButton";
-import type { Underline } from "@/types";
+import type { Underline, CardFont } from "@/types";
 
 type Props = {
   underline: Underline;
@@ -35,11 +35,69 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
   const usePhoto = underline.card_style === "photo" && !!underline.image_url;
   const bookDisplay = underline.book_display ?? "full";
   const cardBg = underline.card_bg ?? "cover";
+  const fontClass: Record<CardFont, string> = { serif: "font-serif", sans: "font-sans" };
+  const quoteFont = fontClass[underline.card_font ?? "serif"];
   const bgSrc =
     cardBg === "cover"  ? (underline.book.cover_url ?? null) :
     cardBg === "photo"  ? (underline.image_url ?? null) :
     cardBg === "search" ? (underline.card_bg_url ?? null) :
     null;
+
+  // 책표지 전용 레이아웃 — 왼쪽 표지 / 오른쪽 인용문
+  if (!usePhoto && cardBg === "cover" && underline.book.cover_url) {
+    const showTitle = ["title", "title-author", "full", "full-author"].includes(bookDisplay);
+    const showAuthor = ["title-author", "full-author"].includes(bookDisplay);
+    return (
+      <article className="aspect-square rounded-2xl overflow-hidden border border-[var(--color-border)] bg-[#1C1917] flex">
+        {/* 왼쪽: 책표지 */}
+        <Link href={`/underline/${underline.id}`} className="relative w-[38%] flex-shrink-0 block">
+          <Image
+            src={underline.book.cover_url}
+            alt="책표지"
+            fill
+            className="object-cover"
+            sizes="160px"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#1C1917]/50" />
+        </Link>
+
+        {/* 오른쪽: 인용문 + 정보 */}
+        <div className="flex-1 flex flex-col min-w-0 py-5 pr-4 pl-3">
+          <Link href={`/underline/${underline.id}`} className="flex-1 min-h-0 overflow-hidden">
+            <blockquote className={`${quoteFont} text-white/90 leading-[1.85] text-[12px]`}>
+              {underline.content}
+            </blockquote>
+          </Link>
+
+          {bookDisplay !== "none" && (
+            <div className="mt-3 flex-shrink-0">
+              {showTitle && (
+                <p className="text-white/40 text-[10px] leading-snug line-clamp-2">
+                  {underline.book.title}
+                  {underline.page_number ? ` · p.${underline.page_number}` : ""}
+                </p>
+              )}
+              {showAuthor && (
+                <p className="text-white/30 text-[10px] leading-snug truncate">{underline.book.author}</p>
+              )}
+            </div>
+          )}
+
+          {!preview && (
+            <div className="flex items-center justify-between mt-2 flex-shrink-0">
+              <span className="text-white/30 text-[10px]">{underline.user.username}</span>
+              <LikeButton
+                underlineId={underline.id}
+                initialLiked={underline.is_liked ?? false}
+                initialCount={underline.like_count}
+                size="sm"
+              />
+            </div>
+          )}
+        </div>
+      </article>
+    );
+  }
 
   if (usePhoto) {
     // 사진 카드 — 정사각형: 상단 사진 / 하단 다크 텍스트 영역
@@ -64,7 +122,7 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
         <div className="flex-1 flex flex-col justify-between px-4 pt-3 pb-0 min-h-0">
           <Link href={`/underline/${underline.id}`} className="flex-1 min-h-0">
             <blockquote
-              className={`font-serif text-white/90 leading-[1.7] ${compact ? "text-[11px] line-clamp-3" : "text-[13px] line-clamp-4"}`}
+              className={`${quoteFont} text-white/90 leading-[1.7] ${compact ? "text-[11px] line-clamp-3" : "text-[13px] line-clamp-4"}`}
             >
               &ldquo;{underline.content}&rdquo;
             </blockquote>
@@ -168,7 +226,7 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
         className="absolute inset-x-0 top-0 bottom-11 flex flex-col items-center justify-center px-7 text-center"
       >
         <blockquote
-          className={`font-serif text-white leading-[1.9] ${quoteTextSize(underline.content.length, compact ?? false)}`}
+          className={`${quoteFont} text-white leading-[1.9] ${quoteTextSize(underline.content.length, compact ?? false)}`}
           style={cardBg === "search" ? { textShadow: "0 1px 8px rgba(0,0,0,0.8)" } : undefined}
         >
           {underline.content}
