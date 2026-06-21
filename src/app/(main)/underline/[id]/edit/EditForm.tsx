@@ -7,6 +7,7 @@ import UnderlineCard from "@/components/features/UnderlineCard";
 import type { Underline, BookDisplay, CardBg, CardStyle } from "@/types";
 
 type DisplayMode = "none" | "cover" | "title" | "full";
+type EditModal = "content" | "page" | "book" | null;
 
 const BG_COLORS = [
   { hex: "#1C1917", label: "블랙" },
@@ -70,8 +71,8 @@ export default function EditForm({
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editModal, setEditModal] = useState<EditModal>(null);
 
-  // 마운트 시 이미지 자동 검색
   useEffect(() => {
     const src = initialContent.trim() || bookTitle;
     if (!src) return;
@@ -113,16 +114,21 @@ export default function EditForm({
       cardBgUrl,
     });
     setSaving(false);
-    if (result.error) {
-      setError(result.error);
-      return;
-    }
+    if (result.error) { setError(result.error); return; }
     router.push(`/underline/${id}`);
     router.refresh();
   }
 
+  const bookDisplayLabel = (() => {
+    if (displayMode === "none") return "표기 안함";
+    if (displayMode === "cover") return "표지만";
+    const base = displayMode === "title" ? "이름만" : "표지+이름";
+    return showAuthor ? `${base} · 저자` : base;
+  })();
+
   return (
     <div className="min-h-screen bg-[var(--color-cream)] flex flex-col">
+
       {/* 헤더 */}
       <div className="sticky top-0 z-10 bg-[var(--color-cream)] border-b border-[var(--color-border)] px-4 h-14 flex items-center justify-between">
         <button onClick={() => router.back()} className="text-[var(--color-ink-faint)] hover:text-[var(--color-ink)]">
@@ -148,159 +154,171 @@ export default function EditForm({
       </div>
 
       {/* 배경 선택 스트립 */}
-      <div
-        className="bg-[#1C1917] overflow-x-auto"
-        style={{ scrollbarWidth: "none" }}
-      >
+      <div className="bg-[#1C1917] overflow-x-auto" style={{ scrollbarWidth: "none" }}>
         <div className="flex gap-2 px-6 py-4 w-max">
-
-          {/* 없음 */}
           <button
             type="button"
             onClick={() => { setCardBg("none"); setCardBgUrl(null); }}
-            className={`w-14 h-14 rounded-2xl flex-shrink-0 flex items-center justify-center transition-all ${
-              cardBg === "none"
-                ? "ring-2 ring-white ring-offset-2 ring-offset-[#1C1917]"
-                : "opacity-50 hover:opacity-80"
-            }`}
+            className={`w-14 h-14 rounded-2xl flex-shrink-0 flex items-center justify-center transition-all ${cardBg === "none" ? "ring-2 ring-white ring-offset-2 ring-offset-[#1C1917]" : "opacity-50 hover:opacity-80"}`}
             style={{ background: "#2A2520" }}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round">
-              <path d="M18 6L6 18M6 6l12 12"/>
-            </svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
           </button>
-
-          {/* 사진 */}
           {hasImage && imageUrl && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={imageUrl}
-              alt="사진"
-              onClick={() => { setCardBg("photo"); setCardBgUrl(null); }}
-              className={`w-14 h-14 rounded-2xl flex-shrink-0 object-cover cursor-pointer transition-all ${
-                cardBg === "photo"
-                  ? "ring-2 ring-white ring-offset-2 ring-offset-[#1C1917]"
-                  : "opacity-50 hover:opacity-80"
-              }`}
+            <img src={imageUrl} alt="사진" onClick={() => { setCardBg("photo"); setCardBgUrl(null); }}
+              className={`w-14 h-14 rounded-2xl flex-shrink-0 object-cover cursor-pointer transition-all ${cardBg === "photo" ? "ring-2 ring-white ring-offset-2 ring-offset-[#1C1917]" : "opacity-50 hover:opacity-80"}`}
             />
           )}
-
-          {/* 단색 */}
           {BG_COLORS.map(({ hex }) => (
-            <button
-              key={hex}
-              type="button"
-              onClick={() => { setCardBg("color"); setCardBgUrl(hex); }}
-              className={`w-14 h-14 rounded-2xl flex-shrink-0 transition-all ${
-                cardBg === "color" && cardBgUrl === hex
-                  ? "ring-2 ring-white ring-offset-2 ring-offset-[#1C1917]"
-                  : "opacity-50 hover:opacity-80"
-              }`}
+            <button key={hex} type="button" onClick={() => { setCardBg("color"); setCardBgUrl(hex); }}
+              className={`w-14 h-14 rounded-2xl flex-shrink-0 transition-all ${cardBg === "color" && cardBgUrl === hex ? "ring-2 ring-white ring-offset-2 ring-offset-[#1C1917]" : "opacity-50 hover:opacity-80"}`}
               style={{ background: hex }}
             />
           ))}
-
-          {/* Unsplash 이미지 */}
           {bgLoading
-            ? Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="w-14 h-14 rounded-2xl flex-shrink-0 bg-white/10 animate-pulse" />
-              ))
+            ? Array.from({ length: 8 }).map((_, i) => <div key={i} className="w-14 h-14 rounded-2xl flex-shrink-0 bg-white/10 animate-pulse" />)
             : bgImages.map((img, i) => (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  key={i}
-                  src={img.thumb}
-                  alt=""
-                  onClick={() => { setCardBg("search"); setCardBgUrl(img.url); }}
-                  className={`w-14 h-14 rounded-2xl flex-shrink-0 object-cover cursor-pointer transition-all ${
-                    cardBg === "search" && cardBgUrl === img.url
-                      ? "ring-2 ring-white ring-offset-2 ring-offset-[#1C1917]"
-                      : "opacity-50 hover:opacity-80"
-                  }`}
+                <img key={i} src={img.thumb} alt="" onClick={() => { setCardBg("search"); setCardBgUrl(img.url); }}
+                  className={`w-14 h-14 rounded-2xl flex-shrink-0 object-cover cursor-pointer transition-all ${cardBg === "search" && cardBgUrl === img.url ? "ring-2 ring-white ring-offset-2 ring-offset-[#1C1917]" : "opacity-50 hover:opacity-80"}`}
                 />
               ))
           }
         </div>
       </div>
 
-      {/* 편집 옵션 */}
-      <div className="flex-1 px-4 pt-5 pb-10 space-y-4">
+      {/* 항목 버튼 목록 */}
+      <div className="flex-1 bg-white divide-y divide-[var(--color-border)] border-t border-[var(--color-border)]">
 
         {/* 밑줄 문장 */}
-        <div>
-          <label className="text-xs text-[var(--color-ink-faint)] block mb-1.5">밑줄 문장</label>
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            className="w-full text-sm text-[var(--color-ink)] bg-white rounded-2xl px-4 py-3 outline-none resize-none leading-relaxed max-h-28 overflow-y-auto border border-[var(--color-border)]"
-          />
-        </div>
+        <button type="button" onClick={() => setEditModal("content")}
+          className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left hover:bg-[var(--color-cream)] transition-colors">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs text-[var(--color-ink-faint)] mb-1">밑줄 문장</p>
+            <p className="text-sm text-[var(--color-ink)] line-clamp-2 leading-relaxed">{content || "—"}</p>
+          </div>
+          <svg className="flex-shrink-0 text-[var(--color-ink-faint)]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
+        </button>
 
         {/* 페이지 번호 */}
-        <div className="flex items-center gap-3">
-          <label className="text-xs text-[var(--color-ink-faint)] w-14 flex-shrink-0">페이지 번호</label>
-          <input
-            type="number"
-            value={pageNumber}
-            onChange={(e) => setPageNumber(e.target.value)}
-            placeholder="—"
-            className="w-20 text-sm font-medium text-[var(--color-ink)] bg-white rounded-xl px-3 py-2 outline-none border border-[var(--color-border)] text-center"
-          />
-        </div>
+        <button type="button" onClick={() => setEditModal("page")}
+          className="w-full flex items-center justify-between gap-4 px-5 py-4 hover:bg-[var(--color-cream)] transition-colors">
+          <p className="text-sm text-[var(--color-ink-muted)]">페이지 번호</p>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-[var(--color-ink)] font-medium">{pageNumber ? `p. ${pageNumber}` : "—"}</span>
+            <svg className="text-[var(--color-ink-faint)]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
+        </button>
 
         {/* 책 표기 방식 */}
-        <div className="space-y-2">
-          <label className="text-xs text-[var(--color-ink-faint)] block">책 표기 방식</label>
-          <div className="flex gap-2">
-            {([
-              { value: "full" as DisplayMode,  label: "표지+이름" },
-              { value: "cover" as DisplayMode, label: "표지만"   },
-              { value: "title" as DisplayMode, label: "이름만"   },
-              { value: "none" as DisplayMode,  label: "표기 안함" },
-            ]).map(({ value, label }) => (
-              <button
-                key={value}
-                onClick={() => setDisplayMode(value)}
-                className={`flex-1 py-2 rounded-xl border text-xs font-medium transition-all ${
-                  displayMode === value
-                    ? "border-[var(--color-forest)] bg-[var(--color-forest)]/8 text-[var(--color-forest)]"
-                    : "border-[var(--color-border)] bg-white text-[var(--color-ink-muted)]"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
+        <button type="button" onClick={() => setEditModal("book")}
+          className="w-full flex items-center justify-between gap-4 px-5 py-4 hover:bg-[var(--color-cream)] transition-colors">
+          <p className="text-sm text-[var(--color-ink-muted)]">책 표기 방식</p>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-[var(--color-ink)] font-medium">{bookDisplayLabel}</span>
+            <svg className="text-[var(--color-ink-faint)]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
           </div>
-          {(displayMode === "title" || displayMode === "full") && (
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setShowAuthor(true)}
-                className={`flex-1 py-2 rounded-xl border text-xs font-medium transition-all ${
-                  showAuthor
-                    ? "border-[var(--color-forest)] bg-[var(--color-forest)]/8 text-[var(--color-forest)]"
-                    : "border-[var(--color-border)] bg-white text-[var(--color-ink-muted)]"
-                }`}
-              >
-                저자 표기
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowAuthor(false)}
-                className={`flex-1 py-2 rounded-xl border text-xs font-medium transition-all ${
-                  !showAuthor
-                    ? "border-[var(--color-forest)] bg-[var(--color-forest)]/8 text-[var(--color-forest)]"
-                    : "border-[var(--color-border)] bg-white text-[var(--color-ink-muted)]"
-                }`}
-              >
-                안함
-              </button>
-            </div>
-          )}
-        </div>
+        </button>
 
-        {error && <Alert variant="error">{error}</Alert>}
+        {error && <div className="px-5 py-3"><Alert variant="error">{error}</Alert></div>}
       </div>
+
+      {/* ── 모달: 밑줄 문장 ── */}
+      {editModal === "content" && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-end" onClick={() => setEditModal(null)}>
+          <div className="w-full bg-white rounded-t-3xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 pt-5 pb-3">
+              <p className="font-semibold text-[var(--color-ink)]">밑줄 문장</p>
+              <button type="button" onClick={() => setEditModal(null)} className="text-[var(--color-forest)] font-semibold text-sm">완료</button>
+            </div>
+            <div className="px-5 pb-8">
+              <textarea
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                autoFocus
+                rows={5}
+                className="w-full text-sm text-[var(--color-ink)] bg-[var(--color-cream)] rounded-2xl px-4 py-3 outline-none resize-none leading-relaxed border border-[var(--color-border)] focus:border-[var(--color-forest)] transition-colors"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── 모달: 페이지 번호 ── */}
+      {editModal === "page" && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-end" onClick={() => setEditModal(null)}>
+          <div className="w-full bg-white rounded-t-3xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 pt-5 pb-3">
+              <p className="font-semibold text-[var(--color-ink)]">페이지 번호</p>
+              <button type="button" onClick={() => setEditModal(null)} className="text-[var(--color-forest)] font-semibold text-sm">완료</button>
+            </div>
+            <div className="px-5 pb-10">
+              <input
+                type="number"
+                value={pageNumber}
+                onChange={(e) => setPageNumber(e.target.value)}
+                autoFocus
+                placeholder="예: 112"
+                className="w-full text-2xl font-medium text-[var(--color-ink)] bg-[var(--color-cream)] rounded-2xl px-4 py-4 outline-none border border-[var(--color-border)] focus:border-[var(--color-forest)] transition-colors text-center"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── 모달: 책 표기 방식 ── */}
+      {editModal === "book" && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-end" onClick={() => setEditModal(null)}>
+          <div className="w-full bg-white rounded-t-3xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 pt-5 pb-4">
+              <p className="font-semibold text-[var(--color-ink)]">책 표기 방식</p>
+              <button type="button" onClick={() => setEditModal(null)} className="text-[var(--color-forest)] font-semibold text-sm">완료</button>
+            </div>
+            <div className="px-5 pb-8 space-y-2">
+              {([
+                { value: "full" as DisplayMode,  label: "표지 + 이름" },
+                { value: "cover" as DisplayMode, label: "표지만"      },
+                { value: "title" as DisplayMode, label: "이름만"      },
+                { value: "none" as DisplayMode,  label: "표기 안함"   },
+              ]).map(({ value, label }) => (
+                <button key={value} type="button" onClick={() => setDisplayMode(value)}
+                  className={`w-full flex items-center justify-between px-4 py-3.5 rounded-2xl border transition-all ${
+                    displayMode === value
+                      ? "border-[var(--color-forest)] bg-[var(--color-forest)]/6 text-[var(--color-forest)]"
+                      : "border-[var(--color-border)] text-[var(--color-ink-muted)]"
+                  }`}>
+                  <span className="text-sm font-medium">{label}</span>
+                  {displayMode === value && (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+                  )}
+                </button>
+              ))}
+              {(displayMode === "title" || displayMode === "full") && (
+                <div className="pt-2 border-t border-[var(--color-border)]">
+                  <p className="text-xs text-[var(--color-ink-faint)] px-1 mb-2">저자 표기</p>
+                  <div className="flex gap-2">
+                    {([
+                      { val: true,  label: "표기" },
+                      { val: false, label: "안함" },
+                    ]).map(({ val, label }) => (
+                      <button key={String(val)} type="button" onClick={() => setShowAuthor(val)}
+                        className={`flex-1 py-3 rounded-2xl border text-sm font-medium transition-all ${
+                          showAuthor === val
+                            ? "border-[var(--color-forest)] bg-[var(--color-forest)]/6 text-[var(--color-forest)]"
+                            : "border-[var(--color-border)] text-[var(--color-ink-muted)]"
+                        }`}>
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
