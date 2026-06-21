@@ -124,7 +124,7 @@ export default function UnderlineCard({ underline, compact }: Props) {
               backgroundPosition: "center",
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/55 to-black/75" />
+          <div className="absolute inset-0 bg-black/60" />
         </>
       ) : bgSrc ? (
         /* 책표지 배경 — 블러 처리된 분위기 */
@@ -151,7 +151,8 @@ export default function UnderlineCard({ underline, compact }: Props) {
         className="absolute inset-x-0 top-0 bottom-11 flex flex-col items-center justify-center px-7 text-center"
       >
         <blockquote
-          className={`font-serif text-white/90 leading-[1.9] ${quoteTextSize(underline.content.length, compact ?? false)}`}
+          className={`font-serif text-white leading-[1.9] ${quoteTextSize(underline.content.length, compact ?? false)}`}
+          style={cardBg === "search" ? { textShadow: "0 1px 8px rgba(0,0,0,0.8)" } : undefined}
         >
           {underline.content}
         </blockquote>
