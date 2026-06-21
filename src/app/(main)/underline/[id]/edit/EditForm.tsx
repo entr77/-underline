@@ -130,24 +130,17 @@ export default function EditForm({
     <div className="min-h-screen bg-[var(--color-cream)] flex flex-col">
 
       {/* 헤더 */}
-      <div className="sticky top-0 z-10 bg-[var(--color-cream)] border-b border-[var(--color-border)] px-4 h-14 flex items-center justify-between">
+      <div className="sticky top-0 z-10 bg-[var(--color-cream)] border-b border-[var(--color-border)] px-4 h-14 flex items-center gap-3">
         <button onClick={() => router.back()} className="text-[var(--color-ink-faint)] hover:text-[var(--color-ink)]">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <path d="M19 12H5M12 5l-7 7 7 7"/>
           </svg>
         </button>
         <h2 className="font-medium text-[var(--color-ink)]">밑줄 수정</h2>
-        <button
-          onClick={handleSave}
-          disabled={saving || !content.trim()}
-          className="text-[var(--color-forest)] font-semibold text-sm disabled:opacity-30"
-        >
-          {saving ? "저장 중…" : "완료"}
-        </button>
       </div>
 
       {/* 카드 미리보기 */}
-      <div className="bg-[#1C1917] px-1 pt-4 pb-1">
+      <div className="bg-[#1C1917] px-2 pt-2 pb-1">
         <div className="max-w-[380px] mx-auto pointer-events-none select-none">
           <UnderlineCard underline={previewUnderline} />
         </div>
@@ -197,7 +190,7 @@ export default function EditForm({
       </div>
 
       {/* 항목 버튼 목록 */}
-      <div className="flex-1 bg-white divide-y divide-[var(--color-border)] border-t border-[var(--color-border)]">
+      <div className="flex-1 divide-y divide-[var(--color-border)] border-t border-[var(--color-border)] pb-28">
 
         {/* 밑줄 문장 */}
         <button type="button" onClick={() => setEditModal("content")}
@@ -230,6 +223,17 @@ export default function EditForm({
         </button>
 
         {error && <div className="px-5 py-3"><Alert variant="error">{error}</Alert></div>}
+      </div>
+
+      {/* 하단 완료 버튼 */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 px-4 pb-8 pt-3 bg-gradient-to-t from-[var(--color-cream)] to-transparent pointer-events-none">
+        <button
+          onClick={handleSave}
+          disabled={saving || !content.trim()}
+          className="w-full py-4 rounded-2xl bg-[var(--color-forest)] text-white font-semibold text-sm disabled:opacity-30 pointer-events-auto hover:bg-[var(--color-forest-light)] transition-colors"
+        >
+          {saving ? "저장 중…" : "완료"}
+        </button>
       </div>
 
       {/* ── 모달: 밑줄 문장 ── */}
