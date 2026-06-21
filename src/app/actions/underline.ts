@@ -174,11 +174,16 @@ export async function updateUnderline(
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) return { error: "로그인이 필요합니다." };
 
+  const newTags = data.content !== undefined
+    ? await classifyUnderlineTags([data.content]).then(([t]) => t ? [t] : [])
+    : undefined;
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (supabase as any)
     .from("underlines")
     .update({
       ...(data.content !== undefined && { content: data.content }),
+      ...(newTags !== undefined && { tags: newTags }),
       ...(data.pageNumber !== undefined && { page_number: data.pageNumber }),
       ...(data.cardStyle !== undefined && { card_style: data.cardStyle }),
       ...(data.bookDisplay !== undefined && { book_display: data.bookDisplay }),

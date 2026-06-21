@@ -91,13 +91,16 @@ JSON 배열만 반환. 순서 유지. 예: ["위로", "성장", "철학"]"""
 
 
 def fetch_untagged() -> list[dict]:
+    # tags 컬럼이 빈 배열인 밑줄만 가져옴
+    # PostgREST: 빈 배열은 eq.{} 대신 직접 SQL 필터 사용
     r = requests.get(
         f"{SUPABASE_URL}/rest/v1/underlines",
-        headers=HEADERS,
-        params={"tags": "eq.{}", "select": "id,content", "limit": 1000},
+        headers={**HEADERS, "Prefer": ""},
+        params={"select": "id,content", "limit": "1000"},
     )
     r.raise_for_status()
-    return r.json()
+    # Python에서 빈 tags 필터링
+    return [row for row in r.json() if not row.get("tags")]
 
 
 def update_tags(underline_id: str, tags: list[str]):
