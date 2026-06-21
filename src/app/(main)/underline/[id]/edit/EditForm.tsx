@@ -260,29 +260,31 @@ export default function EditForm({
           </div>
         </button>
 
-        {/* 배경 */}
-        <button type="button" onClick={() => setEditModal("bg")}
-          className="w-full flex items-center justify-between gap-4 px-5 py-4 hover:bg-[var(--color-cream)] transition-colors">
-          <p className="text-sm text-[var(--color-ink-muted)]">배경</p>
-          <div className="flex items-center gap-2">
-            {cardBg === "none" && <span className="text-sm font-medium text-[var(--color-ink)]">없음</span>}
-            {cardBg === "cover" && bookCoverUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={bookCoverUrl} alt="" className="w-6 h-6 rounded object-cover" />
-            )}
-            {cardBg === "photo" && imageUrl && (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={imageUrl} alt="" className="w-6 h-6 rounded object-cover" />
-            )}
-            {(cardBg === "color" || cardBg === "search") && cardBgUrl && (
-              cardBg === "color"
-                ? <div className="w-6 h-6 rounded" style={{ background: cardBgUrl }} />
+        {/* 배경 — 테마 미선택 시만 표시 */}
+        {!selectedTheme && (
+          <button type="button" onClick={() => setEditModal("bg")}
+            className="w-full flex items-center justify-between gap-4 px-5 py-4 hover:bg-[var(--color-cream)] transition-colors">
+            <p className="text-sm text-[var(--color-ink-muted)]">배경</p>
+            <div className="flex items-center gap-2">
+              {cardBg === "none" && <span className="text-sm font-medium text-[var(--color-ink)]">없음</span>}
+              {cardBg === "cover" && bookCoverUrl && (
                 // eslint-disable-next-line @next/next/no-img-element
-                : <img src={cardBgUrl} alt="" className="w-6 h-6 rounded object-cover" />
-            )}
-            <svg className="text-[var(--color-ink-faint)]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
-          </div>
-        </button>
+                <img src={bookCoverUrl} alt="" className="w-6 h-6 rounded object-cover" />
+              )}
+              {cardBg === "photo" && imageUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={imageUrl} alt="" className="w-6 h-6 rounded object-cover" />
+              )}
+              {(cardBg === "color" || cardBg === "search") && cardBgUrl && (
+                cardBg === "color"
+                  ? <div className="w-6 h-6 rounded" style={{ background: cardBgUrl }} />
+                  // eslint-disable-next-line @next/next/no-img-element
+                  : <img src={cardBgUrl} alt="" className="w-6 h-6 rounded object-cover" />
+              )}
+              <svg className="text-[var(--color-ink-faint)]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+          </button>
+        )}
 
         {/* 밑줄 문장 */}
         <button type="button" onClick={() => setEditModal("content")}
@@ -304,35 +306,39 @@ export default function EditForm({
           </div>
         </button>
 
-        {/* 책 표기 방식 */}
-        <button type="button" onClick={() => setEditModal("book")}
-          className="w-full flex items-center justify-between gap-4 px-5 py-4 hover:bg-[var(--color-cream)] transition-colors">
-          <p className="text-sm text-[var(--color-ink-muted)]">책 표기 방식</p>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-[var(--color-ink)] font-medium">{bookDisplayLabel}</span>
-            <svg className="text-[var(--color-ink-faint)]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
-          </div>
-        </button>
+        {/* 책 표기 방식 — 테마 미선택 시만 표시 */}
+        {!selectedTheme && (
+          <button type="button" onClick={() => setEditModal("book")}
+            className="w-full flex items-center justify-between gap-4 px-5 py-4 hover:bg-[var(--color-cream)] transition-colors">
+            <p className="text-sm text-[var(--color-ink-muted)]">책 표기 방식</p>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-[var(--color-ink)] font-medium">{bookDisplayLabel}</span>
+              <svg className="text-[var(--color-ink-faint)]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+          </button>
+        )}
 
-        {/* 텍스트 */}
-        <button type="button" onClick={() => setEditModal("font")}
-          className="w-full flex items-center justify-between gap-4 px-5 py-4 hover:bg-[var(--color-cream)] transition-colors">
-          <p className="text-sm text-[var(--color-ink-muted)]">텍스트</p>
-          <div className="flex items-center gap-2">
-            <span className={`text-sm font-medium text-[var(--color-ink)] ${cardFont === "serif" ? "font-serif" : "font-sans"}`}>
-              {cardFont === "serif" ? "명조" : "고딕"}
-            </span>
-            <span className="text-xs text-[var(--color-ink-faint)]">·</span>
-            <span className="text-sm font-medium text-[var(--color-ink)]">
-              {cardAlign === "left" ? "좌" : cardAlign === "right" ? "우" : "가운데"}
-            </span>
-            <span className="text-xs text-[var(--color-ink-faint)]">·</span>
-            <span className="text-sm font-medium text-[var(--color-ink)]">
-              {cardVAlign === "top" ? "상" : cardVAlign === "center" ? "중" : "하"}
-            </span>
-            <svg className="text-[var(--color-ink-faint)]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
-          </div>
-        </button>
+        {/* 텍스트 — 테마 미선택 시만 표시 */}
+        {!selectedTheme && (
+          <button type="button" onClick={() => setEditModal("font")}
+            className="w-full flex items-center justify-between gap-4 px-5 py-4 hover:bg-[var(--color-cream)] transition-colors">
+            <p className="text-sm text-[var(--color-ink-muted)]">텍스트</p>
+            <div className="flex items-center gap-2">
+              <span className={`text-sm font-medium text-[var(--color-ink)] ${cardFont === "serif" ? "font-serif" : "font-sans"}`}>
+                {cardFont === "serif" ? "명조" : "고딕"}
+              </span>
+              <span className="text-xs text-[var(--color-ink-faint)]">·</span>
+              <span className="text-sm font-medium text-[var(--color-ink)]">
+                {cardAlign === "left" ? "좌" : cardAlign === "right" ? "우" : "가운데"}
+              </span>
+              <span className="text-xs text-[var(--color-ink-faint)]">·</span>
+              <span className="text-sm font-medium text-[var(--color-ink)]">
+                {cardVAlign === "top" ? "상" : cardVAlign === "center" ? "중" : "하"}
+              </span>
+              <svg className="text-[var(--color-ink-faint)]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
+            </div>
+          </button>
+        )}
 
         {error && <div className="px-5 py-3"><Alert variant="error">{error}</Alert></div>}
       </div>
