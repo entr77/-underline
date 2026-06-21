@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { updateUnderline } from "@/app/actions/underline";
 import Alert from "@/components/ui/Alert";
@@ -11,10 +11,8 @@ type EditModal = "content" | "page" | "book" | null;
 
 
 const BG_GRADIENTS = [
-  { css: "linear-gradient(160deg, #0a1628 0%, #1e3a5f 100%)",              label: "밤바다" },
   { css: "linear-gradient(160deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)", label: "달빛" },
   { css: "linear-gradient(160deg, #2d0845 0%, #5c1e91 50%, #c2185b 100%)", label: "새벽" },
-  { css: "linear-gradient(160deg, #4a1942 0%, #7b2d8b 50%, #e53e3e 100%)", label: "노을" },
   { css: "linear-gradient(160deg, #0b2027 0%, #203a3a 50%, #2c5364 100%)", label: "안개숲" },
   { css: "linear-gradient(160deg, #1a0505 0%, #7c1515 50%, #8b4513 100%)", label: "가을" },
 ];
@@ -85,6 +83,23 @@ export default function EditForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editModal, setEditModal] = useState<EditModal>(null);
+  const [bgUploading, setBgUploading] = useState(false);
+  const bgFileInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleBgFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setBgUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      const res = await fetch("/api/images/upload-bg", { method: "POST", body: formData });
+      const json = await res.json();
+      if (json.url) { setCardBg("search"); setCardBgUrl(json.url); }
+    } catch {}
+    setBgUploading(false);
+    e.target.value = "";
+  }
 
   useEffect(() => {
     const src = initialContent.trim() || bookTitle;
@@ -211,6 +226,20 @@ export default function EditForm({
 
           {/* 구분선 */}
           <div className="w-px self-stretch my-1.5 bg-[var(--color-border)] flex-shrink-0" />
+
+          {/* 사진 업로드 버튼 */}
+          <button
+            type="button"
+            onClick={() => bgFileInputRef.current?.click()}
+            disabled={bgUploading}
+            className="w-11 h-11 rounded-xl flex-shrink-0 flex items-center justify-center border-2 border-dashed border-[var(--color-border)] text-[var(--color-ink-faint)] hover:border-[var(--color-forest)] hover:text-[var(--color-forest)] transition-all"
+          >
+            {bgUploading
+              ? <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+              : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            }
+          </button>
+          <input ref={bgFileInputRef} type="file" accept="image/*" className="hidden" onChange={handleBgFileChange} />
 
           {/* 큐레이션 실사 이미지 */}
           {PRESET_IMAGES.map((img) => (
