@@ -4,10 +4,11 @@ import { useRouter } from "next/navigation";
 import { updateUnderline } from "@/app/actions/underline";
 import Alert from "@/components/ui/Alert";
 import UnderlineCard from "@/components/features/UnderlineCard";
-import type { Underline, BookDisplay, CardBg, CardStyle } from "@/types";
+import type { Underline, BookDisplay, CardBg, CardStyle, CardFont, CardAlign } from "@/types";
 
+const MAX_CONTENT = 300;
 type DisplayMode = "none" | "cover" | "title" | "full";
-type EditModal = "content" | "page" | "book" | null;
+type EditModal = "content" | "page" | "book" | "font" | "bg" | null;
 
 
 const BG_GRADIENTS = [
@@ -40,6 +41,8 @@ type Props = {
   initialBookDisplay: string;
   initialCardBg: string;
   initialCardBgUrl?: string;
+  initialCardFont: string;
+  initialCardAlign: string;
   bookTitle: string;
   bookAuthor: string;
   bookCoverUrl: string;
@@ -50,7 +53,7 @@ type Props = {
 
 export default function EditForm({
   id, initialContent, initialPageNumber, initialBookDisplay,
-  initialCardBg, initialCardBgUrl,
+  initialCardBg, initialCardBgUrl, initialCardFont, initialCardAlign,
   bookTitle, bookAuthor, bookCoverUrl, username,
   hasImage, imageUrl,
 }: Props) {
@@ -78,6 +81,14 @@ export default function EditForm({
   const [cardBgUrl, setCardBgUrl] = useState<string | null>(initialCardBgUrl ?? null);
   const [bgImages, setBgImages] = useState<{ thumb: string; url: string }[]>([]);
   const [bgLoading, setBgLoading] = useState(false);
+  const [cardFont, setCardFont] = useState<CardFont>(
+    initialCardFont === "sans" ? "sans" : "serif"
+  );
+  const [cardAlign, setCardAlign] = useState<CardAlign>(
+    (["left", "center", "right"] as CardAlign[]).includes(initialCardAlign as CardAlign)
+      ? (initialCardAlign as CardAlign)
+      : "center"
+  );
   const cardStyle: CardStyle = cardBg === "photo" ? "photo" : "text";
 
   const [saving, setSaving] = useState(false);
@@ -122,6 +133,8 @@ export default function EditForm({
     book_display: bookDisplay as BookDisplay,
     card_bg: cardBg,
     card_bg_url: cardBgUrl ?? undefined,
+    card_font: cardFont,
+    card_align: cardAlign,
     is_public: true,
     like_count: 0,
     is_liked: false,
@@ -140,6 +153,8 @@ export default function EditForm({
       bookDisplay,
       cardBg,
       cardBgUrl,
+      cardFont,
+      cardAlign,
     });
     setSaving(false);
     if (result.error) { setError(result.error); return; }
@@ -174,102 +189,35 @@ export default function EditForm({
         </div>
       </div>
 
-      {/* 배경 선택 스트립 */}
-      <div className="bg-[var(--color-cream)] border-y border-[var(--color-border)] overflow-x-auto" style={{ scrollbarWidth: "none" }}>
-        <div className="flex gap-1.5 px-3 py-2.5 w-max">
-
-          {/* 없음 */}
-          <button
-            type="button"
-            onClick={() => { setCardBg("none"); setCardBgUrl(null); }}
-            className={`w-11 h-11 rounded-xl flex-shrink-0 flex items-center justify-center border-2 transition-all ${
-              cardBg === "none"
-                ? "border-[var(--color-forest)] bg-[var(--color-forest)]/8 text-[var(--color-forest)]"
-                : "border-[var(--color-border)] text-[var(--color-ink-faint)]"
-            }`}
-          >
-            <span className="text-[9px] font-medium leading-none">없음</span>
-          </button>
-
-          {/* 책표지 */}
-          {bookCoverUrl && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={bookCoverUrl} alt="책표지" onClick={() => { setCardBg("cover"); setCardBgUrl(null); }}
-              className={`w-11 h-11 rounded-xl flex-shrink-0 object-cover cursor-pointer border-2 transition-all ${
-                cardBg === "cover" ? "border-[var(--color-forest)]" : "border-[var(--color-border)]"
-              }`}
-            />
-          )}
-
-          {/* 업로드 사진 */}
-          {hasImage && imageUrl && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={imageUrl} alt="사진" onClick={() => { setCardBg("photo"); setCardBgUrl(null); }}
-              className={`w-11 h-11 rounded-xl flex-shrink-0 object-cover cursor-pointer border-2 transition-all ${
-                cardBg === "photo" ? "border-[var(--color-forest)]" : "border-[var(--color-border)]"
-              }`}
-            />
-          )}
-
-          {/* 구분선 */}
-          <div className="w-px self-stretch my-1.5 bg-[var(--color-border)] flex-shrink-0" />
-
-          {/* 그라디언트 */}
-          {BG_GRADIENTS.map(({ css }) => (
-            <button key={css} type="button" onClick={() => { setCardBg("color"); setCardBgUrl(css); }}
-              className={`w-11 h-11 rounded-xl flex-shrink-0 border-2 transition-all ${
-                cardBg === "color" && cardBgUrl === css ? "border-[var(--color-forest)]" : "border-transparent"
-              }`}
-              style={{ background: css }}
-            />
-          ))}
-
-          {/* 구분선 */}
-          <div className="w-px self-stretch my-1.5 bg-[var(--color-border)] flex-shrink-0" />
-
-          {/* 사진 업로드 버튼 */}
-          <button
-            type="button"
-            onClick={() => bgFileInputRef.current?.click()}
-            disabled={bgUploading}
-            className="w-11 h-11 rounded-xl flex-shrink-0 flex items-center justify-center border-2 border-dashed border-[var(--color-border)] text-[var(--color-ink-faint)] hover:border-[var(--color-forest)] hover:text-[var(--color-forest)] transition-all"
-          >
-            {bgUploading
-              ? <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
-              : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            }
-          </button>
-          <input ref={bgFileInputRef} type="file" accept="image/*" className="hidden" onChange={handleBgFileChange} />
-
-          {/* 큐레이션 실사 이미지 */}
-          {PRESET_IMAGES.map((img) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img key={img.url} src={img.thumb} alt={img.label}
-              onClick={() => { setCardBg("search"); setCardBgUrl(img.url); }}
-              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
-              className={`w-11 h-11 rounded-xl flex-shrink-0 object-cover cursor-pointer border-2 transition-all ${
-                cardBg === "search" && cardBgUrl === img.url ? "border-[var(--color-forest)]" : "border-transparent"
-              }`}
-            />
-          ))}
-
-          {/* Unsplash 자동 추천 */}
-          {bgLoading
-            ? Array.from({ length: 6 }).map((_, i) => <div key={i} className="w-11 h-11 rounded-xl flex-shrink-0 bg-[var(--color-cream-dark)] animate-pulse" />)
-            : bgImages.map((img, i) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img key={i} src={img.thumb} alt="" onClick={() => { setCardBg("search"); setCardBgUrl(img.url); }}
-                  className={`w-11 h-11 rounded-xl flex-shrink-0 object-cover cursor-pointer border-2 transition-all ${
-                    cardBg === "search" && cardBgUrl === img.url ? "border-[var(--color-forest)]" : "border-transparent"
-                  }`}
-                />
-              ))
-          }
-        </div>
-      </div>
+      {/* hidden file input (used inside bg modal) */}
+      <input ref={bgFileInputRef} type="file" accept="image/*" className="hidden" onChange={handleBgFileChange} />
 
       {/* 항목 버튼 목록 */}
       <div className="flex-1 divide-y divide-[var(--color-border)] border-t border-[var(--color-border)] pb-28">
+
+        {/* 배경 */}
+        <button type="button" onClick={() => setEditModal("bg")}
+          className="w-full flex items-center justify-between gap-4 px-5 py-4 hover:bg-[var(--color-cream)] transition-colors">
+          <p className="text-sm text-[var(--color-ink-muted)]">배경</p>
+          <div className="flex items-center gap-2">
+            {cardBg === "none" && <span className="text-sm font-medium text-[var(--color-ink)]">없음</span>}
+            {cardBg === "cover" && bookCoverUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={bookCoverUrl} alt="" className="w-6 h-6 rounded object-cover" />
+            )}
+            {cardBg === "photo" && imageUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={imageUrl} alt="" className="w-6 h-6 rounded object-cover" />
+            )}
+            {(cardBg === "color" || cardBg === "search") && cardBgUrl && (
+              cardBg === "color"
+                ? <div className="w-6 h-6 rounded" style={{ background: cardBgUrl }} />
+                // eslint-disable-next-line @next/next/no-img-element
+                : <img src={cardBgUrl} alt="" className="w-6 h-6 rounded object-cover" />
+            )}
+            <svg className="text-[var(--color-ink-faint)]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
+        </button>
 
         {/* 밑줄 문장 */}
         <button type="button" onClick={() => setEditModal("content")}
@@ -301,6 +249,22 @@ export default function EditForm({
           </div>
         </button>
 
+        {/* 텍스트 */}
+        <button type="button" onClick={() => setEditModal("font")}
+          className="w-full flex items-center justify-between gap-4 px-5 py-4 hover:bg-[var(--color-cream)] transition-colors">
+          <p className="text-sm text-[var(--color-ink-muted)]">텍스트</p>
+          <div className="flex items-center gap-2">
+            <span className={`text-sm font-medium text-[var(--color-ink)] ${cardFont === "serif" ? "font-serif" : "font-sans"}`}>
+              {cardFont === "serif" ? "명조" : "고딕"}
+            </span>
+            <span className="text-xs text-[var(--color-ink-faint)]">·</span>
+            <span className="text-sm font-medium text-[var(--color-ink)]">
+              {cardAlign === "left" ? "좌" : cardAlign === "right" ? "우" : "가운데"}
+            </span>
+            <svg className="text-[var(--color-ink-faint)]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
+        </button>
+
         {error && <div className="px-5 py-3"><Alert variant="error">{error}</Alert></div>}
       </div>
 
@@ -323,14 +287,18 @@ export default function EditForm({
               <p className="font-semibold text-[var(--color-ink)]">밑줄 문장</p>
               <button type="button" onClick={() => setEditModal(null)} className="text-[var(--color-forest)] font-semibold text-sm">완료</button>
             </div>
-            <div className="px-5 pb-8">
+            <div className="px-5 pb-8 space-y-2">
               <textarea
                 value={content}
-                onChange={(e) => setContent(e.target.value)}
+                onChange={(e) => setContent(e.target.value.slice(0, MAX_CONTENT))}
                 autoFocus
                 rows={5}
+                maxLength={MAX_CONTENT}
                 className="w-full text-sm text-[var(--color-ink)] bg-[var(--color-cream)] rounded-2xl px-4 py-3 outline-none resize-none leading-relaxed border border-[var(--color-border)] focus:border-[var(--color-forest)] transition-colors"
               />
+              <p className={`text-right text-xs ${content.length >= MAX_CONTENT ? "text-red-400" : "text-[var(--color-ink-faint)]"}`}>
+                {content.length}/{MAX_CONTENT}
+              </p>
             </div>
           </div>
         </div>
@@ -353,6 +321,154 @@ export default function EditForm({
                 placeholder="예: 112"
                 className="w-full text-2xl font-medium text-[var(--color-ink)] bg-[var(--color-cream)] rounded-2xl px-4 py-4 outline-none border border-[var(--color-border)] focus:border-[var(--color-forest)] transition-colors text-center"
               />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── 모달: 배경 ── */}
+      {editModal === "bg" && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-end" onClick={() => setEditModal(null)}>
+          <div className="w-full bg-white rounded-t-3xl max-h-[80vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 pt-5 pb-4 sticky top-0 bg-white border-b border-[var(--color-border)]">
+              <p className="font-semibold text-[var(--color-ink)]">배경</p>
+              <button type="button" onClick={() => setEditModal(null)} className="text-[var(--color-forest)] font-semibold text-sm">완료</button>
+            </div>
+            <div className="px-5 py-4 space-y-5">
+
+              {/* 없음 + 책표지 + 사진 */}
+              <div className="space-y-2">
+                <p className="text-xs text-[var(--color-ink-faint)]">기본</p>
+                <div className="flex gap-2.5">
+                  <button type="button" onClick={() => { setCardBg("none"); setCardBgUrl(null); }}
+                    className={`flex-1 h-14 rounded-2xl flex flex-col items-center justify-center gap-1 border-2 transition-all ${cardBg === "none" ? "border-[var(--color-forest)] bg-[var(--color-forest)]/6" : "border-[var(--color-border)]"}`}>
+                    <span className="text-xs font-medium text-[var(--color-ink-muted)]">없음</span>
+                  </button>
+                  {bookCoverUrl && (
+                    <button type="button" onClick={() => { setCardBg("cover"); setCardBgUrl(null); }}
+                      className={`flex-1 h-14 rounded-2xl overflow-hidden border-2 transition-all relative ${cardBg === "cover" ? "border-[var(--color-forest)]" : "border-[var(--color-border)]"}`}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={bookCoverUrl} alt="책표지" className="w-full h-full object-cover" />
+                      <span className="absolute inset-0 flex items-end justify-center pb-1"><span className="text-[9px] text-white/80 bg-black/40 px-1.5 rounded-full">책표지</span></span>
+                    </button>
+                  )}
+                  {hasImage && imageUrl && (
+                    <button type="button" onClick={() => { setCardBg("photo"); setCardBgUrl(null); }}
+                      className={`flex-1 h-14 rounded-2xl overflow-hidden border-2 transition-all relative ${cardBg === "photo" ? "border-[var(--color-forest)]" : "border-[var(--color-border)]"}`}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={imageUrl} alt="사진" className="w-full h-full object-cover" />
+                      <span className="absolute inset-0 flex items-end justify-center pb-1"><span className="text-[9px] text-white/80 bg-black/40 px-1.5 rounded-full">사진</span></span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* 그라디언트 */}
+              <div className="space-y-2">
+                <p className="text-xs text-[var(--color-ink-faint)]">그라디언트</p>
+                <div className="grid grid-cols-4 gap-2.5">
+                  {BG_GRADIENTS.map(({ css, label }) => (
+                    <button key={css} type="button" onClick={() => { setCardBg("color"); setCardBgUrl(css); }}
+                      className={`h-14 rounded-2xl border-2 transition-all flex items-end justify-center pb-1 ${cardBg === "color" && cardBgUrl === css ? "border-[var(--color-forest)]" : "border-transparent"}`}
+                      style={{ background: css }}>
+                      <span className="text-[9px] text-white/70">{label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 사진 업로드 + 큐레이션 */}
+              <div className="space-y-2">
+                <p className="text-xs text-[var(--color-ink-faint)]">사진</p>
+                <div className="grid grid-cols-4 gap-2.5">
+                  {/* 업로드 버튼 */}
+                  <button type="button" onClick={() => bgFileInputRef.current?.click()} disabled={bgUploading}
+                    className="h-14 rounded-2xl border-2 border-dashed border-[var(--color-border)] flex flex-col items-center justify-center gap-1 text-[var(--color-ink-faint)] hover:border-[var(--color-forest)] hover:text-[var(--color-forest)] transition-all">
+                    {bgUploading
+                      ? <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                      : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    }
+                    <span className="text-[9px]">업로드</span>
+                  </button>
+                  {/* 큐레이션 */}
+                  {PRESET_IMAGES.map((img) => (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img key={img.url} src={img.thumb} alt={img.label}
+                      onClick={() => { setCardBg("search"); setCardBgUrl(img.url); }}
+                      onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                      className={`h-14 w-full rounded-2xl object-cover cursor-pointer border-2 transition-all ${cardBg === "search" && cardBgUrl === img.url ? "border-[var(--color-forest)]" : "border-transparent"}`}
+                    />
+                  ))}
+                  {/* Unsplash 추천 */}
+                  {bgLoading
+                    ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-14 rounded-2xl bg-[var(--color-cream-dark)] animate-pulse" />)
+                    : bgImages.map((img, i) => (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img key={i} src={img.thumb} alt=""
+                          onClick={() => { setCardBg("search"); setCardBgUrl(img.url); }}
+                          className={`h-14 w-full rounded-2xl object-cover cursor-pointer border-2 transition-all ${cardBg === "search" && cardBgUrl === img.url ? "border-[var(--color-forest)]" : "border-transparent"}`}
+                        />
+                      ))
+                  }
+                </div>
+              </div>
+
+            </div>
+            <div className="h-8" />
+          </div>
+        </div>
+      )}
+
+      {/* ── 모달: 텍스트 ── */}
+      {editModal === "font" && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-end" onClick={() => setEditModal(null)}>
+          <div className="w-full bg-white rounded-t-3xl" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-5 pt-5 pb-4">
+              <p className="font-semibold text-[var(--color-ink)]">텍스트</p>
+              <button type="button" onClick={() => setEditModal(null)} className="text-[var(--color-forest)] font-semibold text-sm">완료</button>
+            </div>
+            <div className="px-5 pb-8 space-y-4">
+              {/* 폰트 */}
+              <div className="space-y-2">
+                <p className="text-xs text-[var(--color-ink-faint)]">폰트</p>
+                <div className="flex gap-2">
+                  {([
+                    { value: "serif" as CardFont, label: "명조", cls: "font-serif" },
+                    { value: "sans"  as CardFont, label: "고딕", cls: "font-sans"  },
+                  ]).map(({ value, label, cls }) => (
+                    <button key={value} type="button" onClick={() => setCardFont(value)}
+                      className={`flex-1 py-3 rounded-2xl border transition-all ${
+                        cardFont === value
+                          ? "border-[var(--color-forest)] bg-[var(--color-forest)]/6 text-[var(--color-forest)]"
+                          : "border-[var(--color-border)] text-[var(--color-ink-muted)]"
+                      }`}>
+                      <span className={`${cls} text-sm font-medium`}>{label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {/* 정렬 */}
+              <div className="space-y-2">
+                <p className="text-xs text-[var(--color-ink-faint)]">정렬</p>
+                <div className="flex gap-2">
+                  {([
+                    { value: "left"   as CardAlign, icon: "M4 6h16M4 12h10M4 18h12" },
+                    { value: "center" as CardAlign, icon: "M4 6h16M7 12h10M5 18h14" },
+                    { value: "right"  as CardAlign, icon: "M4 6h16M10 12h10M8 18h12" },
+                  ]).map(({ value, icon }) => (
+                    <button key={value} type="button" onClick={() => setCardAlign(value)}
+                      className={`flex-1 py-3 rounded-2xl border flex items-center justify-center transition-all ${
+                        cardAlign === value
+                          ? "border-[var(--color-forest)] bg-[var(--color-forest)]/6 text-[var(--color-forest)]"
+                          : "border-[var(--color-border)] text-[var(--color-ink-faint)]"
+                      }`}>
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                        <path d={icon}/>
+                      </svg>
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>

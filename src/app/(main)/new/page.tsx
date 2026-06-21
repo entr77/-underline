@@ -18,6 +18,10 @@ type CardStyle = "photo" | "text";
 type BookDisplay = "none" | "cover" | "title" | "title-author" | "full" | "full-author";
 type DisplayMode = "none" | "cover" | "title" | "full";
 type CardBg = "cover" | "photo" | "search" | "color" | "none";
+type CardFont = "serif" | "sans";
+type CardAlign = "left" | "center" | "right";
+
+const MAX_CONTENT = 300;
 
 
 
@@ -152,6 +156,8 @@ export default function NewUnderlinePage() {
   const [bgLoading, setBgLoading] = useState(false);
   const [bgUploading, setBgUploading] = useState(false);
   const bgFileInputRef = useRef<HTMLInputElement>(null);
+  const [cardFont, setCardFont] = useState<CardFont>("serif");
+  const [cardAlign, setCardAlign] = useState<CardAlign>("center");
 
   async function handleBgFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -348,6 +354,8 @@ export default function NewUnderlinePage() {
         bookDisplay,
         cardBg,
         cardBgUrl: cardBgUrl ?? undefined,
+        cardFont,
+        cardAlign,
       });
 
       if (result && "error" in result) {
@@ -759,6 +767,48 @@ export default function NewUnderlinePage() {
           )}
         </div>
 
+        {/* 텍스트 */}
+        <div className="space-y-2.5">
+          <p className="text-xs text-[var(--color-ink-faint)]">텍스트</p>
+          <div className="flex gap-2">
+            {([
+              { value: "serif" as CardFont, label: "명조", cls: "font-serif" },
+              { value: "sans"  as CardFont, label: "고딕", cls: "font-sans"  },
+            ]).map(({ value, label, cls }) => (
+              <button
+                key={value}
+                onClick={() => setCardFont(value)}
+                className={`flex-1 py-2 rounded-xl border text-xs font-medium transition-all ${
+                  cardFont === value
+                    ? "border-[var(--color-forest)] bg-[var(--color-forest)]/8 text-[var(--color-forest)]"
+                    : "border-[var(--color-border)] bg-white text-[var(--color-ink-muted)]"
+                }`}
+              >
+                <span className={cls}>{label}</span>
+              </button>
+            ))}
+            {([
+              { value: "left"   as CardAlign, icon: "M4 6h16M4 12h10M4 18h12" },
+              { value: "center" as CardAlign, icon: "M4 6h16M7 12h10M5 18h14" },
+              { value: "right"  as CardAlign, icon: "M4 6h16M10 12h10M8 18h12" },
+            ]).map(({ value, icon }) => (
+              <button
+                key={value}
+                onClick={() => setCardAlign(value)}
+                className={`flex-1 py-2 rounded-xl border flex items-center justify-center transition-all ${
+                  cardAlign === value
+                    ? "border-[var(--color-forest)] bg-[var(--color-forest)]/8 text-[var(--color-forest)]"
+                    : "border-[var(--color-border)] bg-white text-[var(--color-ink-faint)]"
+                }`}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d={icon}/>
+                </svg>
+              </button>
+            ))}
+          </div>
+        </div>
+
         <button
           onClick={() => {
             if (selectedModel) {
@@ -851,13 +901,17 @@ export default function NewUnderlinePage() {
                 value={text}
                 onChange={(e) =>
                   setSelectedTexts((prev) =>
-                    prev.map((t, idx) => (idx === i ? e.target.value : t))
+                    prev.map((t, idx) => (idx === i ? e.target.value.slice(0, MAX_CONTENT) : t))
                   )
                 }
                 placeholder="밑줄 친 문장을 입력하세요"
                 rows={3}
+                maxLength={MAX_CONTENT}
                 className="w-full font-serif text-sm text-[var(--color-ink)] bg-transparent outline-none resize-none placeholder:text-[var(--color-ink-faint)] leading-relaxed"
               />
+              <p className={`text-right text-xs mt-1 ${text.length >= MAX_CONTENT ? "text-red-400" : "text-[var(--color-ink-faint)]"}`}>
+                {text.length}/{MAX_CONTENT}
+              </p>
             </div>
           ))}
 

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import LikeButton from "@/components/features/LikeButton";
-import type { Underline, CardFont } from "@/types";
+import type { Underline, CardFont, CardAlign } from "@/types";
 
 type Props = {
   underline: Underline;
@@ -37,64 +37,77 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
   const cardBg = underline.card_bg ?? "cover";
   const fontClass: Record<CardFont, string> = { serif: "font-serif", sans: "font-sans" };
   const quoteFont = fontClass[underline.card_font ?? "serif"];
+  const alignClass: Record<CardAlign, string> = { left: "text-left items-start", center: "text-center items-center", right: "text-right items-end" };
+  const quoteAlign = alignClass[underline.card_align ?? "center"];
   const bgSrc =
     cardBg === "cover"  ? (underline.book.cover_url ?? null) :
     cardBg === "photo"  ? (underline.image_url ?? null) :
     cardBg === "search" ? (underline.card_bg_url ?? null) :
     null;
 
-  // 책표지 전용 레이아웃 — 왼쪽 표지 / 오른쪽 인용문
+  // 책표지 전용 레이아웃 — 블러 배경 + 중앙 썸네일 + 인용문
   if (!usePhoto && cardBg === "cover" && underline.book.cover_url) {
     const showTitle = ["title", "title-author", "full", "full-author"].includes(bookDisplay);
     const showAuthor = ["title-author", "full-author"].includes(bookDisplay);
     return (
-      <article className="aspect-square rounded-2xl overflow-hidden border border-[var(--color-border)] bg-[#1C1917] flex">
-        {/* 왼쪽: 책표지 */}
-        <Link href={`/underline/${underline.id}`} className="relative w-[38%] flex-shrink-0 block">
-          <Image
+      <article className="relative aspect-square rounded-2xl overflow-hidden border border-[var(--color-border)]">
+        {/* 블러 배경 */}
+        <div className="absolute inset-0" style={{
+          backgroundImage: `url(${underline.book.cover_url})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          filter: "blur(14px) brightness(0.38) saturate(0.8)",
+          transform: "scale(1.12)",
+        }} />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/50" />
+
+        {/* 콘텐츠 */}
+        <Link
+          href={`/underline/${underline.id}`}
+          className={`absolute inset-x-0 top-0 ${preview ? "bottom-0" : "bottom-11"} flex flex-col justify-center px-6 gap-3 ${quoteAlign}`}
+        >
+          {/* 표지 썸네일 */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src={underline.book.cover_url}
-            alt="책표지"
-            fill
-            className="object-cover"
-            sizes="160px"
+            alt=""
+            className="h-16 w-auto rounded-sm shadow-[0_4px_20px_rgba(0,0,0,0.6)] flex-shrink-0"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#1C1917]/50" />
-        </Link>
 
-        {/* 오른쪽: 인용문 + 정보 */}
-        <div className="flex-1 flex flex-col min-w-0 py-5 pr-4 pl-3">
-          <Link href={`/underline/${underline.id}`} className="flex-1 min-h-0 overflow-hidden">
-            <blockquote className={`${quoteFont} text-white/90 leading-[1.85] text-[12px]`}>
-              {underline.content}
-            </blockquote>
-          </Link>
+          {/* 인용문 */}
+          <blockquote className={`${quoteFont} text-white/90 leading-[1.8] ${quoteTextSize(underline.content.length, compact ?? false)}`}
+            style={{ textShadow: "0 1px 6px rgba(0,0,0,0.7)" }}>
+            {underline.content}
+          </blockquote>
 
-          {bookDisplay !== "none" && (
-            <div className="mt-3 flex-shrink-0">
+          {/* 책 정보 */}
+          {bookDisplay !== "none" && (showTitle || showAuthor) && (
+            <div className="mt-1">
               {showTitle && (
-                <p className="text-white/40 text-[10px] leading-snug line-clamp-2">
+                <p className="text-white/45 text-[10px] leading-snug line-clamp-1">
                   {underline.book.title}
                   {underline.page_number ? ` · p.${underline.page_number}` : ""}
                 </p>
               )}
               {showAuthor && (
-                <p className="text-white/30 text-[10px] leading-snug truncate">{underline.book.author}</p>
+                <p className="text-white/30 text-[10px] leading-snug">{underline.book.author}</p>
               )}
             </div>
           )}
+        </Link>
 
-          {!preview && (
-            <div className="flex items-center justify-between mt-2 flex-shrink-0">
-              <span className="text-white/30 text-[10px]">{underline.user.username}</span>
-              <LikeButton
-                underlineId={underline.id}
-                initialLiked={underline.is_liked ?? false}
-                initialCount={underline.like_count}
-                size="sm"
-              />
+        {/* 하단 바 */}
+        {!preview && (
+          <div className="absolute bottom-0 inset-x-0 h-11 bg-[#F7F3EE]/92 px-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full bg-[var(--color-forest)]/20 flex items-center justify-center text-[var(--color-ink)] text-[10px] font-medium flex-shrink-0">
+                {underline.user.username[0].toUpperCase()}
+              </div>
+              <span className="text-[var(--color-ink-muted)] text-[11px]">{underline.user.username}</span>
             </div>
-          )}
-        </div>
+            <LikeButton underlineId={underline.id} initialLiked={underline.is_liked ?? false} initialCount={underline.like_count} size="sm" />
+          </div>
+        )}
       </article>
     );
   }
@@ -223,7 +236,7 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
       {/* 인용문 */}
       <Link
         href={`/underline/${underline.id}`}
-        className="absolute inset-x-0 top-0 bottom-11 flex flex-col items-center justify-center px-7 text-center"
+        className={`absolute inset-x-0 top-0 bottom-11 flex flex-col justify-center px-7 ${quoteAlign}`}
       >
         <blockquote
           className={`${quoteFont} text-white leading-[1.9] ${quoteTextSize(underline.content.length, compact ?? false)}`}
@@ -237,7 +250,7 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
           const showTitle = bookDisplay === "title" || bookDisplay === "title-author" || bookDisplay === "full" || bookDisplay === "full-author";
           const showAuthor = bookDisplay === "title-author" || bookDisplay === "full-author";
           return (
-            <div className="flex items-center gap-2 mt-4 justify-center">
+            <div className={`flex items-center gap-2 mt-4 ${(underline.card_align ?? "center") === "left" ? "justify-start" : (underline.card_align ?? "center") === "right" ? "justify-end" : "justify-center"}`}>
               {showCover && underline.book.cover_url && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={underline.book.cover_url} alt="" className="h-8 w-auto rounded-sm opacity-80" />
