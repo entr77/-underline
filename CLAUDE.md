@@ -80,6 +80,7 @@ GOOGLE_CLOUD_VISION_API_KEY=
 | `developer` | `.claude/agents/developer.md` | 코드 구현, DB 마이그레이션, API 연동 |
 | `reviewer` | `.claude/agents/reviewer.md` | 코드 리뷰, 보안 검토, RLS 검증 |
 | `marketer` | `.claude/agents/marketer.md` | 캠페인 설계, 유저 인사이트 분석, 그로스 전략 — 기획자·카피라이터에 인사이트 전달 |
+| `legal` | `.claude/agents/legal.md` | 저작권·개인정보·이용약관·규제 준수(PIPA/GDPR) 검토 |
 | `pm` | `.claude/agents/pm.md` | **오케스트레이터** — 요청 분석 및 에이전트 위임, 태스크 분해, 일정 산정, Confluence 문서화 |
 
 ### 작업 흐름
