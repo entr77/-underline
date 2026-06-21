@@ -246,7 +246,7 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
       <Link
         href={`/underline/${underline.id}`}
         className={`absolute inset-x-0 top-0 flex flex-col ${justifyV} px-5 ${
-          va === "top" ? "pt-5" : va === "center" ? "" : "pb-4"
+          va === "top" ? "pt-5" : va === "center" ? "" : bookDisplay !== "none" ? "pb-[3.75rem]" : "pb-4"
         } ${quoteAlign} bottom-4`}
       >
         <div
@@ -260,6 +260,28 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
           {underline.content}
         </blockquote>
       </Link>
+
+      {/* 하단 책 뱃지 */}
+      {bookDisplay !== "none" && (
+        <Link href={`/underline/${underline.id}`} className="absolute left-4 bottom-4 flex items-end gap-2 max-w-[75%]">
+          {(bookDisplay === "cover" || bookDisplay === "full" || bookDisplay === "full-author") && underline.book.cover_url && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={underline.book.cover_url} alt="" className="h-8 w-auto flex-shrink-0 rounded-[2px]" style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.7)" }} />
+          )}
+          {["title", "title-author", "full", "full-author"].includes(bookDisplay) && (
+            <div className="flex flex-col min-w-0 pb-[1px]">
+              <p className="text-white/60 text-[10px] leading-tight line-clamp-1 text-left" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>
+                {underline.book.title}{underline.page_number ? ` · p.${underline.page_number}` : ""}
+              </p>
+              {["title-author", "full-author"].includes(bookDisplay) && (
+                <p className="text-white/40 text-[9px] leading-tight line-clamp-1 text-left" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>
+                  {underline.book.author}
+                </p>
+              )}
+            </div>
+          )}
+        </Link>
+      )}
     </article>
 
     {!preview && (
