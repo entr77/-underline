@@ -68,23 +68,22 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
             backgroundImage: `url(${underline.book.cover_url})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
-            filter: "blur(10px) brightness(0.52) saturate(0.75)",
+            filter: "blur(10px) brightness(0.58) saturate(0.3)",
             transform: "scale(1.05)",
           }} />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/10 to-black/65" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/15 to-black/60" />
 
           {/* 컨텐츠 — flex column */}
           <Link href={`/underline/${underline.id}`} className="absolute inset-0 flex flex-col py-6 px-5">
-            {/* 책 표지 이미지 */}
-            <div className="flex justify-center items-end flex-shrink-0">
+            {/* 책 표지 이미지 — 컨테이너 고정 높이로 짤림 방지 */}
+            <div className="relative flex-shrink-0" style={{ height: "200px" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={underline.book.cover_url}
                 alt=""
+                className="absolute left-1/2 -translate-x-1/2 h-full w-auto"
                 style={{
-                  maxHeight: "190px",
-                  width: "auto",
-                  maxWidth: "65%",
+                  maxWidth: "68%",
                   objectFit: "contain",
                   boxShadow: "0 12px 40px rgba(0,0,0,0.9)",
                 }}
