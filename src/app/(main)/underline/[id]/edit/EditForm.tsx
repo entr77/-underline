@@ -429,7 +429,7 @@ export default function EditForm({
               {/* 업로드 + 큐레이션 그리드 */}
               <div className="grid grid-cols-4 gap-2.5">
                 <button type="button" onClick={() => bgFileInputRef.current?.click()} disabled={bgUploading}
-                  className="h-20 rounded-2xl border-2 border-dashed border-[var(--color-border)] flex flex-col items-center justify-center gap-1 text-[var(--color-ink-faint)] hover:border-[var(--color-forest)] hover:text-[var(--color-forest)] transition-all">
+                  className="aspect-square rounded border-2 border-dashed border-[var(--color-border)] flex flex-col items-center justify-center gap-1 text-[var(--color-ink-faint)] hover:border-[var(--color-forest)] hover:text-[var(--color-forest)] transition-all">
                   {bgUploading
                     ? <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
                     : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
@@ -441,18 +441,18 @@ export default function EditForm({
                   <img key={img.url} src={img.thumb} alt={img.label}
                     onClick={() => { setCardBg("search"); setCardBgUrl(img.url); }}
                     onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
-                    className={`h-20 w-full rounded-2xl object-cover cursor-pointer border-2 transition-all ${
+                    className={`w-full aspect-square rounded object-cover cursor-pointer border-2 transition-all ${
                       cardBgUrl === img.url ? "border-[var(--color-forest)]" : "border-transparent opacity-70 hover:opacity-100"
                     }`}
                   />
                 ))}
                 {bgLoading
-                  ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-20 rounded-2xl bg-[var(--color-cream-dark)] animate-pulse" />)
+                  ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="aspect-square rounded bg-[var(--color-cream-dark)] animate-pulse" />)
                   : bgImages.map((img, i) => (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img key={i} src={img.thumb} alt=""
                         onClick={() => { setCardBg("search"); setCardBgUrl(img.url); }}
-                        className={`h-20 w-full rounded-2xl object-cover cursor-pointer border-2 transition-all ${
+                        className={`w-full aspect-square rounded object-cover cursor-pointer border-2 transition-all ${
                           cardBgUrl === img.url ? "border-[var(--color-forest)]" : "border-transparent opacity-70 hover:opacity-100"
                         }`}
                       />
@@ -555,7 +555,7 @@ export default function EditForm({
                 <div className="grid grid-cols-4 gap-2.5">
                   {BG_GRADIENTS.map(({ css, label }) => (
                     <button key={css} type="button" onClick={() => { setCardBg("color"); setCardBgUrl(css); }}
-                      className={`h-14 rounded-2xl border-2 transition-all flex items-end justify-center pb-1 ${cardBg === "color" && cardBgUrl === css ? "border-[var(--color-forest)]" : "border-transparent"}`}
+                      className={`aspect-square rounded border-2 transition-all flex items-end justify-center pb-1 ${cardBg === "color" && cardBgUrl === css ? "border-[var(--color-forest)]" : "border-transparent"}`}
                       style={{ background: css }}>
                       <span className="text-[9px] text-white/70">{label}</span>
                     </button>
@@ -569,7 +569,7 @@ export default function EditForm({
                 <div className="grid grid-cols-4 gap-2.5">
                   {/* 업로드 버튼 */}
                   <button type="button" onClick={() => bgFileInputRef.current?.click()} disabled={bgUploading}
-                    className="h-14 rounded-2xl border-2 border-dashed border-[var(--color-border)] flex flex-col items-center justify-center gap-1 text-[var(--color-ink-faint)] hover:border-[var(--color-forest)] hover:text-[var(--color-forest)] transition-all">
+                    className="aspect-square rounded border-2 border-dashed border-[var(--color-border)] flex flex-col items-center justify-center gap-1 text-[var(--color-ink-faint)] hover:border-[var(--color-forest)] hover:text-[var(--color-forest)] transition-all">
                     {bgUploading
                       ? <svg className="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
                       : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
@@ -582,17 +582,17 @@ export default function EditForm({
                     <img key={img.url} src={img.thumb} alt={img.label}
                       onClick={() => { setCardBg("search"); setCardBgUrl(img.url); }}
                       onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
-                      className={`h-14 w-full rounded-2xl object-cover cursor-pointer border-2 transition-all ${cardBg === "search" && cardBgUrl === img.url ? "border-[var(--color-forest)]" : "border-transparent"}`}
+                      className={`w-full aspect-square rounded object-cover cursor-pointer border-2 transition-all ${cardBg === "search" && cardBgUrl === img.url ? "border-[var(--color-forest)]" : "border-transparent"}`}
                     />
                   ))}
                   {/* Unsplash 추천 */}
                   {bgLoading
-                    ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-14 rounded-2xl bg-[var(--color-cream-dark)] animate-pulse" />)
+                    ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="aspect-square rounded bg-[var(--color-cream-dark)] animate-pulse" />)
                     : bgImages.map((img, i) => (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img key={i} src={img.thumb} alt=""
                           onClick={() => { setCardBg("search"); setCardBgUrl(img.url); }}
-                          className={`h-14 w-full rounded-2xl object-cover cursor-pointer border-2 transition-all ${cardBg === "search" && cardBgUrl === img.url ? "border-[var(--color-forest)]" : "border-transparent"}`}
+                          className={`w-full aspect-square rounded object-cover cursor-pointer border-2 transition-all ${cardBg === "search" && cardBgUrl === img.url ? "border-[var(--color-forest)]" : "border-transparent"}`}
                         />
                       ))
                   }
