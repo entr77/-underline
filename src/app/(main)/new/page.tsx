@@ -399,6 +399,7 @@ export default function NewUnderlinePage() {
         cardFont,
         cardAlign,
         cardVAlign,
+        tags: selectedTags,
       });
 
       if (result && "error" in result) {
@@ -932,16 +933,87 @@ export default function NewUnderlinePage() {
         {error && <Alert variant="error">{error}</Alert>}
 
         <button
-          onClick={handleSave}
-          disabled={validCount === 0 || isSaving}
+          onClick={async () => {
+            if (!book || validCount === 0) return;
+            setIsSuggestingTags(true);
+            const suggested = await suggestTags(
+              selectedTexts.filter((t) => t.trim()),
+              { title: book.title, author: book.author }
+            ).catch(() => []);
+            setSelectedTags(suggested);
+            setIsSuggestingTags(false);
+            setStep("tags");
+          }}
+          disabled={validCount === 0 || isSuggestingTags}
           className="w-full py-4 rounded-2xl bg-[var(--color-forest)] text-white font-medium hover:bg-[var(--color-forest-light)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
-          {isSaving
-            ? "남기는 중..."
-            : validCount === 1
-            ? "이 문장 남기기"
-            : `${validCount}개 문장 남기기`}
+          {isSuggestingTags ? "태그 추천 중..." : validCount === 1 ? "다음" : `다음 (${validCount}개 문장)`}
         </button>
+      </div>
+    );
+  }
+
+  // ─── Tags step ───────────────────────────────────────────────────────────────
+  if (step === "tags") {
+    const validCount = selectedTexts.filter((t) => t.trim()).length;
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-3">
+          <button onClick={() => setStep("select")} className="text-[var(--color-ink-faint)] hover:text-[var(--color-ink)]">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
+          </button>
+          <StepIndicator current="select" />
+        </div>
+
+        <div>
+          <h2 className="font-serif text-xl text-[var(--color-ink)]">태그를 골라주세요</h2>
+          <p className="text-sm text-[var(--color-ink-faint)] mt-1">AI가 추천했어요. 맞게 고쳐주시면 더 좋아요.</p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {(EMOTION_TAGS as readonly string[]).map((tag) => {
+            const isOn = selectedTags.includes(tag);
+            return (
+              <button
+                key={tag}
+                onClick={() =>
+                  setSelectedTags((prev) =>
+                    isOn ? prev.filter((t) => t !== tag) : [...prev, tag]
+                  )
+                }
+                className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
+                  isOn
+                    ? "bg-[var(--color-forest)] border-[var(--color-forest)] text-white"
+                    : "bg-white border-[var(--color-border)] text-[var(--color-ink-muted)] hover:border-[var(--color-forest)] hover:text-[var(--color-forest)]"
+                }`}
+              >
+                #{tag}
+              </button>
+            );
+          })}
+        </div>
+
+        {uploadWarning && <Alert variant="warning">{uploadWarning}</Alert>}
+        {error && <Alert variant="error">{error}</Alert>}
+
+        <div className="space-y-3">
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="w-full py-4 rounded-2xl bg-[var(--color-forest)] text-white font-medium hover:bg-[var(--color-forest-light)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            {isSaving
+              ? "남기는 중..."
+              : validCount === 1 ? "이 문장 남기기" : `${validCount}개 문장 남기기`}
+          </button>
+          <button
+            onClick={() => { setSelectedTags([]); handleSave(); }}
+            disabled={isSaving}
+            className="w-full py-3 text-sm text-[var(--color-ink-faint)] hover:text-[var(--color-ink)] transition-colors"
+          >
+            태그 없이 저장
+          </button>
+        </div>
       </div>
     );
   }

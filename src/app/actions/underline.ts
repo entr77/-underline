@@ -20,6 +20,16 @@ type CreateUnderlineData = {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyClient = any;
 
+export async function suggestTags(
+  contents: string[],
+  book: { title: string; author: string }
+): Promise<string[]> {
+  const results = await classifyUnderlineTags(contents, book);
+  // 모든 문장의 태그를 합쳐 중복 제거 후 반환
+  const all = results.flat();
+  return Array.from(new Set(all));
+}
+
 export async function createUnderline(data: CreateUnderlineData) {
   const supabase = await createClient();
 
@@ -102,6 +112,7 @@ type BulkCreateData = {
   cardFont?: string;
   cardAlign?: string;
   cardVAlign?: string;
+  tags?: string[]; // 사용자가 직접 선택한 경우 AI 분류 건너뜀
 };
 
 export async function createUnderlinesBulk(data: BulkCreateData) {
@@ -134,7 +145,10 @@ export async function createUnderlinesBulk(data: BulkCreateData) {
   const bookId = (bookResult.data as { id: string }).id;
   const supabaseAny: AnyClient = supabase;
 
-  const tagResults = await classifyUnderlineTags(data.contents, { title: data.bookTitle, author: data.bookAuthor });
+  // 사용자가 직접 태그를 선택했으면 그대로, 아니면 AI 분류
+  const tagResults: string[][] = data.tags !== undefined
+    ? data.contents.map(() => data.tags!)
+    : await classifyUnderlineTags(data.contents, { title: data.bookTitle, author: data.bookAuthor });
 
   const rows = data.contents.map((content, i) => ({
     user_id: user.id,
