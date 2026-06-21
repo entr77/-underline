@@ -140,49 +140,58 @@ export default function EditForm({
       </div>
 
       {/* 카드 미리보기 */}
-      <div className="bg-[#1C1917] px-2 pt-2 pb-1">
+      <div className="bg-[var(--color-cream-dark)] px-4 pt-5 pb-4">
         <div className="max-w-[380px] mx-auto pointer-events-none select-none">
           <UnderlineCard underline={previewUnderline} />
         </div>
       </div>
 
       {/* 배경 선택 스트립 */}
-      <div className="bg-[#1C1917] overflow-x-auto" style={{ scrollbarWidth: "none" }}>
-        <div className="flex gap-1.5 px-3 py-3 w-max">
+      <div className="bg-[var(--color-cream)] border-y border-[var(--color-border)] overflow-x-auto" style={{ scrollbarWidth: "none" }}>
+        <div className="flex gap-1.5 px-3 py-2.5 w-max">
 
           {/* 없음 */}
           <button
             type="button"
             onClick={() => { setCardBg("none"); setCardBgUrl(null); }}
-            className={`w-11 h-11 rounded-xl flex-shrink-0 flex flex-col items-center justify-center gap-0.5 transition-all ${cardBg === "none" ? "ring-2 ring-white ring-offset-1 ring-offset-[#1C1917]" : "opacity-50 hover:opacity-80"}`}
-            style={{ background: "#2A2520" }}
+            className={`w-11 h-11 rounded-xl flex-shrink-0 flex items-center justify-center border-2 transition-all ${
+              cardBg === "none"
+                ? "border-[var(--color-forest)] bg-[var(--color-forest)]/8 text-[var(--color-forest)]"
+                : "border-[var(--color-border)] text-[var(--color-ink-faint)]"
+            }`}
           >
-            <span className="text-[9px] text-white/70 font-medium leading-none">없음</span>
+            <span className="text-[9px] font-medium leading-none">없음</span>
           </button>
 
           {/* 사진 */}
           {hasImage && imageUrl && (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={imageUrl} alt="사진" onClick={() => { setCardBg("photo"); setCardBgUrl(null); }}
-              className={`w-11 h-11 rounded-xl flex-shrink-0 object-cover cursor-pointer transition-all ${cardBg === "photo" ? "ring-2 ring-white ring-offset-1 ring-offset-[#1C1917]" : "opacity-50 hover:opacity-80"}`}
+              className={`w-11 h-11 rounded-xl flex-shrink-0 object-cover cursor-pointer border-2 transition-all ${
+                cardBg === "photo" ? "border-[var(--color-forest)]" : "border-[var(--color-border)]"
+              }`}
             />
           )}
 
           {/* 단색 */}
           {BG_COLORS.map(({ hex }) => (
             <button key={hex} type="button" onClick={() => { setCardBg("color"); setCardBgUrl(hex); }}
-              className={`w-11 h-11 rounded-xl flex-shrink-0 transition-all ${cardBg === "color" && cardBgUrl === hex ? "ring-2 ring-white ring-offset-1 ring-offset-[#1C1917]" : "opacity-50 hover:opacity-80"}`}
+              className={`w-11 h-11 rounded-xl flex-shrink-0 border-2 transition-all ${
+                cardBg === "color" && cardBgUrl === hex ? "border-[var(--color-forest)]" : "border-transparent"
+              }`}
               style={{ background: hex }}
             />
           ))}
 
           {/* Unsplash 이미지 */}
           {bgLoading
-            ? Array.from({ length: 8 }).map((_, i) => <div key={i} className="w-11 h-11 rounded-xl flex-shrink-0 bg-white/10 animate-pulse" />)
+            ? Array.from({ length: 8 }).map((_, i) => <div key={i} className="w-11 h-11 rounded-xl flex-shrink-0 bg-[var(--color-cream-dark)] animate-pulse" />)
             : bgImages.map((img, i) => (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img key={i} src={img.thumb} alt="" onClick={() => { setCardBg("search"); setCardBgUrl(img.url); }}
-                  className={`w-11 h-11 rounded-xl flex-shrink-0 object-cover cursor-pointer transition-all ${cardBg === "search" && cardBgUrl === img.url ? "ring-2 ring-white ring-offset-1 ring-offset-[#1C1917]" : "opacity-50 hover:opacity-80"}`}
+                  className={`w-11 h-11 rounded-xl flex-shrink-0 object-cover cursor-pointer border-2 transition-all ${
+                    cardBg === "search" && cardBgUrl === img.url ? "border-[var(--color-forest)]" : "border-transparent"
+                  }`}
                 />
               ))
           }
