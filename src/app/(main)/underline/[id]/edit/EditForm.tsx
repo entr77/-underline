@@ -124,7 +124,7 @@ export default function EditForm({
     const align: CardAlign = (["left", "center", "right"] as string[]).includes(initialCardAlign) ? initialCardAlign as CardAlign : "center";
     const vAlign: CardVAlign = (["top", "center", "bottom"] as string[]).includes(initialCardVAlign) ? initialCardVAlign as CardVAlign : "bottom";
     for (const t of THEMES) {
-      if (t.cardBg === bg && t.cardFont === font && t.cardAlign === align && t.cardVAlign === vAlign && t.displayMode === initMode) return t.id;
+      if (t.cardBg === bg && (t.cardBgUrl ?? null) === (initialCardBgUrl ?? null) && t.cardFont === font && t.cardAlign === align && t.cardVAlign === vAlign && t.displayMode === initMode) return t.id;
     }
     return null;
   });

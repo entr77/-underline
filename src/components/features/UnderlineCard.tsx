@@ -54,6 +54,15 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
     cardBg === "photo"  ? (underline.image_url ?? null) :
     cardBg === "search" ? (underline.card_bg_url ?? null) :
     null;
+  const isLightBg = (() => {
+    if (cardBg !== "color" || !underline.card_bg_url) return false;
+    const hex = underline.card_bg_url;
+    if (!hex.startsWith("#") || hex.length < 7) return false;
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return (r * 299 + g * 587 + b * 114) / 1000 > 180;
+  })();
 
   const cardAnimation = (underline.card_animation ?? "draw") as CardAnimation;
   const barAlignClass = ca === "center" ? "mx-auto" : ca === "right" ? "ml-auto" : "";
@@ -304,8 +313,8 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
       >
         {mkBar()}
         <blockquote
-          className={`${quoteFont} text-white font-semibold leading-[1.55] tracking-[-0.03em] break-keep ${quoteTextSize(underline.content.length, compact ?? false)}`}
-          style={mkBqStyle("0 1px 8px rgba(0,0,0,0.6)")}
+          className={`${quoteFont} ${isLightBg ? "text-[var(--color-ink)]" : "text-white"} font-semibold leading-[1.55] tracking-[-0.03em] break-keep ${quoteTextSize(underline.content.length, compact ?? false)}`}
+          style={mkBqStyle(isLightBg ? undefined : "0 1px 8px rgba(0,0,0,0.6)")}
         >
           {underline.content}
         </blockquote>
@@ -320,11 +329,11 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
           )}
           {["title", "title-author", "full", "full-author"].includes(bookDisplay) && (
             <div className="flex flex-col min-w-0 pb-[1px]">
-              <p className="text-white/60 text-[10px] leading-tight line-clamp-1 text-left" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>
+              <p className={`${isLightBg ? "text-[var(--color-ink-muted)]" : "text-white/60"} text-[10px] leading-tight line-clamp-1 text-left`} style={isLightBg ? undefined : { textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>
                 {underline.book.title}{underline.page_number ? ` · p.${underline.page_number}` : ""}
               </p>
               {["title-author", "full-author"].includes(bookDisplay) && (
-                <p className="text-white/40 text-[9px] leading-tight line-clamp-1 text-left" style={{ textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>
+                <p className={`${isLightBg ? "text-[var(--color-ink-faint)]" : "text-white/40"} text-[9px] leading-tight line-clamp-1 text-left`} style={isLightBg ? undefined : { textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>
                   {underline.book.author}
                 </p>
               )}
