@@ -1,12 +1,15 @@
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 import Link from "next/link";
 import BookCover from "@/components/ui/BookCover";
 import UnderlineCard from "@/components/features/UnderlineCard";
+import BookSortTabs from "@/components/features/BookSortTabs";
 import { createClient } from "@/lib/supabase/server";
 import type { Underline } from "@/types";
 
 type Props = {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ sort?: string }>;
 };
 
 type SupabaseUnderlineRow = {
@@ -42,8 +45,10 @@ type SupabaseBookRow = {
   cover_url: string | null;
 };
 
-export default async function BookDetailPage({ params }: Props) {
+export default async function BookDetailPage({ params, searchParams }: Props) {
   const { id } = await params;
+  const { sort } = await searchParams;
+  const sortBy = sort === "page" ? "page" : "popular";
 
   const supabase = await createClient();
 
@@ -62,7 +67,10 @@ export default async function BookDetailPage({ params }: Props) {
     .select("id, content, page_number, image_url, card_style, book_display, card_bg, card_bg_url, card_font, card_align, card_valign, is_public, like_count, created_at, user:users!underlines_user_id_fkey(id, username, bio, avatar_url, occupation)")
     .eq("book_id", id)
     .eq("is_public", true)
-    .order("created_at", { ascending: false });
+    .order(
+      sortBy === "page" ? "page_number" : "like_count",
+      { ascending: sortBy === "page", nullsFirst: false }
+    );
 
   const underlines: Underline[] = (ulData ?? [])
     .map((row) => {
@@ -187,7 +195,12 @@ export default async function BookDetailPage({ params }: Props) {
       )}
 
       <div>
-        <h2 className="text-xs tracking-widest text-[var(--color-ink-faint)] uppercase mb-3">이 책을 읽은 사람들의 문장</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-xs tracking-widest text-[var(--color-ink-faint)] uppercase">이 책을 읽은 사람들의 문장</h2>
+          <Suspense>
+            <BookSortTabs />
+          </Suspense>
+        </div>
         {underlines.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 gap-2 bg-white rounded-2xl border border-[var(--color-border)]">
             <p className="text-[var(--color-ink-muted)]">아직 아무도 이 책을 펼치지 않았어요</p>

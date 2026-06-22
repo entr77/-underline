@@ -1,7 +1,5 @@
 # UI/UX 설계 (로컬 참조본)
 
-> 원본: Confluence UI/UX 설계 페이지 (ID: 360619)
-> 변경 시 Confluence도 함께 업데이트할 것
 
 ## 플랫폼
 Mobile First — 375px 기준 설계, 768px(태블릿) / 1280px(데스크탑) 확장
