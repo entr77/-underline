@@ -117,10 +117,10 @@ export default function UnderlineCard({ underline, compact, preview, showVisibil
           <div className="absolute inset-0 bg-[#0d0d0d]" />
           <div className="absolute inset-0" style={{
             backgroundImage: `url(${underline.book.cover_url})`,
-            backgroundSize: "contain",
+            backgroundSize: "75% auto",
             backgroundRepeat: "no-repeat",
             backgroundPosition: "center 30%",
-            filter: "blur(10px) brightness(0.58) saturate(0.3)",
+            filter: "blur(5px) brightness(0.58) saturate(0.3)",
           }} />
           <div className="absolute inset-0 bg-gradient-to-b from-black/15 to-black/60" />
 
@@ -129,9 +129,9 @@ export default function UnderlineCard({ underline, compact, preview, showVisibil
           )}
 
           {/* 컨텐츠 — flex column */}
-          <Link href={`/underline/${underline.id}`} className="absolute inset-0 flex flex-col py-10 px-5">
+          <Link href={`/underline/${underline.id}`} className="absolute inset-0 flex flex-col py-12 px-5">
             {/* 책 표지 이미지 — 컨테이너 고정 높이로 짤림 방지 */}
-            <div className="relative flex-shrink-0" style={{ height: "155px" }}>
+            <div className="relative flex-shrink-0" style={{ height: "130px" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={underline.book.cover_url}
