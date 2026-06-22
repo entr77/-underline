@@ -44,6 +44,16 @@ type SupabaseUnderlineRow = {
   } | null;
 };
 
+type SupabaseUnderlineWithUserRow = SupabaseUnderlineRow & {
+  user: {
+    id: string;
+    username: string;
+    bio: string | null;
+    avatar_url: string | null;
+    tags: string[];
+  } | null;
+};
+
 const MOCK_PROFILE_USER: ProfileUser = {
   id: "u2",
   username: "minhyuk.b",
@@ -83,6 +93,7 @@ export default async function ProfilePage({ params }: Props) {
 
   let profileUser: ProfileUser | null = null;
   let underlines: Underline[] = [];
+  let savedUnderlines: Underline[] | undefined;
   let totalLikes = 0;
   let uniqueBookCount = 0;
   let usingMock = false;
@@ -177,6 +188,68 @@ export default async function ProfilePage({ params }: Props) {
 
         totalLikes = underlines.reduce((sum, u) => sum + u.like_count, 0);
         uniqueBookCount = new Set(underlines.map((u) => u.book.id)).size;
+      }
+
+      if (isOwnProfile && currentUser) {
+        const { data: likesData } = await supabase
+          .from("likes")
+          .select("underline_id")
+          .eq("user_id", currentUser.id);
+
+        const likedIds = (likesData ?? []).map((l: { underline_id: string }) => l.underline_id);
+
+        if (likedIds.length > 0) {
+          const { data: savedData } = await supabase
+            .from("underlines")
+            .select(
+              "id, content, page_number, image_url, card_style, book_display, card_bg, card_bg_url, card_font, card_align, card_valign, is_public, like_count, created_at, book:books(id, kakao_id, title, author, publisher, cover_url), user:users!underlines_user_id_fkey(id, username, bio, avatar_url, tags)"
+            )
+            .in("id", likedIds)
+            .eq("is_public", true)
+            .order("created_at", { ascending: false });
+
+          if (savedData) {
+            const savedRows = savedData as unknown as SupabaseUnderlineWithUserRow[];
+            savedUnderlines = savedRows.map((row) => ({
+              id: row.id,
+              content: row.content,
+              page_number: row.page_number ?? undefined,
+              image_url: row.image_url ?? undefined,
+              card_style: (row.card_style ?? "text") as import("@/types").CardStyle,
+              book_display: (row.book_display ?? "full") as import("@/types").BookDisplay,
+              card_bg: (row.card_bg ?? "cover") as import("@/types").CardBg,
+              card_bg_url: row.card_bg_url ?? undefined,
+              card_font: (row.card_font ?? "serif") as import("@/types").CardFont,
+              card_align: (row.card_align ?? "center") as import("@/types").CardAlign,
+              card_valign: (row.card_valign ?? "bottom") as import("@/types").CardVAlign,
+              is_public: row.is_public,
+              like_count: row.like_count,
+              is_liked: true,
+              created_at: row.created_at,
+              user: row.user
+                ? {
+                    id: row.user.id,
+                    username: row.user.username,
+                    bio: row.user.bio ?? undefined,
+                    avatar_url: row.user.avatar_url ?? undefined,
+                    tags: row.user.tags ?? [],
+                  }
+                : { id: "unknown", username: "unknown" },
+              book: row.book
+                ? {
+                    id: row.book.id,
+                    kakao_id: row.book.kakao_id,
+                    title: row.book.title,
+                    author: row.book.author,
+                    publisher: row.book.publisher ?? undefined,
+                    cover_url: row.book.cover_url ?? undefined,
+                  }
+                : { id: "unknown", kakao_id: "", title: "알 수 없는 책", author: "" },
+            }));
+          }
+        } else {
+          savedUnderlines = [];
+        }
       }
     }
   } catch {
@@ -279,7 +352,7 @@ export default async function ProfilePage({ params }: Props) {
         <h2 className="text-xs tracking-widest text-[var(--color-ink-faint)] uppercase mb-3">
           {isOwnProfile ? "내가 멈춘 문장들" : "이 사람이 멈춘 문장들"}
         </h2>
-        <ProfileUnderlineTabs underlines={underlines} isOwnProfile={isOwnProfile} />
+        <ProfileUnderlineTabs underlines={underlines} isOwnProfile={isOwnProfile} savedUnderlines={savedUnderlines} />
       </div>
     </div>
   );
