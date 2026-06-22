@@ -58,13 +58,14 @@ export default async function BooksPage() {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xs tracking-widest text-[var(--color-ink-faint)] uppercase">
-        멈춘 책들
-      </h2>
       {books.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 gap-3">
-          <p className="text-[var(--color-ink-muted)]">아직 펼쳐진 책이 없어요</p>
-          <p className="text-sm text-[var(--color-ink-faint)]">밑줄을 남기면 여기에 모여요</p>
+        <div className="flex flex-col items-center justify-center py-24 gap-3">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-[var(--color-border)]">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+          </svg>
+          <p className="text-[var(--color-ink-muted)] text-sm">아직 펼쳐진 책이 없어요</p>
+          <p className="text-xs text-[var(--color-ink-faint)]">밑줄을 남기면 여기에 모여요</p>
         </div>
       ) : (
         <BooksGrid books={books} />
