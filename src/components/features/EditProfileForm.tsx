@@ -4,8 +4,6 @@ import { useActionState, useState } from "react";
 import { updateProfile } from "@/app/actions/profile";
 import Alert from "@/components/ui/Alert";
 
-const AVAILABLE_TAGS = ["소설", "철학", "에세이", "심리학", "역사", "과학", "경제", "자기계발", "시", "고전"];
-
 const OCCUPATIONS = [
   "개발자", "디자이너", "기획자", "마케터",
   "작가/편집자", "연구자", "교사/교수", "의사/의료인",
@@ -15,10 +13,9 @@ const OCCUPATIONS = [
 type Props = {
   bio: string;
   occupation: string;
-  tags: string[];
 };
 
-export default function EditProfileForm({ bio, occupation, tags }: Props) {
+export default function EditProfileForm({ bio, occupation }: Props) {
   const [open, setOpen] = useState(false);
   const [selectedOccupation, setSelectedOccupation] = useState(occupation);
   const [state, action, pending] = useActionState(updateProfile, null);
@@ -86,28 +83,6 @@ export default function EditProfileForm({ bio, occupation, tags }: Props) {
               rows={2}
               className="w-full px-3.5 py-2.5 rounded-xl border border-[var(--color-border)] bg-white text-sm text-[var(--color-ink)] placeholder:text-[var(--color-ink-faint)] focus:outline-none focus:ring-1 focus:ring-[var(--color-forest)] resize-none"
             />
-          </div>
-
-          {/* 태그 */}
-          <div>
-            <label className="block text-xs font-medium text-[var(--color-ink-muted)] mb-2">주로 읽는 것들</label>
-            <div className="flex flex-wrap gap-2">
-              {AVAILABLE_TAGS.map((tag) => {
-                const checked = tags.includes(tag);
-                return (
-                  <label key={tag} className="cursor-pointer">
-                    <input type="checkbox" name={`tag_${tag}`} defaultChecked={checked} className="sr-only" />
-                    <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
-                      checked
-                        ? "bg-[var(--color-forest)] text-white border-[var(--color-forest)]"
-                        : "bg-white text-[var(--color-ink-muted)] border-[var(--color-border)]"
-                    }`}>
-                      {tag}
-                    </span>
-                  </label>
-                );
-              })}
-            </div>
           </div>
 
           {state?.error && <Alert variant="error">{state.error}</Alert>}

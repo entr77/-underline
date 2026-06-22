@@ -29,7 +29,7 @@ type SupabaseUnderlineRow = {
     username: string;
     bio: string | null;
     avatar_url: string | null;
-    tags: string[];
+    occupation: string | null;
   } | null;
 };
 
@@ -59,7 +59,7 @@ export default async function BookDetailPage({ params }: Props) {
 
   const { data: ulData } = await supabase
     .from("underlines")
-    .select("id, content, page_number, image_url, card_style, book_display, card_bg, card_bg_url, card_font, card_align, card_valign, is_public, like_count, created_at, user:users!underlines_user_id_fkey(id, username, bio, avatar_url, tags)")
+    .select("id, content, page_number, image_url, card_style, book_display, card_bg, card_bg_url, card_font, card_align, card_valign, is_public, like_count, created_at, user:users!underlines_user_id_fkey(id, username, bio, avatar_url, occupation)")
     .eq("book_id", id)
     .eq("is_public", true)
     .order("created_at", { ascending: false });
@@ -88,7 +88,6 @@ export default async function BookDetailPage({ params }: Props) {
               username: r.user.username,
               bio: r.user.bio ?? undefined,
               avatar_url: r.user.avatar_url ?? undefined,
-              tags: r.user.tags ?? [],
             }
           : { id: "unknown", username: "알 수 없음" },
         book: {
@@ -113,6 +112,23 @@ export default async function BookDetailPage({ params }: Props) {
   const maxCount = Math.max(...pageEntries.map((e) => e.count), 1);
 
   const totalLikes = underlines.reduce((sum, u) => sum + u.like_count, 0);
+
+  // 독자 프로파일 집계
+  const readers = (ulData ?? [])
+    .map((row) => (row as unknown as SupabaseUnderlineRow).user)
+    .filter(Boolean) as NonNullable<SupabaseUnderlineRow["user"]>[];
+  const uniqueReaders = Array.from(new Map(readers.map((r) => [r.id, r])).values());
+
+  const readerOccupationFreq: Record<string, number> = {};
+  uniqueReaders.forEach((r) => {
+    if (r.occupation) {
+      readerOccupationFreq[r.occupation] = (readerOccupationFreq[r.occupation] ?? 0) + 1;
+    }
+  });
+  const topOccupations = Object.entries(readerOccupationFreq)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 3)
+    .map(([occ]) => occ);
 
   return (
     <div className="space-y-6">
@@ -155,6 +171,17 @@ export default async function BookDetailPage({ params }: Props) {
           </div>
           <p className="text-[10px] text-[var(--color-ink-faint)] mt-1.5">
             p.{pageEntries[0].page} – p.{pageEntries[pageEntries.length - 1].page}
+          </p>
+        </div>
+      )}
+
+      {topOccupations.length > 0 && (
+        <div className="bg-white rounded-2xl p-4 border border-[var(--color-border)]">
+          <p className="text-xs text-[var(--color-ink-faint)] mb-2">
+            이 책을 읽는 독자들 — {uniqueReaders.length}명
+          </p>
+          <p className="text-xs text-[var(--color-ink-muted)]">
+            {topOccupations.join(" · ")}
           </p>
         </div>
       )}

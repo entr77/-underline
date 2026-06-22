@@ -4,7 +4,6 @@ export type User = {
   bio?: string;
   occupation?: string;
   avatar_url?: string;
-  tags?: string[];
 };
 
 export type Book = {

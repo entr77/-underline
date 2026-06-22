@@ -1,7 +1,5 @@
-import { Suspense } from "react";
 import UnderlineCard from "@/components/features/UnderlineCard";
 import UnderlineGroupCard from "@/components/features/UnderlineGroupCard";
-import FeedFilter from "@/components/features/FeedFilter";
 import { createClient } from "@/lib/supabase/server";
 import type { Underline } from "@/types";
 
@@ -36,7 +34,7 @@ function groupFeedItems(underlines: Underline[]): FeedItem[] {
 const MOCK_FEED: Underline[] = [
   {
     id: "1",
-    user: { id: "u1", username: "jiyeon_reads", tags: ["소설", "철학"] },
+    user: { id: "u1", username: "jiyeon_reads" },
     book: { id: "b1", kakao_id: "k1", title: "채식주의자", author: "한강", publisher: "창비", cover_url: "" },
     content: "나는 꿈을 꾸었다. 내가 짐승이 된 꿈이었다. 그건 아무렇지도 않았다.",
     page_number: 34,
@@ -58,7 +56,7 @@ const MOCK_FEED: Underline[] = [
   },
   {
     id: "3",
-    user: { id: "u3", username: "sora_1994", tags: ["에세이", "심리학"] },
+    user: { id: "u3", username: "sora_1994" },
     book: { id: "b3", kakao_id: "k3", title: "어린 왕자", author: "앙투안 드 생텍쥐페리", cover_url: "" },
     content: "사막이 아름다운 것은 어딘가에 우물을 숨기고 있기 때문이야.",
     page_number: 78,
@@ -91,7 +89,6 @@ type SupabaseUnderlineRow = {
     username: string;
     bio: string | null;
     avatar_url: string | null;
-    tags: string[];
   } | null;
   book: {
     id: string;
@@ -129,7 +126,6 @@ function rowToUnderline(row: SupabaseUnderlineRow, likedIds: Set<string>): Under
           username: row.user.username,
           bio: row.user.bio ?? undefined,
           avatar_url: row.user.avatar_url ?? undefined,
-          tags: row.user.tags ?? [],
         }
       : { id: "unknown", username: "알 수 없음" },
     book: row.book
@@ -146,13 +142,7 @@ function rowToUnderline(row: SupabaseUnderlineRow, likedIds: Set<string>): Under
   };
 }
 
-type Props = {
-  searchParams: Promise<{ tag?: string }>;
-};
-
-export default async function FeedPage({ searchParams }: Props) {
-  const { tag } = await searchParams;
-  const activeTag = tag && tag !== "전체" ? tag : null;
+export default async function FeedPage() {
 
   let feed: Underline[] = [];
   let usingMock = false;
@@ -199,11 +189,6 @@ export default async function FeedPage({ searchParams }: Props) {
     feed = MOCK_FEED;
   }
 
-  // 감정 태그 필터: 밑줄 tags 배열에 선택한 태그가 포함된 경우만 표시
-  const filtered = activeTag
-    ? feed.filter((u) => u.tags?.includes(activeTag))
-    : feed;
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -213,19 +198,13 @@ export default async function FeedPage({ searchParams }: Props) {
         )}
       </div>
 
-      <Suspense>
-        <FeedFilter />
-      </Suspense>
-
-      {filtered.length === 0 ? (
+      {feed.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3">
-          <p className="text-[var(--color-ink-muted)]">
-            {activeTag ? `'${activeTag}' 태그의 밑줄이 아직 없어요` : "아직 아무도 멈추지 않았어요"}
-          </p>
+          <p className="text-[var(--color-ink-muted)]">아직 아무도 멈추지 않았어요</p>
           <p className="text-sm text-[var(--color-ink-faint)]">당신이 멈춘 문장이 첫 번째가 될 수 있어요</p>
         </div>
       ) : (
-        groupFeedItems(filtered).map((item) =>
+        groupFeedItems(feed).map((item) =>
           item.type === "group" ? (
             <UnderlineGroupCard key={item.underlines[0].image_url} underlines={item.underlines} />
           ) : (

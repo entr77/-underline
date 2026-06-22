@@ -1,7 +1,6 @@
 import { notFound } from "next/navigation";
 import ProfileUnderlineTabs from "@/components/features/ProfileUnderlineTabs";
 import TasteProfile from "@/components/features/TasteProfile";
-import TagBadge from "@/components/ui/TagBadge";
 import EditProfileForm from "@/components/features/EditProfileForm";
 import { createClient } from "@/lib/supabase/server";
 import { signOut } from "@/app/actions/auth";
@@ -16,7 +15,6 @@ type ProfileUser = {
   username: string;
   bio: string | undefined;
   occupation: string | undefined;
-  tags: string[];
   avatar_url: string | undefined;
 };
 
@@ -60,7 +58,6 @@ const MOCK_PROFILE_USER: ProfileUser = {
   username: "minhyuk.b",
   bio: "읽고, 밑줄 긋고, 생각합니다.",
   occupation: "개발자",
-  tags: ["철학", "성장소설", "고전", "에세이"],
   avatar_url: undefined,
 };
 
@@ -107,7 +104,7 @@ export default async function ProfilePage({ params }: Props) {
 
     const { data: rawUserData, error: userError } = await supabase
       .from("users")
-      .select("id, username, bio, occupation, avatar_url, tags")
+      .select("id, username, bio, occupation, avatar_url")
       .eq("username", username)
       .single();
 
@@ -117,7 +114,6 @@ export default async function ProfilePage({ params }: Props) {
       bio: string | null;
       occupation: string | null;
       avatar_url: string | null;
-      tags: string[];
     } | null;
 
     const { data: { user: currentUser } } = await supabase.auth.getUser();
@@ -138,7 +134,6 @@ export default async function ProfilePage({ params }: Props) {
         username: userData.username,
         bio: userData.bio ?? undefined,
         occupation: userData.occupation ?? undefined,
-        tags: userData.tags ?? [],
         avatar_url: userData.avatar_url ?? undefined,
       };
       isOwnProfile = currentUser?.id === userData.id;
@@ -200,7 +195,6 @@ export default async function ProfilePage({ params }: Props) {
             username: profileUser!.username,
             bio: profileUser!.bio,
             avatar_url: profileUser!.avatar_url,
-            tags: profileUser!.tags,
           },
           book: row.book
             ? {
@@ -325,7 +319,6 @@ export default async function ProfilePage({ params }: Props) {
                     <EditProfileForm
                       bio={profileUser.bio ?? ""}
                       occupation={profileUser.occupation ?? ""}
-                      tags={profileUser.tags ?? []}
                     />
                     <form action={signOut}>
                       <button
@@ -351,14 +344,6 @@ export default async function ProfilePage({ params }: Props) {
             )}
           </div>
         </div>
-
-        {profileUser.tags && profileUser.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {profileUser.tags.map((tag) => (
-              <TagBadge key={tag} label={tag} />
-            ))}
-          </div>
-        )}
 
         <TasteProfile topTags={topTasteTags} topGenres={topTasteGenres} />
 

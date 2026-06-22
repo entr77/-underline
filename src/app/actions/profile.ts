@@ -3,8 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
-const AVAILABLE_TAGS = ["소설", "철학", "에세이", "심리학", "역사", "과학", "경제", "자기계발", "시", "고전"];
-
 export type ProfileFormState = { error?: string; success?: boolean } | null;
 
 export async function updateProfile(
@@ -18,12 +16,11 @@ export async function updateProfile(
 
   const bio = (formData.get("bio") as string | null)?.trim() ?? "";
   const occupation = (formData.get("occupation") as string | null)?.trim() ?? "";
-  const tags = AVAILABLE_TAGS.filter((t) => formData.get(`tag_${t}`) === "on");
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (supabase as any)
     .from("users")
-    .update({ bio: bio || null, occupation: occupation || null, tags })
+    .update({ bio: bio || null, occupation: occupation || null })
     .eq("id", user.id);
 
   if (error) return { error: "저장에 실패했어요" };

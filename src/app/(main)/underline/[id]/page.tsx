@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import TagBadge from "@/components/ui/TagBadge";
 import LikeButton from "@/components/features/LikeButton";
 import DeleteUnderlineButton from "@/components/features/DeleteUnderlineButton";
 import ShareCardButton from "@/components/features/ShareCardButton";
@@ -52,7 +51,6 @@ type SympathizerRow = {
     id: string;
     username: string;
     avatar_url: string | null;
-    tags: string[];
     occupation: string | null;
   } | null;
 };
@@ -61,7 +59,6 @@ type Sympathizer = {
   id: string;
   username: string;
   avatar_url: string | undefined;
-  tags: string[];
   occupation: string | undefined;
 };
 
@@ -124,7 +121,6 @@ export default async function UnderlineDetailPage({ params }: Props) {
           username: row.user.username,
           bio: row.user.bio ?? undefined,
           avatar_url: row.user.avatar_url ?? undefined,
-          tags: row.user.tags ?? [],
         }
       : { id: "unknown", username: "알 수 없음" },
     book: row.book
@@ -141,7 +137,7 @@ export default async function UnderlineDetailPage({ params }: Props) {
 
   const { data: likesData } = await supabase
     .from("likes")
-    .select(`user_id, user:users(id, username, avatar_url, tags, occupation)`)
+    .select(`user_id, user:users(id, username, avatar_url, occupation)`)
     .eq("underline_id", id)
     .limit(5);
 
@@ -153,21 +149,9 @@ export default async function UnderlineDetailPage({ params }: Props) {
         id: l.user!.id,
         username: l.user!.username,
         avatar_url: l.user!.avatar_url ?? undefined,
-        tags: l.user!.tags ?? [],
         occupation: l.user!.occupation ?? undefined,
       }));
   }
-
-  const tagFrequency: Record<string, number> = {};
-  sympathizers.forEach((u) => {
-    (u.tags ?? []).forEach((tag) => {
-      tagFrequency[tag] = (tagFrequency[tag] ?? 0) + 1;
-    });
-  });
-  const commonTags = Object.entries(tagFrequency)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3)
-    .map(([tag]) => tag);
 
   const occupationFrequency: Record<string, number> = {};
   sympathizers.forEach((u) => {
@@ -238,14 +222,6 @@ export default async function UnderlineDetailPage({ params }: Props) {
                 <span className="text-xs text-[var(--color-ink-faint)] ml-2">+{extraCount}명</span>
               )}
             </div>
-            {commonTags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-2">
-                <span className="text-xs text-[var(--color-ink-muted)] mr-1">닮은 독자</span>
-                {commonTags.map((tag) => (
-                  <TagBadge key={tag} label={tag} />
-                ))}
-              </div>
-            )}
             {commonOccupations.length > 0 && (
               <p className="text-xs text-[var(--color-ink-faint)]">
                 {commonOccupations.join(" · ")}

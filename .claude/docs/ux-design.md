@@ -81,6 +81,7 @@ BottomNav 4탭: **홈(/) · 피드(/feed) · 책(/books) · 내 프로필**
 | TagBadge | components/ui/TagBadge.tsx | 취향 태그 |
 | **Alert** | **components/ui/Alert.tsx** | **경고·안내·성공 메시지 — 반드시 이걸 사용** |
 | ImageCropRotate | components/features/ImageCropRotate.tsx | 사진 업로드 후 영역 크롭 + 90도 회전 편집 |
+| TasteProfile | components/features/TasteProfile.tsx | 행동 기반 취향 성향 표시 — 자주 멈추는 주제(태그) + 선호 장르 |
 | TextHighlighter | (미구현) | 밑줄 선택 UI |
 
 ## 카드 테마 시스템
