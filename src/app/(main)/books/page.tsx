@@ -64,7 +64,9 @@ function aggregateBooks(rows: UnderlineRow[]): BookSummary[] {
   for (const row of rows) {
     if (!row.book) continue;
 
-    const existing = bookMap.get(row.book_id);
+    // 같은 책이 ISBN이 다른 판본으로 여러 번 등록될 수 있으므로 title+author로 dedup
+    const dedupeKey = `${row.book.title}__${row.book.author}`;
+    const existing = bookMap.get(dedupeKey);
     const reader = row.user
       ? { username: row.user.username, avatar_url: row.user.avatar_url ?? undefined }
       : null;
@@ -78,7 +80,7 @@ function aggregateBooks(rows: UnderlineRow[]): BookSummary[] {
       existing.totalLikes += row.like_count;
       if (reader) existing.readers.set(reader.username, reader);
     } else {
-      bookMap.set(row.book_id, {
+      bookMap.set(dedupeKey, {
         book: {
           id: row.book.id,
           title: row.book.title,
@@ -128,7 +130,7 @@ export default async function BooksPage() {
       .select("id, content, like_count, book_id, user:users!underlines_user_id_fkey(username, avatar_url), book:books(id, title, author, publisher, cover_url)")
       .eq("is_public", true)
       .order("like_count", { ascending: false })
-      .limit(300);
+      .limit(2000);
 
     if (error || !data || data.length === 0) {
       if (error) console.error("[books] supabase error:", error);
