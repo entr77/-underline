@@ -161,24 +161,26 @@ export default function ProfileUnderlineTabs({ underlines, isOwnProfile, savedUn
               <p className="text-[var(--color-ink-muted)]">밑줄 친 책이 없어요</p>
             </div>
           ) : (
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-4 gap-x-3 gap-y-4">
               {books.map((book) => (
-                <Link key={book.id} href={`/book/${book.id}`} className="flex flex-col gap-1">
+                <Link key={book.id} href={`/book/${book.id}`} className="flex flex-col gap-1.5">
                   <div
-                    className="relative rounded overflow-hidden bg-[var(--color-cream-dark)] border border-[var(--color-border)]"
+                    className="relative rounded-md bg-[var(--color-cream-dark)] border border-[var(--color-border)] flex items-center justify-center p-1.5"
                     style={{ aspectRatio: "2/3" }}
                   >
                     {book.cover_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={book.cover_url} alt={book.title} className="w-full h-full object-contain" />
+                      <img
+                        src={book.cover_url}
+                        alt={book.title}
+                        className="w-full h-full object-contain drop-shadow-sm"
+                      />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center p-1.5">
-                        <p className="text-[9px] text-[var(--color-ink-faint)] text-center leading-snug line-clamp-4">
-                          {book.title}
-                        </p>
-                      </div>
+                      <p className="text-[9px] text-[var(--color-ink-faint)] text-center leading-snug line-clamp-4">
+                        {book.title}
+                      </p>
                     )}
-                    <span className="absolute bottom-1 right-1 bg-black/60 text-white text-[8px] font-semibold px-1 py-0.5 rounded-full backdrop-blur-sm">
+                    <span className="absolute bottom-1 right-1 bg-black/50 text-white text-[8px] font-semibold px-1 py-0.5 rounded-full backdrop-blur-sm">
                       {book.count}
                     </span>
                   </div>
