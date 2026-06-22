@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import UnderlineCard from "@/components/features/UnderlineCard";
+import ProfileUnderlineTabs from "@/components/features/ProfileUnderlineTabs";
 import TagBadge from "@/components/ui/TagBadge";
 import EditProfileForm from "@/components/features/EditProfileForm";
 import { createClient } from "@/lib/supabase/server";
@@ -129,14 +129,15 @@ export default async function ProfilePage({ params }: Props) {
       };
       isOwnProfile = currentUser?.id === userData.id;
 
-      const { data: ulData } = await supabase
+      const ulBase = supabase
         .from("underlines")
         .select(
           "id, content, page_number, image_url, card_style, book_display, card_bg, card_bg_url, card_font, card_align, card_valign, is_public, like_count, created_at, book:books(id, kakao_id, title, author, publisher, cover_url)"
         )
         .eq("user_id", userData.id)
-        .eq("is_public", true)
         .order("created_at", { ascending: false });
+
+      const { data: ulData } = await (isOwnProfile ? ulBase : ulBase.eq("is_public", true));
 
       if (ulData && ulData.length > 0) {
         const rows = ulData as unknown as SupabaseUnderlineRow[];
@@ -278,18 +279,7 @@ export default async function ProfilePage({ params }: Props) {
         <h2 className="text-xs tracking-widest text-[var(--color-ink-faint)] uppercase mb-3">
           {isOwnProfile ? "내가 멈춘 문장들" : "이 사람이 멈춘 문장들"}
         </h2>
-        {underlines.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 gap-2 bg-white rounded-2xl border border-[var(--color-border)]">
-            <p className="text-[var(--color-ink-muted)]">아직 아무도 멈추지 않았어요</p>
-            <p className="text-sm text-[var(--color-ink-faint)]">당신이 멈춘 문장이 첫 번째가 될 수 있어요</p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {underlines.map((u) => (
-              <UnderlineCard key={u.id} underline={u} />
-            ))}
-          </div>
-        )}
+        <ProfileUnderlineTabs underlines={underlines} isOwnProfile={isOwnProfile} />
       </div>
     </div>
   );

@@ -10,6 +10,7 @@ type Props = {
   underline: Underline;
   compact?: boolean;
   preview?: boolean;
+  showVisibility?: boolean;
 };
 
 function quoteTextSize(len: number, compact: boolean): string {
@@ -21,7 +22,7 @@ function quoteTextSize(len: number, compact: boolean): string {
 }
 
 
-export default function UnderlineCard({ underline, compact, preview }: Props) {
+export default function UnderlineCard({ underline, compact, preview, showVisibility }: Props) {
   const [drawn, setDrawn] = useState(!!preview);
   const cardRef = useRef<HTMLDivElement>(null);
 
@@ -111,7 +112,7 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
     const showAuthor = ["title-author", "full-author"].includes(bookDisplay);
     return (
       <div ref={cardRef}>
-        <article className="relative aspect-[3/4] rounded-xl overflow-hidden border border-[var(--color-border)]">
+        <article className="relative rounded-xl overflow-hidden border border-[var(--color-border)]" style={{ aspectRatio: '3/3.6' }}>
           {/* 배경 — 책표지 블러 다크 */}
           <div className="absolute inset-0 bg-[#0d0d0d]" />
           <div className="absolute inset-0" style={{
@@ -123,10 +124,14 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
           }} />
           <div className="absolute inset-0 bg-gradient-to-b from-black/15 to-black/60" />
 
+          {showVisibility && !underline.is_public && (
+            <span className="absolute top-2.5 right-2.5 z-10 text-[9px] font-medium px-2 py-0.5 rounded-full bg-black/50 text-white/80 backdrop-blur-sm">비공개</span>
+          )}
+
           {/* 컨텐츠 — flex column */}
-          <Link href={`/underline/${underline.id}`} className="absolute inset-0 flex flex-col py-6 px-5">
+          <Link href={`/underline/${underline.id}`} className="absolute inset-0 flex flex-col py-10 px-5">
             {/* 책 표지 이미지 — 컨테이너 고정 높이로 짤림 방지 */}
-            <div className="relative flex-shrink-0" style={{ height: "200px" }}>
+            <div className="relative flex-shrink-0" style={{ height: "155px" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={underline.book.cover_url}
@@ -206,6 +211,10 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
             sizes="(max-width: 430px) 100vw, 430px"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/92 via-black/60 to-black/10" />
+
+          {showVisibility && !underline.is_public && (
+            <span className="absolute top-2.5 right-2.5 z-10 text-[9px] font-medium px-2 py-0.5 rounded-full bg-black/50 text-white/80 backdrop-blur-sm">비공개</span>
+          )}
 
           <Link
             href={`/underline/${underline.id}`}
@@ -304,6 +313,10 @@ export default function UnderlineCard({ underline, compact, preview }: Props) {
       ) : (
         <div className="absolute inset-0 bg-[#1C1917]" />
       )}
+      {showVisibility && !underline.is_public && (
+        <span className={`absolute top-2.5 right-2.5 z-10 text-[9px] font-medium px-2 py-0.5 rounded-full backdrop-blur-sm ${isLightBg ? "bg-[var(--color-border)] text-[var(--color-ink-muted)]" : "bg-black/50 text-white/80"}`}>비공개</span>
+      )}
+
       {/* 인용문 — card_valign 따름 */}
       <Link
         href={`/underline/${underline.id}`}
