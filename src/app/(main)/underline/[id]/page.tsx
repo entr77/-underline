@@ -53,6 +53,7 @@ type SympathizerRow = {
     username: string;
     avatar_url: string | null;
     tags: string[];
+    occupation: string | null;
   } | null;
 };
 
@@ -61,6 +62,7 @@ type Sympathizer = {
   username: string;
   avatar_url: string | undefined;
   tags: string[];
+  occupation: string | undefined;
 };
 
 export default async function UnderlineDetailPage({ params }: Props) {
@@ -139,7 +141,7 @@ export default async function UnderlineDetailPage({ params }: Props) {
 
   const { data: likesData } = await supabase
     .from("likes")
-    .select(`user_id, user:users(id, username, avatar_url, tags)`)
+    .select(`user_id, user:users(id, username, avatar_url, tags, occupation)`)
     .eq("underline_id", id)
     .limit(5);
 
@@ -152,6 +154,7 @@ export default async function UnderlineDetailPage({ params }: Props) {
         username: l.user!.username,
         avatar_url: l.user!.avatar_url ?? undefined,
         tags: l.user!.tags ?? [],
+        occupation: l.user!.occupation ?? undefined,
       }));
   }
 
@@ -165,6 +168,17 @@ export default async function UnderlineDetailPage({ params }: Props) {
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3)
     .map(([tag]) => tag);
+
+  const occupationFrequency: Record<string, number> = {};
+  sympathizers.forEach((u) => {
+    if (u.occupation) {
+      occupationFrequency[u.occupation] = (occupationFrequency[u.occupation] ?? 0) + 1;
+    }
+  });
+  const commonOccupations = Object.entries(occupationFrequency)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 2)
+    .map(([occ]) => occ);
 
   const extraCount = Math.max(0, underline.like_count - sympathizers.length);
 
@@ -225,24 +239,55 @@ export default async function UnderlineDetailPage({ params }: Props) {
               )}
             </div>
             {commonTags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 mb-2">
                 <span className="text-xs text-[var(--color-ink-muted)] mr-1">닮은 독자</span>
                 {commonTags.map((tag) => (
                   <TagBadge key={tag} label={tag} />
                 ))}
               </div>
             )}
+            {commonOccupations.length > 0 && (
+              <p className="text-xs text-[var(--color-ink-faint)]">
+                {commonOccupations.join(" · ")}
+              </p>
+            )}
           </div>
         </section>
       )}
 
       <section>
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-xs tracking-widest text-[var(--color-ink-faint)] uppercase">같은 책, 다른 문장에서 멈춘 곳</h3>
-          <Link href={`/book/${underline.book.id}`} className="text-xs text-[var(--color-forest)] hover:underline">
-            책 전체 보기
-          </Link>
-        </div>
+        <h3 className="text-xs tracking-widest text-[var(--color-ink-faint)] uppercase mb-3">같은 책, 다른 문장에서 멈춘 곳</h3>
+        <Link
+          href={`/book/${underline.book.id}`}
+          className="flex items-center gap-4 bg-white rounded-2xl p-4 border border-[var(--color-border)] hover:border-[var(--color-forest)]/30 transition-colors"
+        >
+          {underline.book.cover_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={underline.book.cover_url}
+              alt={underline.book.title}
+              className="w-14 h-auto rounded object-contain flex-shrink-0 drop-shadow-sm"
+            />
+          ) : (
+            <div className="w-14 h-20 rounded bg-[var(--color-cream-dark)] flex items-center justify-center flex-shrink-0">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-[var(--color-ink-faint)]">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+              </svg>
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-sm text-[var(--color-ink)] leading-snug line-clamp-2">
+              {underline.book.title}
+            </p>
+            <p className="text-xs text-[var(--color-ink-muted)] mt-0.5">{underline.book.author}</p>
+            {underline.book.publisher && (
+              <p className="text-[11px] text-[var(--color-ink-faint)] mt-0.5">{underline.book.publisher}</p>
+            )}
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-[var(--color-ink-faint)] flex-shrink-0">
+            <path d="M9 18l6-6-6-6"/>
+          </svg>
+        </Link>
       </section>
     </div>
   );
