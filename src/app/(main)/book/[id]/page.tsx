@@ -4,12 +4,13 @@ import Link from "next/link";
 import BookCover from "@/components/ui/BookCover";
 import UnderlineCard from "@/components/features/UnderlineCard";
 import BookSortTabs from "@/components/features/BookSortTabs";
+import PageHeatmap from "@/components/features/PageHeatmap";
 import { createClient } from "@/lib/supabase/server";
 import type { Underline } from "@/types";
 
 type Props = {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ sort?: string }>;
+  searchParams: Promise<{ sort?: string; pg?: string }>;
 };
 
 type SupabaseUnderlineRow = {
@@ -47,8 +48,9 @@ type SupabaseBookRow = {
 
 export default async function BookDetailPage({ params, searchParams }: Props) {
   const { id } = await params;
-  const { sort } = await searchParams;
+  const { sort, pg } = await searchParams;
   const sortBy = sort === "page" ? "page" : "popular";
+  const selectedPage = pg ? Number(pg) : undefined;
 
   const supabase = await createClient();
 
@@ -109,7 +111,7 @@ export default async function BookDetailPage({ params, searchParams }: Props) {
       };
     });
 
-  // 페이지별 밀도 히트맵
+  // 페이지별 밀도 히트맵 (필터와 무관하게 전체 분포)
   const pageCounts: Record<number, number> = {};
   underlines.forEach((u) => {
     if (u.page_number) pageCounts[u.page_number] = (pageCounts[u.page_number] ?? 0) + 1;
@@ -118,6 +120,10 @@ export default async function BookDetailPage({ params, searchParams }: Props) {
     .map(([p, c]) => ({ page: Number(p), count: c }))
     .sort((a, b) => a.page - b.page);
   const maxCount = Math.max(...pageEntries.map((e) => e.count), 1);
+
+  const displayedUnderlines = selectedPage
+    ? underlines.filter((u) => u.page_number === selectedPage)
+    : underlines;
 
   const totalLikes = underlines.reduce((sum, u) => sum + u.like_count, 0);
 
@@ -167,19 +173,13 @@ export default async function BookDetailPage({ params, searchParams }: Props) {
       {pageEntries.length > 0 && (
         <div className="bg-white rounded-2xl p-4 border border-[var(--color-border)]">
           <p className="text-xs text-[var(--color-ink-faint)] mb-3">독자들이 가장 많이 멈춘 페이지</p>
-          <div className="flex gap-1 items-end h-8">
-            {pageEntries.map((e) => (
-              <div
-                key={e.page}
-                title={`p.${e.page} (${e.count}개)`}
-                className="flex-1 bg-[var(--color-forest)] rounded-sm opacity-70 min-w-[4px]"
-                style={{ height: `${(e.count / maxCount) * 100}%` }}
-              />
-            ))}
-          </div>
-          <p className="text-[10px] text-[var(--color-ink-faint)] mt-1.5">
-            p.{pageEntries[0].page} – p.{pageEntries[pageEntries.length - 1].page}
-          </p>
+          <Suspense>
+            <PageHeatmap
+              entries={pageEntries}
+              maxCount={maxCount}
+              selectedPage={selectedPage}
+            />
+          </Suspense>
         </div>
       )}
 
@@ -201,14 +201,20 @@ export default async function BookDetailPage({ params, searchParams }: Props) {
             <BookSortTabs />
           </Suspense>
         </div>
-        {underlines.length === 0 ? (
+        {displayedUnderlines.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 gap-2 bg-white rounded-2xl border border-[var(--color-border)]">
-            <p className="text-[var(--color-ink-muted)]">아직 아무도 이 책을 펼치지 않았어요</p>
-            <p className="text-sm text-[var(--color-ink-faint)]">당신이 멈춘 문장이 이 책의 첫 기록이 돼요</p>
+            {selectedPage ? (
+              <p className="text-[var(--color-ink-muted)]">p.{selectedPage}에는 아직 밑줄이 없어요</p>
+            ) : (
+              <>
+                <p className="text-[var(--color-ink-muted)]">아직 아무도 이 책을 펼치지 않았어요</p>
+                <p className="text-sm text-[var(--color-ink-faint)]">당신이 멈춘 문장이 이 책의 첫 기록이 돼요</p>
+              </>
+            )}
           </div>
         ) : (
           <div className="space-y-4">
-            {underlines.map((u) => (
+            {displayedUnderlines.map((u) => (
               <UnderlineCard key={u.id} underline={u} compact />
             ))}
           </div>
