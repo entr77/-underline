@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import ProfileUnderlineTabs from "@/components/features/ProfileUnderlineTabs";
+import TasteProfile from "@/components/features/TasteProfile";
 import TagBadge from "@/components/ui/TagBadge";
 import EditProfileForm from "@/components/features/EditProfileForm";
 import { createClient } from "@/lib/supabase/server";
@@ -98,6 +99,8 @@ export default async function ProfilePage({ params }: Props) {
   let uniqueBookCount = 0;
   let usingMock = false;
   let isOwnProfile = false;
+  let topTasteTags: string[] = [];
+  let topTasteGenres: string[] = [];
 
   try {
     const supabase = await createClient();
@@ -139,6 +142,31 @@ export default async function ProfilePage({ params }: Props) {
         avatar_url: userData.avatar_url ?? undefined,
       };
       isOwnProfile = currentUser?.id === userData.id;
+
+      const { data: rawTasteData } = await supabase
+        .from("user_taste_profiles")
+        .select("tag_scores, genre_scores, total_underlines, total_likes")
+        .eq("user_id", userData.id)
+        .single();
+
+      const tasteData = rawTasteData as unknown as {
+        tag_scores: Record<string, number>;
+        genre_scores: Record<string, number>;
+        total_underlines: number;
+        total_likes: number;
+      } | null;
+
+      const hasEnoughData = (tasteData?.total_underlines ?? 0) + (tasteData?.total_likes ?? 0) >= 5;
+      if (hasEnoughData && tasteData) {
+        topTasteTags = Object.entries(tasteData.tag_scores)
+          .sort(([, a], [, b]) => b - a)
+          .slice(0, 5)
+          .map(([tag]) => tag);
+        topTasteGenres = Object.entries(tasteData.genre_scores)
+          .sort(([, a], [, b]) => b - a)
+          .slice(0, 2)
+          .map(([genre]) => genre);
+      }
 
       const ulBase = supabase
         .from("underlines")
@@ -331,6 +359,8 @@ export default async function ProfilePage({ params }: Props) {
             ))}
           </div>
         )}
+
+        <TasteProfile topTags={topTasteTags} topGenres={topTasteGenres} />
 
         <div className="flex gap-6 mt-4 pt-4 border-t border-[var(--color-border)]">
           <div className="text-center">
