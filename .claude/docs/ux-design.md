@@ -72,7 +72,6 @@ BottomNav 4탭: **홈(/) · 피드(/feed) · 책(/books) · 내 프로필**
 | ShareCardButton | components/features/ShareCardButton.tsx | 밑줄 → 인스타 이미지 카드 생성/저장 |
 | LikeButton | components/features/LikeButton.tsx | 좋아요 토글 (optimistic update) |
 | DeleteUnderlineButton | components/features/DeleteUnderlineButton.tsx | 밑줄 삭제 (작성자 전용) |
-| FeedFilter | components/features/FeedFilter.tsx | 피드 태그 필터 |
 | BookSearchInput | components/features/BookSearchInput.tsx | 카카오 API 책 검색 |
 | BookCover | components/ui/BookCover.tsx | 책 표지 + fallback |
 | ProfileChip | components/ui/ProfileChip.tsx | 아바타 + 닉네임 |
