@@ -49,7 +49,6 @@ type SupabaseUnderlineWithUserRow = SupabaseUnderlineRow & {
     username: string;
     bio: string | null;
     avatar_url: string | null;
-    tags: string[];
   } | null;
 };
 
@@ -224,7 +223,7 @@ export default async function ProfilePage({ params }: Props) {
           const { data: savedData } = await supabase
             .from("underlines")
             .select(
-              "id, content, page_number, image_url, card_style, book_display, card_bg, card_bg_url, card_font, card_align, card_valign, is_public, like_count, created_at, book:books(id, kakao_id, title, author, publisher, cover_url), user:users!underlines_user_id_fkey(id, username, bio, avatar_url, tags)"
+              "id, content, page_number, image_url, card_style, book_display, card_bg, card_bg_url, card_font, card_align, card_valign, is_public, like_count, created_at, book:books(id, kakao_id, title, author, publisher, cover_url), user:users!underlines_user_id_fkey(id, username, bio, avatar_url)"
             )
             .in("id", likedIds)
             .eq("is_public", true)
@@ -254,7 +253,6 @@ export default async function ProfilePage({ params }: Props) {
                     username: row.user.username,
                     bio: row.user.bio ?? undefined,
                     avatar_url: row.user.avatar_url ?? undefined,
-                    tags: row.user.tags ?? [],
                   }
                 : { id: "unknown", username: "unknown" },
               book: row.book
