@@ -1,12 +1,31 @@
 """
-서식 2 구조로 사업계획서 DOCX 생성 v2 — AI 전략 + RAG + 수익화 업데이트
-다이어그램은 텍스트 박스 스타일 표로 구현 (HWP 호환성 최우선)
+서식 2 구조로 사업계획서 DOCX 생성 v3 — 다이어그램 3종 PNG 삽입
 """
 from docx import Document
 from docx.shared import Pt, Cm, RGBColor, Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
+import os
+
+DIAG = r'd:\dev\underline\.tmp\diagrams'
+
+def add_image(path, width_cm=15.5, caption=''):
+    if os.path.exists(path):
+        p = doc.add_paragraph()
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        run = p.add_run()
+        run.add_picture(path, width=Cm(width_cm))
+        if caption:
+            cp = doc.add_paragraph()
+            cp.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            cr = cp.add_run(caption)
+            cr.italic = True
+            cr.font.size = Pt(8)
+            cr.font.color.rgb = RGBColor(0x80, 0x80, 0x80)
+            cp.paragraph_format.space_after = Pt(6)
+    else:
+        add_body(f'[다이어그램 파일 없음: {path}]', italic=True)
 
 doc = Document()
 
@@ -305,17 +324,11 @@ add_h1('[ 추진 계획 ]')
 add_h2('⑦ AI 활용 아이템 소개 — Claude + 자체 RAG 이중 구조')
 
 add_body('핵심 전략: 데이터가 쌓일수록 Claude 의존도를 낮추고 자체 RAG로 전환한다', bold=True)
-
-# AI 전략 구조 다이어그램
-add_diagram_box([
-    '[ 현재: 데이터 축적기 ]          [ Phase 2~: RAG 전환기 ]          [ 장기: 자립기 ]',
-    '          │                                   │                               │',
-    '  Claude API 전담            Claude + pgvector RAG 병행          자체 RAG 주도',
-    '  OCR·분석·추천 모두          반복 쿼리 → RAG                    Claude는 보완 레이어',
-    '  Claude 처리                창의적 분석 → Claude               API 비용 70%↓',
-    '',
-    '  기술 기반: Supabase pgvector (이미 적용 가능한 확장 모듈) — 별도 인프라 추가 불필요',
-], title='AI 전략 로드맵 — Claude → 자체 RAG 단계적 전환')
+add_image(
+    os.path.join(DIAG, 'diagram_architecture.png'),
+    width_cm=15.5,
+    caption='[그림 1] 시스템 아키텍처 — Claude Vision + Supabase pgvector + 자체 RAG 이중 구조'
+)
 
 add_body('AI 기능 전체 맵', bold=True)
 add_table(
@@ -343,19 +356,11 @@ page_break()
 
 add_h2('⑧ AI활용 모델 구축 계획 (Phase별 상세)')
 
-# Phase 흐름 다이어그램
-add_diagram_box([
-    '  Phase 1 (1~2개월)           Phase 2 (3~4개월)            Phase 3 (5~6개월)',
-    '  ┌─────────────────┐         ┌─────────────────┐          ┌─────────────────┐',
-    '  │ AI 자동 분석 엔진 │────────▶│  RAG 구축 +     │─────────▶│  추천 엔진 +    │',
-    '  │                 │         │  책 요약표       │          │  수익화 연결    │',
-    '  │ ① 장르·태그 분류 │         │                 │          │                 │',
-    '  │ ② 유저 성향 분석 │         │ ① pgvector DB   │          │ ① AI 책 추천    │',
-    '  │ ③ 밑줄 클러스터링│         │ ② 취향 피드 개인화│         │ ② 인용문 추천   │',
-    '  └─────────────────┘         │ ③ 책 요약표 생성 │          │ ③ 어필리에이트  │',
-    '                              └─────────────────┘          └─────────────────┘',
-    '  기대효과: 태그입력 70%↓      기대효과: Claude비용 30%↓     기대효과: 첫 수익 실현',
-], title='Phase별 AI 구축 로드맵')
+add_image(
+    os.path.join(DIAG, 'diagram_gantt.png'),
+    width_cm=15.5,
+    caption='[그림 2] Phase별 개발 로드맵 간트 차트 (6개월)'
+)
 
 add_table(
     ['Phase', '기간', '핵심 개발 내용', '산출물', '기대효과'],
@@ -387,6 +392,12 @@ page_break()
 # ═══════════════════════════════════════════════════════════
 
 add_h2('⑨ AI 비즈니스 모델 개선 계획 — 등록 개수 제한 기반 프리미엄')
+
+add_image(
+    os.path.join(DIAG, 'diagram_funnel.png'),
+    width_cm=15.5,
+    caption='[그림 3] 수익화 퍼널 — 등록 개수 제한 기반 프리미엄 전환 구조'
+)
 
 add_table(
     ['기능', '무료 (월 10개 제한)', '프리미엄 (월 4,900원)'],
@@ -470,6 +481,6 @@ add_divider()
 add_note('마감: 2026년 7월 3일(금) 16시  ｜  신청: www.sbiz24.kr  ｜  사전 필수: edu.sbiz.or.kr AI학습관 강의 1개 수강 완료')
 
 # ─── 저장 ───────────────────────────────────────
-out_path = r'd:\dev\underline\grant-application-2026-v2.docx'
+out_path = r'd:\dev\underline\grant-application-2026-v3.docx'
 doc.save(out_path)
 print(f'저장 완료: {out_path}')
