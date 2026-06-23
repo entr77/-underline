@@ -481,6 +481,6 @@ add_divider()
 add_note('마감: 2026년 7월 3일(금) 16시  ｜  신청: www.sbiz24.kr  ｜  사전 필수: edu.sbiz.or.kr AI학습관 강의 1개 수강 완료')
 
 # ─── 저장 ───────────────────────────────────────
-out_path = r'd:\dev\underline\grant-application-2026-v3.docx'
+out_path = r'd:\dev\underline\grant-application-2026-v4.docx'
 doc.save(out_path)
 print(f'저장 완료: {out_path}')
