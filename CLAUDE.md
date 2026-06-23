@@ -6,6 +6,7 @@
 @.claude/docs/db-schema.md
 @.claude/docs/tech-stack.md
 @.claude/docs/marketing-research.md
+@.claude/docs/bizplan-2026-ai-support.md
 
 # 밑줄 (Underline) 프로젝트
 
