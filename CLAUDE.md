@@ -1,5 +1,6 @@
 @AGENTS.md
 @.claude/memory/MEMORY.md
+@.claude/docs/concept.md
 @.claude/docs/prd.md
 @.claude/docs/ux-design.md
 @.claude/docs/dev-routine.md
@@ -79,7 +80,10 @@ ANTHROPIC_API_KEY=
 | DB 스키마 | `.claude/docs/db-schema.md` | 테이블 구조, RLS, 트리거, 마이그레이션 |
 | 기술 스택 | `.claude/docs/tech-stack.md` | 기술 선택, 외부 API, 환경변수, 아키텍처 |
 | 개발 루틴 | `.claude/docs/dev-routine.md` | 작업 유형별 루틴, 금지 사항 |
+| **서비스 컨셉** | **`.claude/docs/concept.md`** | **서비스 본질, 유즈케이스, 커뮤니케이션 원칙 — 모든 문서의 기준점** |
 | 마케팅 리서치 | `.claude/docs/marketing-research.md` | SNS 독서 문화, 시장 분석 |
+| 지원사업계획서 초안 | `.claude/docs/grant-application-draft.md` | 2026 혁신 소상공인 AI 활용지원 사업 제출 초안 |
+| **수주 전략** | **`.claude/docs/grant-strategy-2026.md`** | **평가 항목별 점수 전략, 금지 표현, 타임라인, 제출 체크리스트** |
 
 **문서 업데이트 규칙:**
 - 기능 추가/변경 시 관련 문서를 코드와 함께 업데이트
