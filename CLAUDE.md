@@ -96,6 +96,7 @@ ANTHROPIC_API_KEY=
 | `reviewer` | `.claude/agents/reviewer.md` | 코드 리뷰, 보안 검토, RLS 검증 |
 | `marketer` | `.claude/agents/marketer.md` | 캠페인 설계, 유저 인사이트 분석, 그로스 전략 |
 | `legal` | `.claude/agents/legal.md` | 저작권·개인정보·이용약관·규제 준수 검토 |
+| `grant-expert` | `.claude/agents/grant-expert.md` | 정부 지원사업 공고 분석, 사업계획서 작성·검토 |
 
 ### 에이전트 작업 시작 전 체크
 1. `.claude/docs/` 관련 문서 최신 내용 확인
