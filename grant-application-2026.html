@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>밑줄(Underline) — 2026 혁신 소상공인 AI 활용지원 사업계획서</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Serif+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#F7F3EE; --cream-d:#EDE8E1;
+    --ink:#1C1917; --ink-m:#6B6560; --ink-f:#A8A29E;
+    --forest:#1E3A2F; --forest-l:#2D5A3D; --forest-ll:#4A7A5A;
+    --border:#E4DDD6; --hl:#FFF3B0;
+    --green-l:#E8F5E9; --yellow:#C8930B; --yellow-l:#FFF8E1; --blue:#3F6FB0;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{
+    font-family:'Noto Sans KR',sans-serif;
+    color:var(--ink); background:var(--cream-d);
+    line-height:1.6; font-size:10.5pt; letter-spacing:-0.01em;
+    padding:24px;
+  }
+  .serif{font-family:'Noto Serif KR',serif}
+
+  /* ===== A4 page ===== */
+  .page{
+    width:210mm; min-height:297mm;
+    margin:0 auto 22px; padding:18mm 16mm 14mm;
+    background:var(--cream);
+    box-shadow:0 8px 30px rgba(28,25,23,.14);
+    position:relative;
+    border:1px solid var(--border);
+  }
+  .page::after{
+    content:attr(data-page);
+    position:absolute; right:16mm; bottom:7mm;
+    font-size:8.5pt; color:var(--ink-f); letter-spacing:.04em;
+  }
+
+  /* ===== Cover ===== */
+  .cover{
+    background:linear-gradient(160deg,#22402F 0%,#16271D 60%,#101c15 100%);
+    color:#F7F3EE; border:none;
+    display:flex; flex-direction:column; justify-content:center;
+    padding:0 20mm;
+  }
+  .cover::after{color:rgba(247,243,238,.35)}
+  .cover .eyebrow{
+    font-size:11pt; letter-spacing:.32em; color:var(--forest-ll);
+    font-weight:700; margin-bottom:26px;
+  }
+  .cover .brand{
+    font-size:62pt; font-weight:700; line-height:1; letter-spacing:-.02em;
+    position:relative; display:inline-block; margin-bottom:6px;
+  }
+  .cover .brand .u{
+    background:linear-gradient(transparent 64%, rgba(255,243,176,.85) 64%);
+    padding:0 .06em;
+  }
+  .cover .brand-en{font-size:15pt; color:var(--forest-ll); letter-spacing:.28em; font-weight:500; margin-bottom:40px}
+  .cover .tagline{
+    font-family:'Noto Serif KR',serif; font-size:21pt; font-weight:500;
+    line-height:1.5; color:#fff; margin-bottom:46px;
+    border-left:3px solid var(--forest-ll); padding-left:20px;
+  }
+  .cover .tagline b{
+    background:linear-gradient(transparent 60%, rgba(255,243,176,.4) 60%);
+  }
+  .cover .doc-title{font-size:16pt; font-weight:700; margin-bottom:8px}
+  .cover .doc-sub{font-size:11pt; color:rgba(247,243,238,.7); line-height:1.9}
+  .cover .meta{
+    margin-top:auto; padding-top:34px; border-top:1px solid rgba(247,243,238,.18);
+    display:flex; gap:34px; flex-wrap:wrap; font-size:10pt; color:rgba(247,243,238,.85);
+  }
+  .cover .meta b{color:#fff; display:block; font-size:14pt; margin-bottom:2px}
+  .cover .meta .lab{font-size:8.5pt; color:var(--forest-ll); letter-spacing:.12em}
+
+  /* ===== headings ===== */
+  .page-banner{
+    display:flex; align-items:center; gap:12px;
+    margin-bottom:22px; padding-bottom:13px;
+    border-bottom:2px solid var(--forest);
+  }
+  .page-banner .num{
+    flex:none; width:34px; height:34px; border-radius:9px;
+    background:var(--forest); color:#fff; font-weight:700; font-size:14pt;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .page-banner .cat{font-size:8.5pt; color:var(--forest-l); font-weight:700; letter-spacing:.14em}
+  .page-banner .ttl{font-size:14pt; font-weight:700; line-height:1.25}
+
+  h3{
+    font-size:12pt; font-weight:700; color:var(--forest);
+    margin:20px 0 9px; display:flex; align-items:center; gap:8px;
+  }
+  .page > h3:first-of-type{margin-top:4px}
+  h3 .badge{
+    flex:none; width:23px; height:23px; border-radius:50%;
+    background:var(--forest); color:#fff; font-size:9.5pt; font-weight:700;
+    display:inline-flex; align-items:center; justify-content:center;
+  }
+  h4{font-size:10.5pt; font-weight:700; color:var(--ink); margin:14px 0 7px}
+  p{margin-bottom:9px}
+  p.lead{color:var(--ink-m)}
+  strong{font-weight:700; color:var(--ink)}
+
+  /* ===== quote / callout ===== */
+  .quote{
+    font-family:'Noto Serif KR',serif; font-size:11.5pt; font-weight:500;
+    color:var(--forest); background:rgba(30,58,47,.05);
+    border-left:3px solid var(--forest); border-radius:0 8px 8px 0;
+    padding:13px 16px; margin:12px 0;
+  }
+  .quote b{background:linear-gradient(transparent 58%, var(--hl) 58%); font-weight:700}
+  .note{
+    font-size:9.5pt; color:var(--ink-m); background:var(--yellow-l);
+    border:1px solid #EAD9A8; border-radius:8px; padding:10px 13px; margin:11px 0;
+  }
+  .note b{color:var(--yellow)}
+  .note::before{content:"➤ "; color:var(--yellow); font-weight:700}
+
+  /* ===== tables ===== */
+  table{
+    width:100%; border-collapse:collapse; margin:10px 0 12px;
+    font-size:9.5pt; background:#fff; border-radius:9px; overflow:hidden;
+    box-shadow:0 1px 0 var(--border);
+  }
+  thead th{
+    background:var(--forest); color:#fff; font-weight:600;
+    padding:8px 10px; text-align:left; font-size:9pt; letter-spacing:.01em;
+  }
+  tbody td,tbody th{padding:7px 10px; border-bottom:1px solid var(--border); vertical-align:top}
+  tbody tr:last-child td,tbody tr:last-child th{border-bottom:none}
+  tbody tr:nth-child(even){background:#FBF9F6}
+  tbody th{font-weight:600; text-align:left; background:var(--cream-d); color:var(--ink)}
+  td.c,th.c{text-align:center}
+  .hi td{background:rgba(255,243,176,.4)!important; font-weight:700}
+  .tot td,.tot th{background:var(--forest)!important; color:#fff!important; font-weight:700}
+  table .ok{color:var(--forest-l); font-weight:800}
+  table .no{color:var(--ink-f)}
+  table strong{color:var(--forest)}
+
+  /* ===== key metric strip ===== */
+  .kpis{display:grid; grid-template-columns:repeat(4,1fr); gap:9px; margin:12px 0}
+  .kpi{
+    background:#fff; border:1px solid var(--border); border-radius:10px;
+    padding:11px 12px; text-align:center;
+  }
+  .kpi .v{font-size:17pt; font-weight:900; color:var(--forest); line-height:1.1}
+  .kpi .v small{font-size:9pt; font-weight:700}
+  .kpi .l{font-size:8pt; color:var(--ink-m); margin-top:3px; letter-spacing:.02em}
+
+  /* ===== diagrams ===== */
+  .fig{
+    background:#fff; border:1px solid var(--border); border-radius:12px;
+    padding:16px; margin:12px 0;
+  }
+  .fig-cap{font-size:8.5pt; color:var(--ink-m); text-align:center; margin-top:9px; letter-spacing:.02em}
+
+  /* funnel */
+  .funnel{display:flex; flex-direction:column; align-items:center; gap:7px}
+  .funnel .row{
+    color:#fff; border-radius:8px; padding:10px 14px; text-align:center;
+    display:flex; flex-direction:column; gap:1px;
+  }
+  .funnel .row .t{font-weight:700; font-size:10pt}
+  .funnel .row .s{font-size:8.5pt; opacity:.85}
+  .funnel .a{width:100%; background:var(--forest-ll)}
+  .funnel .b{width:78%; background:var(--forest-l)}
+  .funnel .c{width:56%; background:var(--forest)}
+  .funnel .d{width:36%; background:var(--yellow)}
+  .funnel .arrow{color:var(--ink-f); font-size:9pt}
+
+  /* loop */
+  .loop{display:flex; flex-direction:column; gap:7px; margin:4px 0}
+  .loop .step{
+    display:flex; align-items:center; gap:11px;
+    background:var(--cream); border:1px solid var(--border); border-radius:9px; padding:9px 13px;
+  }
+  .loop .step .ic{
+    flex:none; width:26px; height:26px; border-radius:50%;
+    background:var(--forest); color:#fff; font-size:9pt; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .loop .step .tx{font-size:9.5pt}
+  .loop .step .tx b{color:var(--forest)}
+  .loop .down{text-align:center; color:var(--forest-ll); font-size:11pt; line-height:.4}
+
+  /* phase roadmap */
+  .roadmap{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+  .ph{border:1px solid var(--border); border-radius:11px; overflow:hidden; background:#fff}
+  .ph .hd{padding:9px 12px; color:#fff; font-weight:700}
+  .ph:nth-child(1) .hd{background:var(--forest-ll)}
+  .ph:nth-child(2) .hd{background:var(--forest-l)}
+  .ph:nth-child(3) .hd{background:var(--forest)}
+  .ph .hd small{display:block; font-weight:400; font-size:8pt; opacity:.85; margin-top:1px}
+  .ph .bd{padding:10px 12px; font-size:8.7pt; color:var(--ink-m)}
+  .ph .bd ul{list-style:none; margin:0 0 8px}
+  .ph .bd li{padding-left:13px; position:relative; margin-bottom:4px; line-height:1.45}
+  .ph .bd li::before{content:""; position:absolute; left:0; top:7px; width:5px; height:5px; border-radius:50%; background:var(--forest-ll)}
+  .ph .eff{font-size:8.3pt; color:var(--forest); background:var(--green-l); border-radius:6px; padding:5px 8px; font-weight:600}
+
+  /* architecture */
+  .arch{display:flex; flex-direction:column; gap:9px}
+  .arch .lane{display:flex; align-items:stretch; gap:9px}
+  .arch .tag{
+    flex:none; width:62px; border-radius:8px; display:flex; align-items:center; justify-content:center;
+    font-size:8pt; font-weight:700; color:#fff; text-align:center; line-height:1.2;
+  }
+  .arch .l-in .tag{background:var(--blue)}
+  .arch .l-ai .tag{background:var(--forest)}
+  .arch .l-db .tag{background:var(--forest-l)}
+  .arch .l-out .tag{background:var(--yellow)}
+  .arch .cells{flex:1; display:flex; gap:8px}
+  .arch .cell{
+    flex:1; background:var(--cream); border:1px solid var(--border); border-radius:8px;
+    padding:8px 9px; font-size:8.5pt; text-align:center;
+  }
+  .arch .cell b{display:block; color:var(--ink); font-size:9pt; margin-bottom:1px}
+  .arch .cell span{color:var(--ink-m); font-size:7.8pt}
+  .arch .flow{text-align:center; color:var(--forest-ll); font-size:12pt; line-height:.2; margin:-2px 0}
+
+  /* two-col */
+  .cols2{display:grid; grid-template-columns:1fr 1fr; gap:14px; align-items:start}
+
+  ul.clean{list-style:none; margin:6px 0 10px}
+  ul.clean li{padding-left:16px; position:relative; margin-bottom:5px; font-size:9.7pt}
+  ul.clean li::before{content:""; position:absolute; left:2px; top:8px; width:6px; height:6px; border-radius:2px; background:var(--forest)}
+  ul.clean li b{color:var(--forest)}
+
+  .checklist{background:rgba(30,58,47,.05); border:1px dashed var(--forest-l); border-radius:10px; padding:13px 16px; margin-top:14px}
+  .checklist h4{color:var(--forest); margin-top:0}
+  .checklist li{font-size:9pt; color:var(--ink-m); margin-bottom:4px; list-style:none; padding-left:18px; position:relative}
+  .checklist li::before{content:"☑"; position:absolute; left:0; color:var(--forest-l)}
+
+  /* why AI */
+  .why{display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin:10px 0 4px}
+  .why .c{
+    background:#fff; border:1px solid var(--border); border-radius:10px;
+    border-top:3px solid var(--forest); padding:11px 12px;
+  }
+  .why .c .ic{font-size:15pt; line-height:1; margin-bottom:6px}
+  .why .c b{display:block; color:var(--forest); font-size:9.7pt; margin-bottom:3px}
+  .why .c span{font-size:8.6pt; color:var(--ink-m); line-height:1.45}
+
+  /* AI cost-down */
+  .costdown{display:grid; grid-template-columns:1.05fr 1fr; gap:16px; align-items:center}
+  .cd-bars{display:flex; flex-direction:column; gap:9px}
+  .cd-row{display:flex; align-items:center; gap:9px; font-size:8.5pt}
+  .cd-row .stage{flex:none; width:58px; color:var(--ink-m); font-weight:600; text-align:right}
+  .cd-track{flex:1; height:21px; background:var(--cream-d); border-radius:5px; overflow:hidden; display:flex}
+  .cd-fill{height:100%; display:flex; align-items:center; padding-left:8px; color:#fff; font-weight:700; font-size:8pt; white-space:nowrap}
+  .cd-claude{background:var(--forest)}
+  .cd-rag{background:var(--forest-ll); color:#fff; opacity:.55}
+  .cd-row .pct{flex:none; width:30px; font-weight:800; color:var(--forest)}
+  .cd-levers{display:flex; flex-direction:column; gap:7px}
+  .cd-lever{display:flex; gap:9px; align-items:flex-start; background:var(--cream); border:1px solid var(--border); border-radius:8px; padding:8px 10px}
+  .cd-lever .k{flex:none; width:20px; height:20px; border-radius:5px; background:var(--forest); color:#fff; font-size:8pt; font-weight:700; display:flex; align-items:center; justify-content:center}
+  .cd-lever .t{font-size:8.6pt; line-height:1.4}
+  .cd-lever .t b{color:var(--forest); display:block; font-size:9pt}
+  .cd-lever .t .now{color:var(--forest-l); font-weight:700; font-size:7.6pt}
+
+  /* ===== phone mockups ===== */
+  .showcase-hd{text-align:center; margin-bottom:6px}
+  .showcase-hd .k{font-size:8.5pt; letter-spacing:.22em; color:var(--forest-l); font-weight:700}
+  .showcase-hd .t{font-family:'Noto Serif KR',serif; font-size:18pt; font-weight:600; color:var(--ink); margin-top:4px}
+  .showcase-hd .t b{background:linear-gradient(transparent 58%, var(--hl) 58%)}
+  .phones{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:14px 0 4px}
+  .pcol{display:flex; flex-direction:column; align-items:center}
+  .phone{
+    width:100%; max-width:185px; aspect-ratio:9/18.5; background:#14110f;
+    border-radius:26px; padding:7px; box-shadow:0 12px 26px rgba(28,25,23,.22); position:relative;
+  }
+  .phone .screen{background:var(--cream); border-radius:20px; height:100%; overflow:hidden; display:flex; flex-direction:column}
+  .phone .nbar{height:16px; display:flex; align-items:center; justify-content:center}
+  .phone .nbar::before{content:""; width:38px; height:4px; border-radius:3px; background:#14110f; opacity:.85}
+  .phone .top{display:flex; align-items:center; justify-content:space-between; padding:5px 11px 6px; border-bottom:1px solid var(--border)}
+  .phone .top .logo{font-family:'Noto Serif KR',serif; font-weight:700; font-size:10pt}
+  .phone .top .logo .u{background:linear-gradient(transparent 60%, var(--hl) 60%); padding:0 1px}
+  .phone .top .ic{color:var(--ink-f); font-size:8pt}
+  .phone .body{flex:1; padding:8px 9px; display:flex; flex-direction:column; gap:7px; overflow:hidden}
+  .phone .shot{width:100%; height:100%; object-fit:cover; object-position:top center; display:block}
+  .realbadge{display:inline-flex; align-items:center; gap:6px; font-size:8pt; font-weight:700; color:var(--forest);
+    background:rgba(30,58,47,.07); border:1px solid var(--forest-ll); border-radius:20px; padding:4px 12px; margin:8px auto 0}
+  .realbadge::before{content:""; width:7px; height:7px; border-radius:50%; background:#2ecc71; box-shadow:0 0 0 3px rgba(46,204,113,.2)}
+  .datawall{margin:16px 0 4px; border:1px solid var(--border); border-radius:12px; overflow:hidden; background:#fff}
+  .datawall img{width:100%; display:block; object-fit:cover; object-position:top; max-height:200px}
+  .datawall .dcap{display:flex; align-items:center; justify-content:space-between; padding:8px 13px; font-size:8.5pt; color:var(--ink-m); border-top:1px solid var(--border)}
+  .datawall .dcap b{color:var(--forest)}
+  .pcap{margin-top:10px; text-align:center}
+  .pcap .n{display:inline-flex; width:19px; height:19px; border-radius:50%; background:var(--forest); color:#fff; font-size:8.5pt; font-weight:700; align-items:center; justify-content:center; margin-bottom:5px}
+  .pcap b{display:block; font-size:9.7pt; color:var(--ink)}
+  .pcap span{font-size:8.4pt; color:var(--ink-m); line-height:1.4}
+
+  /* feed underline card (mini) */
+  .uc{background:#fff; border:1px solid var(--border); border-radius:11px; padding:9px 10px}
+  .uc .who{display:flex; align-items:center; gap:6px; margin-bottom:6px}
+  .av{flex:none; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:7pt}
+  .uc .who .av{width:18px; height:18px}
+  .uc .who .nm{font-size:7.6pt; font-weight:600; color:var(--ink)}
+  .uc .who .nm small{display:block; color:var(--ink-f); font-weight:400; font-size:6.5pt}
+  .uc .bar{width:34px; height:3px; border-radius:2px; background:#FDE047; opacity:.8; margin:0 0 5px}
+  .uc q{quotes:none; font-family:'Noto Serif KR',serif; font-size:8.6pt; line-height:1.5; color:var(--ink); display:block}
+  .uc q b{background:linear-gradient(transparent 58%, rgba(253,224,71,.45) 58%)}
+  .uc .meta{display:flex; align-items:center; justify-content:space-between; margin-top:7px; padding-top:6px; border-top:1px solid var(--border)}
+  .uc .bk{display:flex; align-items:center; gap:5px; font-size:6.8pt; color:var(--ink-m)}
+  .uc .bk .cov{width:13px; height:18px; border-radius:2px; background:var(--forest-l); flex:none}
+  .uc .lk{font-size:7pt; color:var(--ink-m)}
+  .uc .lk b{color:#c0392b}
+
+  /* book page photo */
+  .bookphoto{position:relative; flex:none; height:118px; border-radius:9px; overflow:hidden; background:#efe9df; border:1px solid var(--border); padding:11px 12px; display:flex; flex-direction:column; gap:4.5px; justify-content:center}
+  .bookphoto .ln{height:4px; border-radius:2px; background:#cfc6b8}
+  .bookphoto .ln.s{width:62%}
+  .bookphoto .ln.hl{background:rgba(253,224,71,.7); height:8px; box-shadow:0 0 0 2px rgba(253,224,71,.3)}
+  .bookphoto .chip{position:absolute; left:8px; bottom:8px; background:var(--forest); color:#fff; font-size:6.6pt; font-weight:600; padding:3px 7px; border-radius:20px; box-shadow:0 2px 6px rgba(0,0,0,.2)}
+  .detected{background:#fff; border:1px solid var(--forest-ll); border-radius:9px; padding:7px 9px}
+  .detected .lab{font-size:6.5pt; color:var(--forest-l); font-weight:700; letter-spacing:.04em; margin-bottom:3px}
+  .detected q{quotes:none; font-family:'Noto Serif KR',serif; font-size:8.4pt; line-height:1.45; color:var(--ink); display:block}
+  .detected .tags{display:flex; gap:4px; margin-top:5px}
+  .detected .tags span{font-size:6.3pt; background:rgba(30,58,47,.08); color:var(--forest); padding:2px 6px; border-radius:20px}
+
+  /* resonance */
+  .reso q{quotes:none; font-family:'Noto Serif KR',serif; font-size:10.5pt; line-height:1.5; color:var(--ink); display:block; padding:4px 2px 8px}
+  .reso q b{background:linear-gradient(transparent 56%, var(--hl) 56%)}
+  .reso .panel{background:#fff; border:1px solid var(--border); border-radius:11px; padding:9px 10px}
+  .reso .panel .h{font-size:8pt; font-weight:700; color:var(--forest); margin-bottom:7px}
+  .reso .avs{display:flex; margin-bottom:8px}
+  .reso .avs .av{width:23px; height:23px; border:2px solid var(--cream); margin-left:-7px; font-size:7.5pt}
+  .reso .avs .av:first-child{margin-left:0}
+  .reso .avs .more{width:23px; height:23px; border-radius:50%; background:var(--cream-d); color:var(--ink-m); font-size:7pt; font-weight:700; display:flex; align-items:center; justify-content:center; border:2px solid var(--cream); margin-left:-7px}
+  .reso .ctags{display:flex; flex-wrap:wrap; gap:4px}
+  .reso .ctags span{font-size:6.6pt; background:rgba(30,58,47,.08); color:var(--forest); padding:2px 7px; border-radius:20px}
+
+  /* share card gallery */
+  .gallery{display:grid; grid-template-columns:repeat(3,1fr); gap:11px; margin:12px 0 4px}
+  .scard{aspect-ratio:1/1; border-radius:11px; overflow:hidden; padding:13px 12px; display:flex; flex-direction:column; box-shadow:0 4px 12px rgba(28,25,23,.13); position:relative}
+  .scard .sq{font-family:'Noto Serif KR',serif; font-size:9pt; line-height:1.5; font-weight:500}
+  .scard .sbar{width:26px; height:3px; border-radius:2px; background:#FDE047; margin-bottom:7px}
+  .scard .sfoot{margin-top:auto; font-size:6.6pt; opacity:.8}
+  .scard .lbl{position:absolute; top:7px; right:8px; font-size:6pt; font-weight:700; letter-spacing:.08em; padding:2px 6px; border-radius:20px; background:rgba(255,255,255,.18)}
+  .sc-dark{background:#1C1917; color:#fff; justify-content:center}
+  .sc-paper{background:#F7F3EE; color:#1C1917; border-left:3px solid var(--forest); justify-content:center}
+  .sc-paper .lbl{background:rgba(0,0,0,.06); color:var(--ink-m)}
+  .sc-grad{background:linear-gradient(150deg,#1a1a2e,#16213e,#0f3460); color:#fff; text-align:center; justify-content:center; align-items:center}
+  .sc-photo{background:linear-gradient(160deg,#4a5a48,#23311f); color:#fff; justify-content:flex-end}
+  .sc-photo .sq{text-shadow:0 1px 4px rgba(0,0,0,.5)}
+  .galcap{text-align:center; font-size:8.5pt; color:var(--ink-m); margin-top:6px}
+
+  /* book cover element (CSS rendered) */
+  .cgrad-a{background:linear-gradient(155deg,#26375e 0%,#101a32 100%)}
+  .cgrad-b{background:linear-gradient(155deg,#3a6b4c 0%,#1f3a1d 100%)}
+  .cgrad-c{background:linear-gradient(155deg,#8a4438 0%,#3f1c18 100%)}
+  .bk2{position:relative; border-radius:2px 4px 4px 2px; box-shadow:0 5px 14px rgba(0,0,0,.4);
+    display:flex; flex-direction:column; justify-content:flex-end; padding:8px 8px 9px;
+    font-family:'Noto Serif KR',serif; color:#fff; overflow:hidden}
+  .bk2::before{content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:rgba(0,0,0,.22)}
+  .bk2::after{content:""; position:absolute; left:8px; right:8px; top:9px; height:1px; background:rgba(255,255,255,.25)}
+  .bk2 .bt{font-size:7.6pt; font-weight:700; line-height:1.25}
+  .bk2 .baa{font-size:5.6pt; opacity:.75; margin-top:2px}
+  .cvthumb{flex:none; width:19px; height:26px; border-radius:2px; box-shadow:0 2px 5px rgba(0,0,0,.35); position:relative}
+  .cvthumb::before{content:""; position:absolute; left:0; top:0; bottom:0; width:2.5px; background:rgba(0,0,0,.22)}
+  .sthumb{display:flex; align-items:center; gap:7px; margin-top:auto}
+  .sthumb .ti{font-size:6.6pt; line-height:1.3}
+  .sthumb .ti span{opacity:.65}
+
+  /* BOOK theme — blurred cover bg + featured cover */
+  .sc-book{background:#14110f; color:#fff; align-items:center; justify-content:center; gap:9px; overflow:hidden}
+  .sc-book::before{content:""; position:absolute; inset:-25%; background:linear-gradient(155deg,#3a4e7a,#1b2a4a); filter:blur(20px); opacity:.5}
+  .sc-book .feat{width:43%; aspect-ratio:3/4.4; z-index:1}
+  .sc-book .sq{font-size:7.7pt; text-align:center; position:relative; z-index:1; padding:0 4px}
+  .sc-book .sfoot{position:relative; z-index:1; text-align:center; width:100%}
+
+  /* PHOTO theme — real page photo background */
+  .sc-photo{padding:0; justify-content:flex-end; background:#ece5d8}
+  .sc-photo .pg{position:absolute; inset:0; padding:15px 16px; display:flex; flex-direction:column; gap:6px; justify-content:center}
+  .sc-photo .pg i{display:block; height:5px; border-radius:2px; background:#cfc6b6}
+  .sc-photo .pg i.s{width:58%}
+  .sc-photo .pg i.hl{background:rgba(253,224,71,.72); height:9px; box-shadow:0 0 0 2px rgba(253,224,71,.28)}
+  .sc-photo .ptx{position:relative; z-index:2; width:100%; padding:13px 12px 12px;
+    background:linear-gradient(transparent, rgba(18,16,14,.55) 35%, rgba(18,16,14,.9) 100%)}
+  .sc-photo .ptx .sq{text-shadow:0 1px 4px rgba(0,0,0,.5)}
+
+  /* SCENE theme — atmospheric photo (CSS) */
+  .sc-scene{color:#fff; text-align:center; align-items:center; justify-content:center;
+    background:radial-gradient(circle at 50% 26%, #e0bd8c 0%, #9c8468 20%, #4a5350 52%, #1d2624 100%)}
+  .sc-scene::after{content:""; position:absolute; inset:0; background:rgba(18,18,18,.26)}
+  .sc-scene .sq{position:relative; z-index:1; text-shadow:0 1px 6px rgba(0,0,0,.6)}
+
+  /* service value cards */
+  .svals{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:10px 0}
+  .sval{background:#fff; border:1px solid var(--border); border-radius:11px; padding:12px 13px}
+  .sval .ic{font-size:16pt; line-height:1; margin-bottom:7px}
+  .sval b{display:block; color:var(--forest); font-size:10pt; margin-bottom:4px}
+  .sval span{font-size:8.7pt; color:var(--ink-m); line-height:1.5}
+
+  /* same sentence, different readers */
+  .ssd{background:var(--cream); border:1px solid var(--border); border-radius:11px; padding:14px 16px; margin:12px 0}
+  .ssd .sent{font-family:'Noto Serif KR',serif; font-size:11.5pt; color:var(--ink); text-align:center; padding-bottom:11px; margin-bottom:11px; border-bottom:1px dashed var(--border)}
+  .ssd .sent b{background:linear-gradient(transparent 56%, var(--hl) 56%)}
+  .ssd .readers{display:grid; grid-template-columns:repeat(3,1fr); gap:11px}
+  .ssd .rd{display:flex; gap:8px; align-items:flex-start}
+  .ssd .rd .av{width:26px; height:26px; flex:none; font-size:8pt}
+  .ssd .rd .tx b{display:block; font-size:8.6pt; color:var(--ink)}
+  .ssd .rd .tx span{font-size:8pt; color:var(--ink-m); line-height:1.4}
+
+  /* prettier architecture */
+  .arch2{display:flex; flex-direction:column; gap:0; position:relative}
+  .alane{display:grid; grid-template-columns:74px 1fr; gap:11px; align-items:stretch}
+  .alane + .aflow{display:flex; justify-content:center; padding:5px 0; color:var(--forest-ll)}
+  .aflow svg{width:15px; height:15px}
+  .arail{border-radius:11px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; color:#fff; text-align:center; padding:9px 4px}
+  .arail .ai{font-size:14pt; line-height:1}
+  .arail .al{font-size:8pt; font-weight:700; letter-spacing:.02em}
+  .r-in{background:linear-gradient(160deg,#5681bd,#3f6fb0)}
+  .r-ai{background:linear-gradient(160deg,#2D5A3D,#1E3A2F)}
+  .r-db{background:linear-gradient(160deg,#3a6b4c,#2D5A3D)}
+  .r-out{background:linear-gradient(160deg,#d9a93a,#C8930B)}
+  .acells{display:grid; gap:8px; grid-auto-flow:column; grid-auto-columns:1fr}
+  .acell{background:#fff; border:1px solid var(--border); border-radius:10px; padding:8px 10px; display:flex; align-items:center; gap:8px; box-shadow:0 1px 0 var(--border)}
+  .acell .ce{font-size:13pt; flex:none}
+  .acell b{display:block; font-size:9pt; color:var(--ink); line-height:1.2}
+  .acell span{font-size:7.6pt; color:var(--ink-m)}
+
+  @media print{
+    .phone{box-shadow:0 4px 10px rgba(0,0,0,.15)}
+    body{background:#fff; padding:0}
+    .page{margin:0; box-shadow:none; border:none; width:auto; min-height:auto;
+      page-break-after:always; padding:14mm 14mm}
+    .page:last-child{page-break-after:auto}
+    @page{size:A4; margin:0}
+  }
+  @media(max-width:760px){
+    body{padding:8px}
+    .page{width:100%; padding:22px 16px}
+    .kpis,.roadmap,.cols2{grid-template-columns:1fr}
+    .cover .brand{font-size:46pt}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ COVER ============ -->
+<section class="page cover" data-page="표지">
+  <div class="eyebrow">2026 혁신 소상공인 AI 활용지원 사업</div>
+  <div class="brand serif"><span class="u">밑줄</span></div>
+  <div class="brand-en">U N D E R L I N E</div>
+  <div class="tagline serif">당신이 멈춘 문장,<br><b>누군가도 거기서 멈췄다.</b></div>
+  <div class="doc-title">AI 활용 사업계획서</div>
+  <div class="doc-sub">
+    종이책 독자의 밑줄을 Claude Vision AI로 기록하고,<br>
+    같은 문장에서 멈춘 독자들을 연결하는 소셜 독서 플랫폼 고도화
+  </div>
+  <div class="meta">
+    <div><span class="lab">신청유형</span><b>사업 고도화</b>수도권 권역</div>
+    <div><span class="lab">활용 AI</span><b>Claude</b>Vision · RAG</div>
+    <div><span class="lab">운영현황</span><b>6,227건</b>누적 밑줄 / 264권</div>
+    <div><span class="lab">총사업비</span><b>4,000만원</b>정부 3,200 + 자부담 800</div>
+  </div>
+</section>
+
+<!-- ============ SHOWCASE — 서비스 화면 ============ -->
+<section class="page" data-page="서비스 화면">
+  <div class="showcase-hd">
+    <div class="k">서비스 소개</div>
+    <div class="t serif">사진 한 장이 <b>하나의 연결</b>이 된다</div>
+  </div>
+  <p class="lead" style="text-align:center;max-width:80%;margin:6px auto 0">종이책을 읽다 밑줄 친 문장을 촬영하면, Claude AI가 문장과 책을 알아서 기록합니다. 그리고 <strong>같은 문장에서 멈춘 독자</strong>를 보여줍니다.</p>
+  <div style="text-align:center"><span class="realbadge">실제 운영 중인 서비스 화면 그대로 캡처</span></div>
+
+  <div class="phones">
+    <div class="pcol">
+      <div class="phone"><div class="screen">
+        <img class="shot" src="grant-assets/shot_new.png" alt="사진 한 장으로 밑줄 남기기">
+      </div></div>
+      <div class="pcap"><span class="n">1</span><b>사진 한 장으로 남긴다</b><span>책 페이지를 찍으면 AI가 밑줄·책을 자동 인식</span></div>
+    </div>
+
+    <div class="pcol">
+      <div class="phone"><div class="screen">
+        <img class="shot" src="grant-assets/shot_feed.png" alt="공개 밑줄 피드">
+      </div></div>
+      <div class="pcap"><span class="n">2</span><b>누군가의 밑줄이 흐른다</b><span>다른 독자들이 어디서 멈췄는지 보는 공개 피드</span></div>
+    </div>
+
+    <div class="pcol">
+      <div class="phone"><div class="screen">
+        <img class="shot" src="grant-assets/shot_ul.png" alt="밑줄 상세 + 공유 카드">
+      </div></div>
+      <div class="pcap"><span class="n">3</span><b>공유하고, 함께 멈춘다</b><span>공유 카드 + "같은 책, 다른 문장에서 멈춘 곳"</span></div>
+    </div>
+  </div>
+
+  <div class="datawall">
+    <img src="grant-assets/books.png" alt="실제 등록된 책 그리드">
+    <div class="dcap"><span>실제 등록 도서 화면 (/books) — 카카오 도서 API로 자동 인식</span><span><b>264권</b> · 누적 밑줄 <b>6,227건</b></span></div>
+  </div>
+
+  <h4 style="text-align:center;margin-top:18px">한 번의 밑줄이, SNS 콘텐츠가 된다 — 공유 카드 6종</h4>
+  <div class="gallery">
+    <div class="scard sc-book"><span class="lbl">BOOK</span>
+      <div class="bk2 cgrad-a feat"><div class="bt">밤은<br>노래한다</div><div class="baa">한 작가</div></div>
+      <div class="sq">결국 우리는 각자의 속도로 도착한다.</div>
+      <div class="sfoot">『밤은 노래한다』</div>
+    </div>
+    <div class="scard sc-dark"><span class="lbl">DARK</span>
+      <div class="sbar"></div>
+      <div class="sq">오늘은 그냥<br>멈춰도 되는 날.</div>
+      <div class="sthumb"><div class="cvthumb cgrad-b"></div><div class="ti">『천천히 걷는 법』<br><span>@jimin</span></div></div>
+    </div>
+    <div class="scard sc-photo"><span class="lbl">PHOTO</span>
+      <div class="pg"><i></i><i></i><i class="hl"></i><i></i><i class="s"></i></div>
+      <div class="ptx"><div class="sbar"></div><div class="sq">걷다 보면, 길이 된다.</div><div class="sfoot">— 직접 찍은 책 페이지</div></div>
+    </div>
+    <div class="scard sc-paper"><span class="lbl">PAPER</span>
+      <div class="sq">별은 어둠<br>속에서만 보인다.</div>
+      <div class="sthumb"><div class="cvthumb cgrad-a"></div><div class="ti">『밤은 노래한다』<br><span>밑줄 · @hauh</span></div></div>
+    </div>
+    <div class="scard sc-grad"><span class="lbl">GRADIENT</span><div class="sq">별은 어둠<br>속에서만 보인다.</div></div>
+    <div class="scard sc-scene"><span class="lbl">SCENE</span><div class="sq">어떤 기억은 시간이<br>지나도 흐려지지 않는다.</div></div>
+  </div>
+  <div class="galcap">책표지·페이지 사진이 그대로 카드가 되고, 앱 링크가 담겨 인스타·X로 퍼진다 — <strong>비용 0원의 바이럴 루프</strong></div>
+</section>
+
+<!-- ============ SHOWCASE — 서비스 관점 ============ -->
+<section class="page" data-page="서비스 관점">
+  <div class="showcase-hd">
+    <div class="k">서비스 관점</div>
+    <div class="t serif">왜 사람들은 <b>밑줄을 긋고, 공유할까</b></div>
+  </div>
+
+  <div class="svals">
+    <div class="sval"><div class="ic">✍️</div><b>기록 — 나를 드러낸다</b><span>"나는 이런 문장에 멈추는 사람." 밑줄은 가장 솔직한 자기 표현이다. (공유 동기 1위: 정체성 표현 68%)</span></div>
+    <div class="sval"><div class="ic">🤝</div><b>공명 — 혼자가 아니다</b><span>같은 문장에서 멈춘 사람을 보는 순간 외로움이 연결로 바뀐다. 밑줄만의 감정 경험.</span></div>
+    <div class="sval"><div class="ic">🔭</div><b>발견 — 나와 닮은 독자</b><span>나와 비슷한 곳에 밑줄 긋는 사람의 책장은, 다음 책을 고르는 가장 좋은 지도가 된다.</span></div>
+  </div>
+
+  <h4>같은 문장, 다른 독자 — "누가 멈췄는지"가 문장의 맥락이 된다</h4>
+  <div class="ssd">
+    <div class="sent">"<b>결국, 다시 시작하는 수밖에 없다.</b>"</div>
+    <div class="readers">
+      <div class="rd"><div class="av" style="background:#B07A4A">취</div><div class="tx"><b>취업준비생</b><span>"실패해도 괜찮다는 위로로 읽힌다."</span></div></div>
+      <div class="rd"><div class="av" style="background:#1E3A2F">C</div><div class="tx"><b>30년차 CEO</b><span>"재기의 결단으로 읽힌다."</span></div></div>
+      <div class="rd"><div class="av" style="background:#5681bd">작</div><div class="tx"><b>방송작가</b><span>"청중을 울릴 인용문으로 읽힌다."</span></div></div>
+    </div>
+  </div>
+  <div class="quote serif" style="margin-top:14px">편집자가 고른 명언 라이브러리는 세상에 많다. 하지만 <b>실제 독자들이 멈춘 문장에, 그 독자의 시선까지 붙은 라이브러리</b>는 아직 없다.</div>
+
+  <h4>서비스가 키울수록 함께 커지는 가치 — 데이터 네트워크 효과</h4>
+  <div class="cols2" style="grid-template-columns:175px 1fr;gap:18px">
+    <div class="pcol">
+      <div class="phone"><div class="screen">
+        <img class="shot" src="grant-assets/shot_book.png" alt="책별 페이지 히트맵">
+      </div></div>
+      <div class="pcap"><b>이미 구현된 히트맵</b><span>"독자가 가장 많이 멈춘 페이지" — 출판사 B2B 리포트의 원천 데이터</span></div>
+    </div>
+    <div>
+      <div class="loop">
+        <div class="step"><div class="ic">📷</div><div class="tx">독자가 늘어난다 → 각 문장에 <b>멈춘 사람들의 프로필</b>이 쌓인다</div></div>
+        <div class="down">▼</div>
+        <div class="step"><div class="ic">💎</div><div class="tx">문장마다 "<b>어떤 사람들이 여기서 멈췄나</b>"라는 맥락이 풍부해진다</div></div>
+        <div class="down">▼</div>
+        <div class="step"><div class="ic">🚀</div><div class="tx">맥락이 풍부할수록 추천·인용·발견의 가치가 커진다 → <b>더 많은 독자 유입</b></div></div>
+      </div>
+      <div class="note">단순한 문장 수집이 아니라 <b>독자의 시선이 누적되는 자산</b>이기에, 후발 주자가 데이터로 따라오기 어렵다.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PAGE 1 ============ -->
+<section class="page" data-page="1">
+  <div class="page-banner">
+    <div class="num">1</div>
+    <div>
+      <div class="cat">일반 현황 ①</div>
+      <div class="ttl">기업소개 · 지원동기 · 조직구성</div>
+    </div>
+  </div>
+
+  <h3><span class="badge">①</span> 기업 소개</h3>
+  <p>(주)얼리커뮤니케이션은 종이책 독자들의 밑줄 경험을 디지털화하는 소셜 독서 플랫폼 <strong>밑줄(Underline)</strong>을 운영합니다.</p>
+  <p class="lead">독자가 책을 읽다 형광펜·볼펜으로 표시한 문장을 <strong>사진 한 장</strong>으로 촬영하면, Claude Vision AI가 밑줄 친 문장과 책 정보를 자동 인식해 저장합니다. 저장된 문장은 소셜 피드로 공개되어 <strong>같은 문장에서 멈춘 독자들과 연결</strong>됩니다.</p>
+  <div class="quote serif">편집자가 고른 명언이 아닌, 실제 독자들이 읽다 멈춘 문장들의 집합 — <b>누가 멈췄는지가 그 문장의 맥락이 됩니다.</b></div>
+  <table>
+    <tbody>
+      <tr><th style="width:26%">서비스명</th><td>밑줄 (Underline)</td></tr>
+      <tr><th>핵심 AI</th><td>Claude Vision API (claude-sonnet-4-6)</td></tr>
+      <tr><th>운영 현황</th><td>MVP 프로덕션 운영 중 · 누적 밑줄 <strong>6,227건</strong> · 등록 도서 <strong>264권</strong></td></tr>
+      <tr><th>기술 스택</th><td>Next.js 15 · Supabase PostgreSQL · Vercel</td></tr>
+    </tbody>
+  </table>
+
+  <h3><span class="badge">②</span> 지원 동기</h3>
+  <h4>이미 검증된 Claude AI를 고도화합니다.</h4>
+  <p class="lead">Claude Vision API를 프로덕션에서 운영 중이며, 6,227건의 실사용 데이터로 핵심 파이프라인이 검증되었습니다. 이번 지원사업을 통해 현재 OCR·밑줄 감지에 집중된 AI 활용을 <strong>취향 분석 → 자동 태그 → 개인화 추천</strong>으로 확장합니다.</p>
+  <ul class="clean">
+    <li><b>Phase 1</b> — AI 자동 태그 → 사용자 입력 부담 70% 감소</li>
+    <li><b>Phase 2</b> — 취향 기반 피드 개인화 → 체류시간 향상</li>
+    <li><b>Phase 3</b> — AI 북 큐레이션 + 어필리에이트 → 첫 수익 실현</li>
+  </ul>
+
+  <h3><span class="badge">③</span> 조직 구성</h3>
+  <table>
+    <thead><tr><th style="width:26%">구분</th><th style="width:24%">역할</th><th>담당 업무</th></tr></thead>
+    <tbody>
+      <tr><th>대표 (1인)</th><td>개발·기획·운영</td><td>서비스 개발, Claude API 연동, 마케팅</td></tr>
+      <tr><th>채용 예정<br><small>(사업 완료 후)</small></th><td>마케팅 담당 1인</td><td>저자 파트너십, 북클럽 이벤트 운영</td></tr>
+    </tbody>
+  </table>
+  <div class="note">이미지 분석·책 정보 매칭·취향 집계·배포 자동화 완료. <b>Claude AI 자동화로 1인 운영 가능한 구조</b>를 구축했습니다.</div>
+</section>
+
+<!-- ============ PAGE 2 ============ -->
+<section class="page" data-page="2">
+  <div class="page-banner">
+    <div class="num">2</div>
+    <div>
+      <div class="cat">일반 현황 ②</div>
+      <div class="ttl">기업현황 · 사업내용 · AI활용현황</div>
+    </div>
+  </div>
+
+  <h3><span class="badge">④</span> 기업 현황</h3>
+  <table>
+    <tbody>
+      <tr><th style="width:26%">현재 매출</th><td>0원 (MVP 검증 단계)</td></tr>
+      <tr><th>실사용 데이터</th><td>누적 밑줄 <strong>6,227건</strong> · 등록 도서 264권 · 가입자 약 100명</td></tr>
+      <tr><th>AI 기술 지표</th><td>Claude Vision OCR 정확도 95%+ · 한국어 종이책 특화 파이프라인</td></tr>
+      <tr><th>지식재산권</th><td>출원 준비 중</td></tr>
+    </tbody>
+  </table>
+  <p class="lead">매출은 없으나 실사용 데이터 6,227건이 서비스 가치를 증명합니다. 본 사업 완료 후 6개월 내 프리미엄 구독 출시로 수익을 시작합니다.</p>
+
+  <h3><span class="badge">⑤</span> 사업 내용</h3>
+  <h4>시장성 — 행동은 있고 인프라가 없습니다</h4>
+  <div class="kpis">
+    <div class="kpi"><div class="v">1.19<small>억건</small></div><div class="l">#bookstagram 게시물</div></div>
+    <div class="kpi"><div class="v">2,000<small>억회</small></div><div class="l">BookTok 누적 조회</div></div>
+    <div class="kpi"><div class="v">15<small>만명</small></div><div class="l">서울국제도서전 방문</div></div>
+    <div class="kpi"><div class="v">1.6<small>조원</small></div><div class="l">한국 전자출판 매출</div></div>
+  </div>
+
+  <h4>경쟁력 — 세계에 없는 조합</h4>
+  <table>
+    <thead><tr><th>비교 항목</th><th class="c">명언앱/굿리즈</th><th class="c">Readwise<br><small>($9.99/월)</small></th><th class="c">밑줄 <small>(무료)</small></th></tr></thead>
+    <tbody>
+      <tr><th>종이책 지원</th><td class="c"><span class="no">✗</span></td><td class="c"><span class="no">✗</span></td><td class="c"><span class="ok">✓</span></td></tr>
+      <tr><th>한국어 특화</th><td class="c"><span class="no">✗</span></td><td class="c"><span class="no">✗</span></td><td class="c"><span class="ok">✓</span></td></tr>
+      <tr><th>소셜 레이어</th><td class="c"><span class="no">✗</span></td><td class="c"><span class="no">✗</span></td><td class="c"><span class="ok">✓</span></td></tr>
+      <tr class="hi"><th>문장 맥락<br><small>(독자 프로필)</small></th><td class="c"><span class="no">✗</span></td><td class="c"><span class="no">✗</span></td><td class="c"><span class="ok">✓</span></td></tr>
+    </tbody>
+  </table>
+  <div class="note">독자가 쌓일수록 각 문장에 붙는 "멈춘 독자들의 프로필"이 풍부해져 데이터 가치가 함께 커지는 <b>네트워크 효과</b>가 발생합니다.</div>
+
+  <h3><span class="badge">⑥</span> AI 활용 현황</h3>
+  <p class="lead">Claude Vision API(claude-sonnet-4-6)를 프로덕션에서 운영 중입니다.</p>
+  <table>
+    <thead><tr><th>AI 기능</th><th>역할</th><th class="c">누적 처리량</th></tr></thead>
+    <tbody>
+      <tr><th>OCR</th><td>책 페이지 전체 텍스트 추출</td><td class="c">6,227건</td></tr>
+      <tr><th>밑줄 감지</th><td>형광펜·볼펜·동그라미 자동 인식</td><td class="c">6,227건</td></tr>
+      <tr><th>책 식별</th><td>헤더/푸터 분석 → 카카오 도서 API 매칭</td><td class="c">264권</td></tr>
+    </tbody>
+  </table>
+  <p class="lead"><strong>단일 API 호출로 3가지 기능을 동시 처리</strong>(비용·속도 최적화). 이미 검증된 파이프라인 위에 이번 사업으로 취향 분석·추천 레이어를 추가합니다.</p>
+
+  <h4>왜 AI가 필수인가 — 사람·규칙으로는 불가능한 일</h4>
+  <div class="why">
+    <div class="c"><div class="ic">📖</div><b>종이책엔 텍스트가 없다</b><span>전자책과 달리 종이책 밑줄은 사진→AI OCR 없이는 텍스트화 자체가 불가능. AI가 서비스의 진입점.</span></div>
+    <div class="c"><div class="ic">🖍️</div><b>밑줄은 비정형이다</b><span>형광펜·볼펜·동그라미·괄호 등 표시가 제각각. 규칙 기반으론 못 잡고 Vision AI만 감지 가능.</span></div>
+    <div class="c"><div class="ic">🧭</div><b>맥락은 해석이다</b><span>문장의 감정·주제·독자 성향은 '분류'가 아닌 '이해'. LLM이 있어야 태그·추천·요약이 성립.</span></div>
+  </div>
+</section>
+
+<!-- ============ PAGE 3 ============ -->
+<section class="page" data-page="3">
+  <div class="page-banner">
+    <div class="num">3</div>
+    <div>
+      <div class="cat">추진 계획 ①</div>
+      <div class="ttl">AI 아이템 소개 · AI활용 모델 구축 계획</div>
+    </div>
+  </div>
+
+  <h3><span class="badge">⑦</span> AI 활용 아이템 소개</h3>
+  <div class="quote serif">독자가 멈춘 문장에서 그 사람의 취향을 읽는다 — <b>Claude + 자체 RAG 이중 구조</b></div>
+  <p class="lead">현재는 데이터 부족으로 Claude API가 모든 분석을 담당합니다. 밑줄·책·유저 데이터가 충분히 축적되면 <strong>자체 RAG(pgvector 기반 벡터 DB)</strong>로 단계적으로 전환해 비용을 낮추고 응답 품질을 높입니다.</p>
+
+  <div class="fig">
+    <div class="arch2">
+      <div class="alane">
+        <div class="arail r-in"><div class="ai">📷</div><div class="al">입력</div></div>
+        <div class="acells">
+          <div class="acell"><div class="ce">📖</div><div><b>책 페이지 사진</b><span>독자가 모바일로 촬영한 한 장</span></div></div>
+        </div>
+      </div>
+      <div class="aflow"><svg viewBox="0 0 16 16" fill="none"><path d="M8 1v13M3 9l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="alane">
+        <div class="arail r-ai"><div class="ai">🤖</div><div class="al">AI 분석</div></div>
+        <div class="acells">
+          <div class="acell"><div class="ce">👁️</div><div><b>Claude Vision</b><span>OCR·밑줄·책 식별</span></div></div>
+          <div class="acell"><div class="ce">🏷️</div><div><b>Claude 분석</b><span>장르·태그·성향</span></div></div>
+          <div class="acell"><div class="ce">🔎</div><div><b>pgvector RAG</b><span>유사 문장·독자</span></div></div>
+        </div>
+      </div>
+      <div class="aflow"><svg viewBox="0 0 16 16" fill="none"><path d="M8 1v13M3 9l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="alane">
+        <div class="arail r-db"><div class="ai">🗄️</div><div class="al">데이터</div></div>
+        <div class="acells">
+          <div class="acell"><div class="ce">💾</div><div><b>Supabase</b><span>밑줄·도서·행동 데이터</span></div></div>
+          <div class="acell"><div class="ce">🧬</div><div><b>취향 프로파일</b><span>user_taste_profiles</span></div></div>
+        </div>
+      </div>
+      <div class="aflow"><svg viewBox="0 0 16 16" fill="none"><path d="M8 1v13M3 9l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="alane">
+        <div class="arail r-out"><div class="ai">✨</div><div class="al">출력</div></div>
+        <div class="acells">
+          <div class="acell"><div class="ce">📰</div><div><b>개인화 피드</b><span>나와 닮은 독자의 밑줄</span></div></div>
+          <div class="acell"><div class="ce">📊</div><div><b>책 요약표</b><span>책별 밑줄 분석</span></div></div>
+          <div class="acell"><div class="ce">💬</div><div><b>인용문 추천</b><span>상황별 RAG</span></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="fig-cap">[그림 1] 시스템 아키텍처 — Claude AI에서 자체 RAG로 단계 전환</div>
+  </div>
+
+  <table>
+    <thead><tr><th>구분</th><th>현재 (고도화 전)</th><th>목표 (고도화 후)</th></tr></thead>
+    <tbody>
+      <tr><th>AI 구성</th><td>Claude API 전담</td><td><strong>Claude + 자체 RAG 병행</strong></td></tr>
+      <tr><th>장르·태그 분류</th><td>수동 입력</td><td>AI 자동 분류 → RAG 전환</td></tr>
+      <tr><th>유저 성향 분석</th><td>기초 행동 집계</td><td>직업·독서 패턴 심층 분석</td></tr>
+      <tr><th>동일 밑줄 분석</th><td>없음</td><td>pgvector 유사도 클러스터링</td></tr>
+      <tr><th>책 요약표</th><td>없음</td><td>AI가 책별 밑줄 전체 분석·요약</td></tr>
+      <tr><th>책 추천</th><td>없음</td><td>RAG + Claude → 다음 책 3권</td></tr>
+      <tr><th>상황별 인용문</th><td>없음</td><td>직업·상황 입력 → RAG 검색</td></tr>
+      <tr class="hi"><th>수익화</th><td>없음</td><td>등록 제한 + AI 기능 프리미엄</td></tr>
+    </tbody>
+  </table>
+
+  <h3><span class="badge">⑧</span> AI 활용 모델 구축 계획</h3>
+  <div class="fig">
+    <div class="roadmap">
+      <div class="ph">
+        <div class="hd">Phase 1<small>1~2개월 · AI 자동 분석 엔진</small></div>
+        <div class="bd">
+          <ul>
+            <li>밑줄 문장 → 장르·태그 자동 분류 (Claude)</li>
+            <li>유저 직업·독서 성향 심층 프로파일링</li>
+            <li>동일 밑줄 클러스터링 (pgvector)</li>
+          </ul>
+          <div class="eff">태그 입력 70%↓ · 유저 프로파일 자동화</div>
+        </div>
+      </div>
+      <div class="ph">
+        <div class="hd">Phase 2<small>3~4개월 · RAG + 책 요약표</small></div>
+        <div class="bd">
+          <ul>
+            <li>pgvector 자체 벡터 DB 구축</li>
+            <li>취향 기반 피드 개인화</li>
+            <li>책별 밑줄 자동 요약표 생성</li>
+          </ul>
+          <div class="eff">Claude 비용 30%↓ · 체류시간 향상</div>
+        </div>
+      </div>
+      <div class="ph">
+        <div class="hd">Phase 3<small>5~6개월 · 추천 + 수익화</small></div>
+        <div class="bd">
+          <ul>
+            <li>AI 책 추천 (히스토리 → 다음 책 3권)</li>
+            <li>상황별 인용문 추천 (RAG 검색)</li>
+            <li>인용 서비스·어필리에이트 연결</li>
+          </ul>
+          <div class="eff">CPS 수익 시작 · 프리미엄 전환 유도</div>
+        </div>
+      </div>
+    </div>
+    <div class="fig-cap">[그림 2] Phase별 AI 고도화 로드맵 (6개월)</div>
+  </div>
+  <div class="note"><b>기술 기반</b> — <code>user_taste_profiles</code> 테이블 이미 구축 완료. Supabase pgvector 확장으로 RAG 전환 시 인프라 추가 비용 최소화.</div>
+
+  <h4>AI 비용 절감 전략 — 데이터가 쌓일수록 Claude 의존도를 낮춘다</h4>
+  <div class="fig">
+    <div class="costdown">
+      <div class="cd-bars">
+        <div class="cd-row"><span class="stage">현재</span>
+          <div class="cd-track"><div class="cd-fill cd-claude" style="width:100%">Claude 100%</div></div>
+          <span class="pct">100</span></div>
+        <div class="cd-row"><span class="stage">Phase 2</span>
+          <div class="cd-track"><div class="cd-fill cd-claude" style="width:70%">Claude</div><div class="cd-fill cd-rag" style="width:30%">RAG</div></div>
+          <span class="pct">70</span></div>
+        <div class="cd-row"><span class="stage">Phase 3</span>
+          <div class="cd-track"><div class="cd-fill cd-claude" style="width:40%">Claude</div><div class="cd-fill cd-rag" style="width:60%">RAG</div></div>
+          <span class="pct">40</span></div>
+        <div class="fig-cap" style="text-align:left;margin-top:8px">전체 AI 처리 중 Claude API 호출 비중(%) — 반복 쿼리는 자체 RAG로 대체</div>
+      </div>
+      <div class="cd-levers">
+        <div class="cd-lever"><div class="k">1</div><div class="t"><b>단일 호출 통합 <span class="now">적용 완료</span></b>OCR·밑줄·책 식별을 1회 API 호출로 처리해 호출 수 2/3 절감</div></div>
+        <div class="cd-lever"><div class="k">2</div><div class="t"><b>캐싱 · 배치</b>동일 책·문장 분석 결과 재사용, 비동기 배치로 중복 호출 제거</div></div>
+        <div class="cd-lever"><div class="k">3</div><div class="t"><b>RAG 전환</b>유사 문장·독자 검색·추천은 pgvector 자체 처리 — Claude는 창의적 분석에만 사용</div></div>
+      </div>
+    </div>
+    <div class="fig-cap">[그림 3] AI 비용 절감 로드맵 — Phase 2에서 Claude 비용 30%↓ 목표</div>
+  </div>
+</section>
+
+<!-- ============ PAGE 4 ============ -->
+<section class="page" data-page="4">
+  <div class="page-banner">
+    <div class="num">4</div>
+    <div>
+      <div class="cat">추진 계획 ②</div>
+      <div class="ttl">비즈니스 모델 · 멘토링 · 자금 활용</div>
+    </div>
+  </div>
+
+  <h3><span class="badge">⑨</span> AI 비즈니스 모델 개선 계획</h3>
+  <h4>등록 개수 제한 기반 프리미엄 구조 (월 4,900원)</h4>
+  <table>
+    <thead><tr><th>기능</th><th class="c">무료</th><th class="c">프리미엄</th></tr></thead>
+    <tbody>
+      <tr class="hi"><th>월 밑줄 등록</th><td class="c">10개 제한</td><td class="c">무제한</td></tr>
+      <tr><th>소셜 피드·좋아요</th><td class="c"><span class="ok">✓</span></td><td class="c"><span class="ok">✓</span></td></tr>
+      <tr><th>공유 카드 테마</th><td class="c">기본 3종</td><td class="c">6종 + 워터마크 제거</td></tr>
+      <tr><th>AI 책 요약표</th><td class="c"><span class="no">✗</span></td><td class="c"><span class="ok">✓</span></td></tr>
+      <tr><th>AI 상황별 인용문 추천</th><td class="c"><span class="no">✗</span></td><td class="c"><span class="ok">✓</span></td></tr>
+      <tr><th>AI 취향 피드·책 추천</th><td class="c"><span class="no">✗</span></td><td class="c"><span class="ok">✓</span></td></tr>
+      <tr><th>인용 서비스 <small>(출처+독자 맥락)</small></th><td class="c"><span class="no">✗</span></td><td class="c"><span class="ok">✓</span></td></tr>
+    </tbody>
+  </table>
+  <div class="note"><b>전환 논리</b> — 월 10개는 2~3권 독자에게 충분 → 부담 없이 유입. 4권+·크리에이터는 자연스럽게 한도 도달 → "더 쓰고 싶어서" 결제. AI 기능이 추가될수록 프리미엄 가치가 명확해지는 구조.</div>
+
+  <div class="cols2">
+    <div>
+      <h4>수익 전환율 예측</h4>
+      <table>
+        <thead><tr><th>시점</th><th class="c">MAU</th><th class="c">전환</th><th class="c">월 수익</th></tr></thead>
+        <tbody>
+          <tr><th>6개월</th><td class="c">2,000</td><td class="c">6%</td><td class="c">58.8만</td></tr>
+          <tr><th>12개월</th><td class="c">12,000</td><td class="c">8%</td><td class="c">470만</td></tr>
+          <tr class="hi"><th>18개월</th><td class="c">30,000</td><td class="c">10%</td><td class="c">1,470만</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <h4>4단계 수익 구조</h4>
+      <div class="funnel">
+        <div class="row a"><div class="t">어필리에이트</div><div class="s">즉시 · 도서 CPS</div></div>
+        <div class="arrow">▼</div>
+        <div class="row b"><div class="t">프리미엄 구독</div><div class="s">6개월 · 월 4,900원</div></div>
+        <div class="arrow">▼</div>
+        <div class="row c"><div class="t">출판사 AI 리포트</div><div class="s">12개월 · B2B</div></div>
+        <div class="arrow">▼</div>
+        <div class="row d"><div class="t">큐레이션 API</div><div class="s">18개월</div></div>
+      </div>
+    </div>
+  </div>
+
+  <h3><span class="badge">⑩</span> 멘토링 활용 계획</h3>
+  <table>
+    <thead><tr><th style="width:38%">멘토링 항목</th><th>기대 내용</th></tr></thead>
+    <tbody>
+      <tr><th>Claude API 비용 최적화</th><td>호출 최소화·캐싱 설계 — 수익화 전 비용 관리 핵심</td></tr>
+      <tr><th>인용 서비스 저작권 범위</th><td>공정이용 기준, 출판사 협력 범위 검토</td></tr>
+      <tr><th>출판사 B2B 계약 구조</th><td>밑줄 데이터 리포트 상품화, 계약 조건 설계</td></tr>
+      <tr><th>프리미엄 전환율 전략</th><td>월 10개 제한 적정성, 전환 유도 UX 설계</td></tr>
+    </tbody>
+  </table>
+
+  <h3><span class="badge">⑪</span> 사업화 자금 활용 <small style="font-weight:400;color:var(--ink-m);font-size:9pt">— 총 4,000만원 (정부 3,200 + 자부담 800)</small></h3>
+  <table>
+    <thead><tr><th>항목</th><th class="c">금액</th><th class="c">비중</th><th>상세 내용</th></tr></thead>
+    <tbody>
+      <tr><th>AI 추천 엔진 개발</th><td class="c">1,600만</td><td class="c">40%</td><td>Phase 1~3 구현(자동 태그·취향 피드·북 큐레이션)</td></tr>
+      <tr><th>AI 운영 인프라</th><td class="c">800만</td><td class="c">20%</td><td>API 서버 인프라 구축, DB 확장, CDN</td></tr>
+      <tr><th>마케팅·홍보</th><td class="c">800만</td><td class="c">20%</td><td>저자(200)·북스타그래머(250)·북클럽(150)·콘텐츠(100)·광고(100)</td></tr>
+      <tr><th>UI/UX 고도화</th><td class="c">800만</td><td class="c">20%</td><td>모바일 UX 개선, 프리미엄 기능 구현</td></tr>
+      <tr class="tot"><th>합계</th><td class="c">4,000만</td><td class="c">100%</td><td>전액 자체 서비스 AI 활용모델 구현·고도화에 집행</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============ PAGE 5 ============ -->
+<section class="page" data-page="5">
+  <div class="page-banner">
+    <div class="num">5</div>
+    <div>
+      <div class="cat">추진 계획 ③</div>
+      <div class="ttl">성과 목표 및 향후 계획</div>
+    </div>
+  </div>
+
+  <h3><span class="badge">⑫</span> 성과 목표 및 향후 계획</h3>
+  <h4>KPI 목표</h4>
+  <table>
+    <thead><tr><th>지표</th><th class="c">현재</th><th class="c">6개월 목표</th><th class="c">12개월 목표</th></tr></thead>
+    <tbody>
+      <tr class="hi"><th>MAU</th><td class="c">~50명</td><td class="c">2,000명</td><td class="c">12,000명</td></tr>
+      <tr><th>누적 밑줄 수</th><td class="c">6,227개</td><td class="c">50,000개</td><td class="c">400,000개</td></tr>
+      <tr><th>누적 가입자</th><td class="c">~100명</td><td class="c">5,000명</td><td class="c">40,000명</td></tr>
+      <tr><th>공유 카드 생성</th><td class="c">—</td><td class="c">10,000장</td><td class="c">100,000장</td></tr>
+      <tr class="hi"><th>유료 구독자</th><td class="c">0명</td><td class="c">120명</td><td class="c">960명</td></tr>
+      <tr><th>월 수익</th><td class="c">0원</td><td class="c">588,000원</td><td class="c">4,704,000원</td></tr>
+    </tbody>
+  </table>
+
+  <div class="cols2">
+    <div>
+      <h4>단계별 향후 계획</h4>
+      <table>
+        <tbody>
+          <tr><th style="width:42%">수익화 시작<br><small>사업 완료 직후</small></th><td>프리미엄 구독 + 도서 어필리에이트 출시</td></tr>
+          <tr><th>마케팅 채용<br><small>완료 후 3개월</small></th><td>저자 파트너십·북클럽 전담</td></tr>
+          <tr><th>출판사 B2B<br><small>완료 후 12개월</small></th><td>밑줄 데이터 리포트 상품화</td></tr>
+          <tr><th>투자 유치 준비<br><small>완료 후 18개월</small></th><td>MAU 3만·유료 3천 달성 후</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <h4>바이럴 루프 — 마케팅 비용 최소화</h4>
+      <div class="loop">
+        <div class="step"><div class="ic">📷</div><div class="tx">사진 촬영 → <b>Claude AI 자동 인식</b> → 밑줄 저장</div></div>
+        <div class="down">▼</div>
+        <div class="step"><div class="ic">💬</div><div class="tx"><b>"같은 문장에서 멈춘 N명"</b> 공명 경험</div></div>
+        <div class="down">▼</div>
+        <div class="step"><div class="ic">🔗</div><div class="tx">공유 카드 → 인스타 업로드 → 신규 가입 <b>(반복)</b></div></div>
+      </div>
+    </div>
+  </div>
+
+  <h4>핵심 마케팅 채널</h4>
+  <table>
+    <thead><tr><th style="width:24%">채널</th><th>방식</th><th>선정 이유</th></tr></thead>
+    <tbody>
+      <tr><th>저자 파트너십</th><td>"내 책 밑줄 데이터" 무료 제공 → SNS 홍보</td><td>저자 팬덤 자동 유입</td></tr>
+      <tr><th>북클럽·독서 모임</th><td>모임 체험 → 밑줄 공유 → 피드 형성</td><td>타겟 집결, 높은 전환율</td></tr>
+      <tr><th>북스타그래머</th><td>체험 기반 콘텐츠 협업</td><td>팔로워 신뢰 연결</td></tr>
+    </tbody>
+  </table>
+
+  <div class="checklist">
+    <h4>제출 전 최종 체크리스트</h4>
+    <ul>
+      <li>사업계획서 5페이지 이내 확인</li>
+      <li>edu.sbiz.or.kr AI학습관 강의 1개 수강 완료</li>
+      <li>sbiz24.kr 임시저장 → 최종 확인 후 신청완료 (제출 후 수정 불가)</li>
+      <li>마감 2026년 7월 3일(금) 16시 — <strong>7월 1일 제출 목표</strong></li>
+    </ul>
+  </div>
+</section>
+
+</body>
+</html>
