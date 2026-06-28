@@ -67,6 +67,34 @@ const MOCK_FEED: Underline[] = [
   },
 ];
 
+function hashId(id: string): number {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) {
+    h = ((h << 5) - h + id.charCodeAt(i)) | 0;
+  }
+  return Math.abs(h);
+}
+
+type FeedPreset = {
+  card_bg: "cover" | "color";
+  card_bg_url?: string;
+  card_align: "left" | "center" | "right";
+  card_valign: "top" | "center" | "bottom";
+  card_animation: "draw" | "svg" | "highlight";
+};
+
+// card_bg가 DB에 null인 포스트(스타일 미설정)에만 적용되는 피드 다양성 프리셋
+const FEED_PRESETS: FeedPreset[] = [
+  // 책표지 다크 — cover_url 있으면 세로 판형, 없으면 다크 스퀘어
+  { card_bg: "cover", card_align: "center", card_valign: "bottom", card_animation: "draw" },
+  // 페이퍼 — 크림 라이트, 좌정렬 + 하이라이트 애니메이션
+  { card_bg: "color", card_bg_url: "#F7F3EE", card_align: "left", card_valign: "center", card_animation: "highlight" },
+  // 그라디언트 — 딥 네이비, 중앙 + 웨이브 언더라인
+  { card_bg: "color", card_bg_url: "linear-gradient(135deg, #1a1a2e 0%, #16213e 55%, #0f3460 100%)", card_align: "center", card_valign: "center", card_animation: "svg" },
+  // 책표지 다크 — 좌정렬 변형
+  { card_bg: "cover", card_align: "left", card_valign: "center", card_animation: "draw" },
+];
+
 type SupabaseUnderlineRow = {
   id: string;
   content: string;
@@ -102,6 +130,11 @@ type SupabaseUnderlineRow = {
 };
 
 function rowToUnderline(row: SupabaseUnderlineRow, likedIds: Set<string>): Underline {
+  // card_bg가 null이면 (명시적 스타일 미설정) ID 해시 기반으로 다채로운 프리셋 적용
+  const preset: FeedPreset | null = !row.card_bg
+    ? FEED_PRESETS[hashId(row.id) % FEED_PRESETS.length]
+    : null;
+
   return {
     id: row.id,
     content: row.content,
@@ -109,12 +142,12 @@ function rowToUnderline(row: SupabaseUnderlineRow, likedIds: Set<string>): Under
     image_url: row.image_url ?? undefined,
     card_style: (row.card_style ?? "text") as import("@/types").CardStyle,
     book_display: (row.book_display ?? "full") as import("@/types").BookDisplay,
-    card_bg: (row.card_bg ?? "cover") as import("@/types").CardBg,
-    card_bg_url: row.card_bg_url ?? undefined,
+    card_bg: (row.card_bg ?? preset?.card_bg ?? "cover") as import("@/types").CardBg,
+    card_bg_url: row.card_bg_url ?? preset?.card_bg_url ?? undefined,
     card_font: (row.card_font ?? "serif") as import("@/types").CardFont,
-    card_align: (row.card_align ?? "center") as import("@/types").CardAlign,
-    card_valign: (row.card_valign ?? "bottom") as import("@/types").CardVAlign,
-    card_animation: (row.card_animation ?? "draw") as import("@/types").CardAnimation,
+    card_align: (row.card_align ?? preset?.card_align ?? "center") as import("@/types").CardAlign,
+    card_valign: (row.card_valign ?? preset?.card_valign ?? "bottom") as import("@/types").CardVAlign,
+    card_animation: (row.card_animation ?? preset?.card_animation ?? "draw") as import("@/types").CardAnimation,
     tags: row.tags ?? [],
     is_public: row.is_public,
     like_count: row.like_count,

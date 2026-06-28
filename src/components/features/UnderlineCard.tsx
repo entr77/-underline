@@ -313,6 +313,11 @@ export default function UnderlineCard({ underline, compact, preview, showVisibil
       ) : (
         <div className="absolute inset-0 bg-[#1C1917]" />
       )}
+      {/* 페이퍼 카드 좌측 포레스트 액센트 */}
+      {isLightBg && (
+        <div className="absolute inset-y-6 left-0 w-[3px] bg-[var(--color-forest)] rounded-r" />
+      )}
+
       {showVisibility && !underline.is_public && (
         <span className={`absolute top-2.5 right-2.5 z-10 text-[9px] font-medium px-2 py-0.5 rounded-full backdrop-blur-sm ${isLightBg ? "bg-[var(--color-border)] text-[var(--color-ink-muted)]" : "bg-black/50 text-white/80"}`}>비공개</span>
       )}
